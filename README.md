@@ -1,29 +1,24 @@
-# YK Portfolio
+# YK Web
 
-Personal portfolio website for **YK / Y Kroon Industrial Development & Operations**.
+Portfolio website for **YK / Y Kroon Industrial Development & Operations**.
 
-## Structure
+## Website
 
-The site contains:
+The current website is contained in `index.html` and is ready for static hosting with GitHub Pages.
 
-- About
-- Capabilities
-- Workshop / Prototyping
-- Selected Work / Portfolio
-- Interactive spatial project archive
+## GitHub Pages
+
+Publishing source:
+
+- Branch: `main`
+- Folder: `/(root)`
+
+Once GitHub Pages is enabled for this repository, the site will be available at:
+
+https://youpkroon.github.io/yk-web/
 
 ## Workflow
 
-The website is developed iteratively with ChatGPT.
+Website changes can be committed directly to this repository. GitHub Pages will then publish the newest version automatically.
 
-Changes should be made to the working website version and then committed here, so this repository stays the shared source of truth.
-
-The current published entry point is `index.html`. The generated site content is stored in `site/`.
-
-## Hosting
-
-This repository is prepared for static hosting. A live preview can be connected through GitHub Pages, Vercel, Netlify, or another static host.
-
-## Ownership
-
-© Y Kroon. Portfolio content and project material are not intended for reuse without permission.
+© Y Kroon.
