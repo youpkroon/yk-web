@@ -2,11 +2,9 @@
 
 Personal portfolio website for **YK / Y Kroon Industrial Development & Operations**.
 
-## Purpose
+## Structure
 
-This repository contains the source for the new portfolio website currently being developed with ChatGPT.
-
-The site focuses on:
+The site contains:
 
 - About
 - Capabilities
@@ -14,11 +12,17 @@ The site focuses on:
 - Selected Work / Portfolio
 - Interactive spatial project archive
 
-## Development workflow
+## Workflow
 
-Website changes are developed iteratively with ChatGPT and committed to this repository.
+The website is developed iteratively with ChatGPT.
 
-The live website/domain setup will be added separately once the development version is ready.
+Changes should be made to the working website version and then committed here, so this repository stays the shared source of truth.
+
+The current published entry point is `index.html`. The generated site content is stored in `site/`.
+
+## Hosting
+
+This repository is prepared for static hosting. A live preview can be connected through GitHub Pages, Vercel, Netlify, or another static host.
 
 ## Ownership
 
