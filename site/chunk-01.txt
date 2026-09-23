@@ -369,6 +369,33 @@ body.is-scrolled .hero .topbar{
   .project-explorer{margin-left:-17px;margin-right:-17px}
 }
 
+
+/* Main navigation alignment / transparent scroll refinement */
+.hero .topbar,
+body.is-scrolled .hero .topbar{
+  background:transparent!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  border-bottom-color:transparent!important;
+  box-shadow:none!important;
+}
+.hero .nav .nav-item{
+  align-items:center;
+  justify-content:center;
+}
+.hero .nav .nav-symbol{
+  align-items:center;
+  justify-content:center;
+}
+.hero .nav .nav-item--about .nav-symbol img{
+  transform:translateY(-2px);
+}
+@media(max-width:700px){
+  .hero .nav .nav-symbol{width:24px;height:15px}
+  .hero .nav .nav-item--capabilities .nav-symbol{width:27px}
+  .hero .nav .nav-item--about .nav-symbol img{transform:translateY(-1.5px)}
+}
+
 </style>
 </head>
 <body>
