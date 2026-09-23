@@ -387,3 +387,299 @@ body.is-scrolled .hero .topbar{
   .hero .nav .nav-item--capabilities .nav-symbol{width:27px}
   .hero .nav .nav-item--about .nav-symbol img{transform:translateY(-1.5px)}
 }
+
+
+/* =========================================================
+   YK SECTION PALETTE + 2026 REFINEMENT
+   Keep colour intentional: red / green / blue, never everywhere.
+   ========================================================= */
+
+/* Hero: simple YK brand + discipline lockup */
+.hero h1.hero-title--yk{
+  max-width:none;
+  font-size:clamp(120px,18vw,290px);
+  line-height:.72;
+  letter-spacing:-.095em;
+  font-weight:600;
+}
+.hero-title--yk .hero-name{
+  display:block;
+  font-size:1em;
+  line-height:.72;
+  letter-spacing:-.095em;
+}
+.hero .hero-meta{
+  color:rgba(255,255,255,.9);
+}
+.hero-meta:before{
+  width:58px;
+  background:rgba(255,255,255,.44);
+}
+
+/* Navigation colour language */
+.hero .nav .nav-item::after{
+  height:2px;
+  width:var(--nav-line,20px);
+  left:calc(50% - (var(--nav-line,20px) / 2));
+  background:var(--nav-accent,#f04452);
+  border-radius:999px;
+}
+.hero .nav .nav-item--about{--nav-accent:#ef4b58;--nav-line:26px}
+.hero .nav .nav-item--capabilities{--nav-accent:#ef4b58;--nav-line:20px}
+.hero .nav .nav-item--workshop{--nav-accent:#4f9872;--nav-line:20px}
+.hero .nav .nav-item--work{--nav-accent:#4e8fd8;--nav-line:20px}
+.hero .nav .nav-item.is-active{opacity:1}
+.hero .nav .nav-item.is-active::after{transform:scaleX(1)}
+
+/* ABOUT — quiet, cool blue */
+.about-section{
+  background:
+    radial-gradient(900px 520px at 85% 14%,rgba(104,157,199,.16),transparent 70%),
+    linear-gradient(180deg,#f1f6f9 0%,#eaf1f6 100%);
+}
+.about-section .eyebrow{color:#607d94}
+.about-section .intro{color:#485d6d}
+.about-section .intro strong{font-weight:600;color:#17344c}
+.about-section .about-visual{
+  border-color:rgba(31,78,112,.14);
+  background:
+    radial-gradient(circle at 68% 26%,rgba(92,150,196,.23),transparent 32%),
+    linear-gradient(145deg,#dce9f1,#f2f7fa);
+}
+.about-section .about-visual:before,
+.about-section .about-visual:after{border-color:rgba(45,103,145,.16)}
+
+/* CAPABILITIES — this is the black/red section */
+.capabilities{
+  --accent:#ef4553;
+  background:
+    radial-gradient(900px 640px at 92% 12%,rgba(239,69,83,.08),transparent 68%),
+    #0b0c0e;
+}
+.capabilities .skill-num{color:#ef4553}
+.capabilities .skill-dot{background:#ef4553}
+.capabilities .pill{background:rgba(239,69,83,.025)}
+.capabilities .skill:hover{background:rgba(239,69,83,.035)}
+
+/* WORKSHOP — dark green, still restrained */
+.workshop-section{
+  --accent:#4f9872;
+  background:
+    radial-gradient(900px 580px at 10% 0%,rgba(74,142,104,.15),transparent 70%),
+    linear-gradient(180deg,#101b16 0%,#0b1511 100%);
+  color:#f1f5f2;
+  border-bottom-color:rgba(255,255,255,.08);
+}
+.workshop-section .eyebrow{color:#7fa48f}
+.workshop-section .intro{color:#a9bbb1}
+.workshop-section .work-card{
+  border-color:rgba(132,181,151,.16);
+  background:rgba(255,255,255,.025);
+  color:#f1f5f2;
+}
+.workshop-section .work-card:hover{
+  background:rgba(85,152,112,.09);
+  border-color:rgba(113,181,141,.28);
+}
+.workshop-section .work-card:before{
+  background:linear-gradient(135deg,transparent 48%,rgba(93,161,120,.12) 48%,rgba(93,161,120,.12) 48.35%,transparent 48.35%);
+}
+.workshop-section .work-card small,
+.workshop-section .image-note{color:#7fa48f}
+
+/* ARCHIVE — dark blue and calmer */
+.project-explorer-section{
+  --accent:#4e8fd8;
+  background:
+    radial-gradient(1100px 720px at 82% 5%,rgba(43,96,153,.16),transparent 70%),
+    linear-gradient(180deg,#081522 0%,#07111b 100%);
+  border-bottom-color:rgba(115,159,203,.11);
+}
+.project-explorer-section .eyebrow{color:#7898b5}
+.project-explorer-section .intro{color:#9fb3c5}
+.explorer-chrome{color:#7890a4}
+.canvas-archive .explorer-window,
+.explorer-window{
+  border-color:rgba(105,151,197,.14);
+  border-radius:24px;
+  background:
+    radial-gradient(900px 620px at 52% 42%,rgba(40,84,128,.11),transparent 70%),
+    linear-gradient(145deg,#091725 0%,#07131f 50%,#0a1825 100%);
+  box-shadow:0 26px 70px rgba(0,0,0,.20),inset 0 0 0 1px rgba(255,255,255,.012);
+}
+.canvas-archive .explorer-window:before{
+  background:radial-gradient(circle at center,transparent 58%,rgba(0,0,0,.08) 80%,rgba(0,0,0,.20) 100%);
+}
+.canvas-archive .explorer-window:after{
+  box-shadow:inset 0 0 0 1px rgba(111,161,208,.025);
+}
+.canvas-archive .explorer-window:focus-visible{
+  box-shadow:0 28px 78px rgba(0,0,0,.22),inset 0 0 0 1px rgba(78,143,216,.50);
+}
+.archive-help,
+.canvas-archive .explorer-pos{display:none!important}
+.canvas-archive .explorer-hint{
+  color:#91a9bd;
+  background:rgba(7,16,25,.58);
+  border-color:rgba(105,151,197,.13);
+}
+.canvas-archive .zoom-readout,
+.canvas-archive .explorer-tool{
+  background:rgba(7,16,25,.66);
+  border-color:rgba(105,151,197,.13);
+}
+.canvas-archive .explorer-tool:hover{
+  background:rgba(54,103,149,.18);
+  border-color:rgba(105,151,197,.28);
+}
+
+/* SECOND PROJECT VIEW — three draggable horizontal streams */
+.project-streams-section{
+  background:#0b1016;
+  color:#f3f5f6;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  overflow:hidden;
+}
+.project-streams-section .eyebrow{color:#75899c}
+.project-streams-section .intro{color:#98a8b6;max-width:760px}
+.project-streams{margin-top:clamp(54px,7vw,96px);display:grid;gap:42px}
+.project-stream{
+  padding-top:14px;
+  border-top:1px solid rgba(111,154,194,.16);
+}
+.project-stream-head{
+  display:grid;
+  grid-template-columns:44px minmax(0,1fr) auto;
+  align-items:baseline;
+  gap:18px;
+  margin-bottom:18px;
+  color:#8194a5;
+  font-size:8px;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+}
+.project-stream-head h3{
+  margin:0;
+  color:#f3f5f6;
+  font-size:clamp(20px,2.2vw,32px);
+  font-weight:500;
+  letter-spacing:-.04em;
+  text-transform:none;
+}
+.project-stream-track{
+  display:flex;
+  gap:14px;
+  overflow-x:auto;
+  overflow-y:hidden;
+  scrollbar-width:none;
+  cursor:grab;
+  scroll-snap-type:x proximity;
+  overscroll-behavior-inline:contain;
+  padding:2px max(var(--pad),calc((100vw - var(--max))/2 + var(--pad))) 16px 0;
+  margin-right:calc(var(--pad) * -1);
+  touch-action:pan-x;
+}
+.project-stream-track::-webkit-scrollbar{display:none}
+.project-stream-track.is-dragging{cursor:grabbing;scroll-snap-type:none}
+.stream-card{
+  flex:0 0 clamp(250px,26vw,410px);
+  min-height:clamp(210px,22vw,330px);
+  scroll-snap-align:start;
+  border:1px solid rgba(116,155,190,.14);
+  border-radius:20px;
+  padding:22px;
+  position:relative;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.012),rgba(255,255,255,.028)),
+    #101821;
+  transform:translate3d(var(--stream-from,80px),0,0);
+  opacity:0;
+  transition:transform 1.05s cubic-bezier(.16,1,.3,1),opacity .5s ease,border-color .28s ease,background .28s ease;
+}
+.project-stream-track--reverse .stream-card{--stream-from:-80px}
+.project-streams-section.is-built .stream-card{transform:none;opacity:1}
+.project-streams-section.is-built .stream-card:nth-child(2){transition-delay:.06s}
+.project-streams-section.is-built .stream-card:nth-child(3){transition-delay:.12s}
+.project-streams-section.is-built .stream-card:nth-child(4){transition-delay:.18s}
+.project-streams-section.is-built .stream-card:nth-child(5){transition-delay:.24s}
+.stream-card:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(90deg,transparent 0 72%,rgba(76,139,199,.08) 72% 72.35%,transparent 72.35%),
+    radial-gradient(520px 300px at 88% 14%,rgba(59,115,171,.11),transparent 68%);
+  pointer-events:none;
+}
+.stream-card:hover{
+  border-color:rgba(116,165,209,.30);
+  background:#111c27;
+}
+.stream-year{
+  position:absolute;
+  left:22px;
+  top:20px;
+  color:#71889c;
+  font-size:9px;
+  letter-spacing:.15em;
+}
+.stream-card strong{
+  position:relative;
+  font-size:clamp(28px,3vw,46px);
+  font-weight:500;
+  letter-spacing:-.055em;
+  line-height:.95;
+}
+.stream-card small{
+  position:relative;
+  margin-top:10px;
+  color:#7f93a5;
+  font-size:9px;
+  letter-spacing:.13em;
+  text-transform:uppercase;
+}
+
+/* CONTACT — same blue family, no new colour */
+.contact{
+  background:
+    radial-gradient(900px 520px at 88% 0%,rgba(52,105,160,.14),transparent 68%),
+    #08131f;
+  color:#f1f4f6;
+}
+.contact .eyebrow,
+.contact-location,
+.contact .foot{color:#7f98ae}
+.contact-link{color:#f4f7f9}
+.contact .foot{border-top-color:rgba(118,158,194,.16)}
+
+/* Keep section marks neutral; the underline/nav does the colour coding. */
+.section-brand img{filter:none}
+
+@media(max-width:850px){
+  .hero h1.hero-title--yk{font-size:clamp(110px,26vw,210px)}
+}
+@media(max-width:700px){
+  .hero h1.hero-title--yk{
+    font-size:clamp(92px,34vw,150px);
+    line-height:.73;
+  }
+  .hero-copy{gap:22px}
+  .hero .hero-meta{font-size:16px}
+  .project-streams{gap:34px}
+  .project-stream-head{grid-template-columns:34px minmax(0,1fr) auto;gap:10px}
+  .project-stream-head h3{font-size:22px}
+  .stream-card{
+    flex-basis:min(78vw,310px);
+    min-height:240px;
+    border-radius:17px;
+  }
+  .canvas-archive .explorer-window{border-radius:0}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .stream-card{opacity:1;transform:none;transition:none}
+}
