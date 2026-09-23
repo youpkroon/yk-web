@@ -582,3 +582,28 @@ document.getElementById('year').textContent=new Date().getFullYear();
     }
   });
 })();
+
+
+/* Home logo state: white underline while the hero/home is active. */
+(()=>{
+  const home=document.querySelector('.brand-home');
+  const hero=document.getElementById('top');
+  const navLinks=[...document.querySelectorAll('.hero .nav .nav-item')];
+  if(!home||!hero)return;
+
+  const sync=()=>{
+    const r=hero.getBoundingClientRect();
+    const homeActive=r.bottom>window.innerHeight*.55;
+    home.classList.toggle('is-active',homeActive);
+    if(homeActive) navLinks.forEach(link=>link.classList.remove('is-active'));
+  };
+
+  home.addEventListener('click',()=>{
+    home.classList.add('is-active');
+    navLinks.forEach(link=>link.classList.remove('is-active'));
+  });
+
+  sync();
+  window.addEventListener('scroll',sync,{passive:true});
+  window.addEventListener('resize',sync,{passive:true});
+})();
