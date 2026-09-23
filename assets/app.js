@@ -616,28 +616,3 @@ document.getElementById('year').textContent=new Date().getFullYear();
     }
   });
 })();
-
-
-/* Build a character-level hover wave for the hero discipline text. */
-(()=>{
-  const meta=document.querySelector('.hero .hero-meta');
-  if(!meta||meta.dataset.waveReady)return;
-  let index=0;
-  meta.querySelectorAll('.hero-meta-line').forEach(line=>{
-    const walker=document.createTreeWalker(line,NodeFilter.SHOW_TEXT);
-    const nodes=[];
-    while(walker.nextNode()) nodes.push(walker.currentNode);
-    nodes.forEach(node=>{
-      const frag=document.createDocumentFragment();
-      [...node.nodeValue].forEach(ch=>{
-        const span=document.createElement('span');
-        span.className='meta-char'+(ch===' '?' is-space':'');
-        span.style.setProperty('--i',index++);
-        span.textContent=ch===' '?'\u00a0':ch;
-        frag.appendChild(span);
-      });
-      node.replaceWith(frag);
-    });
-  });
-  meta.dataset.waveReady='1';
-})();
