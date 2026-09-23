@@ -826,3 +826,195 @@ body.is-scrolled .hero .topbar{
   .hero h1.hero-title--ykroon{font-size:22px}
   .hero .hero-meta{font-size:16px}
 }
+
+
+/* =========================================================
+   2026 visual polish: icon scale, calmer sections, X-style spacing
+   ========================================================= */
+
+/* Top navigation: equal visual weight across all section icons */
+.hero .topbar .logo{
+  width:46px;
+  height:auto;
+}
+.hero .nav .nav-item{
+  min-width:74px;
+}
+.hero .nav .nav-symbol,
+.hero .nav .nav-item--capabilities .nav-symbol,
+.hero .nav .nav-item--contact .nav-symbol{
+  width:56px;
+  height:36px;
+}
+.hero .nav .nav-symbol img{
+  width:100%;
+  height:100%;
+  max-width:none;
+  object-fit:contain;
+}
+.nav-symbol--contact .contact-yk{
+  width:25px !important;
+}
+@media(max-width:700px){
+  .hero .topbar .logo{width:30px}
+  .hero .nav .nav-item{min-width:0}
+  .hero .nav .nav-symbol,
+  .hero .nav .nav-item--capabilities .nav-symbol,
+  .hero .nav .nav-item--contact .nav-symbol{
+    width:30px;
+    height:20px;
+  }
+  .nav-symbol--contact .contact-yk{width:14px !important}
+}
+
+/* Section titles: slightly smaller everywhere, more breathing room */
+.section-title{
+  font-size:clamp(38px,5vw,76px);
+  line-height:.94;
+  letter-spacing:-.055em;
+}
+@media(max-width:700px){
+  .section-title{font-size:clamp(40px,11vw,60px)}
+}
+
+/* Strong colour key directly under each section mark */
+.section-brand{
+  position:relative;
+  margin-bottom:34px;
+}
+.section-brand::after{
+  content:"";
+  position:absolute;
+  left:0;
+  bottom:-13px;
+  width:40px;
+  height:3px;
+  border-radius:999px;
+  background:var(--section-key,#2457ff);
+}
+.section-brand--about{--section-key:#2457ff}
+.section-brand--capabilities{--section-key:#ef4553}
+.section-brand--workshop{--section-key:#4f9872}
+.section-brand--work{--section-key:#4e8fd8}
+
+/* ABOUT — cleaner cobalt accent, calmer copy */
+.about-section{
+  background:
+    radial-gradient(850px 520px at 88% 8%,rgba(77,126,174,.09),transparent 72%),
+    linear-gradient(180deg,#f5f9fc 0%,#eef5f9 100%);
+}
+.about-section .eyebrow{
+  color:#52718a;
+}
+.about-section .eyebrow:before{
+  width:42px;
+  height:2px;
+  background:#2457ff;
+  border-radius:999px;
+}
+.about-section .intro{
+  max-width:620px;
+  color:#42596b;
+  font-size:clamp(16px,1.22vw,19px);
+  line-height:1.62;
+}
+.about-section .about-visual{
+  background:
+    radial-gradient(circle at 68% 26%,rgba(89,138,180,.13),transparent 34%),
+    linear-gradient(145deg,#e6f0f6,#f5f9fc);
+}
+
+/* CAPABILITIES — less table-like, more open modular grid */
+.capabilities .section-title{
+  font-size:clamp(38px,4.55vw,70px);
+}
+.capabilities .cap-head{
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:end;
+  gap:56px;
+}
+.capabilities .software{
+  max-width:540px;
+  gap:7px;
+}
+.capabilities .pill{
+  padding:7px 10px;
+  font-size:8px;
+  color:#9b9da2;
+  border-color:rgba(255,255,255,.10);
+  background:transparent;
+}
+.capabilities .skill-grid{
+  width:min(1260px,88vw);
+  margin:clamp(62px,7vw,96px) 0 0 auto;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:14px;
+  border:0;
+}
+.capabilities .skill{
+  min-height:240px;
+  padding:22px 22px 24px;
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:18px;
+  background:#101113;
+  transition:transform .28s ease,background .28s ease,border-color .28s ease;
+}
+.capabilities .skill:hover{
+  transform:translateY(-4px);
+  background:#131416;
+  border-color:rgba(239,69,83,.24);
+}
+.capabilities .skill h3{
+  font-size:clamp(19px,1.55vw,27px);
+  margin-bottom:10px;
+}
+.capabilities .skill p{
+  color:#8f9297;
+  font-size:12.5px;
+  line-height:1.5;
+  max-width:250px;
+}
+.capabilities .skill-tags{
+  margin-top:18px;
+}
+.capabilities .skill-tags span{
+  color:#65686e;
+}
+@media(max-width:1200px){
+  .capabilities .skill-grid{
+    width:100%;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+@media(max-width:700px){
+  .capabilities .cap-head{grid-template-columns:1fr;gap:28px}
+  .capabilities .skill-grid{grid-template-columns:1fr;gap:12px}
+  .capabilities .skill{min-height:210px}
+}
+
+/* WORKSHOP — much subtler green field */
+.workshop-section{
+  background:
+    radial-gradient(850px 540px at 12% 0%,rgba(74,142,104,.075),transparent 74%),
+    linear-gradient(180deg,#0d1712 0%,#0a110d 100%);
+}
+.workshop-section .section-title{
+  font-size:clamp(38px,4.8vw,72px);
+}
+.workshop-section .work-card{
+  border-color:rgba(115,164,136,.13);
+  background:rgba(255,255,255,.018);
+}
+.workshop-section .work-card:hover{
+  background:rgba(73,132,96,.055);
+  border-color:rgba(102,166,128,.22);
+}
+.workshop-section .work-card:before{
+  background:linear-gradient(135deg,transparent 48%,rgba(93,161,120,.065) 48%,rgba(93,161,120,.065) 48.35%,transparent 48.35%);
+}
+
+/* Work page title follows the same calmer scale */
+.project-explorer-section .section-title,
+.project-streams-section .section-title{
+  font-size:clamp(38px,4.8vw,72px);
+}
