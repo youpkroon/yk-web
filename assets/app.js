@@ -523,23 +523,57 @@ document.getElementById('year').textContent=new Date().getFullYear();
 })();
 
 
-/* Active navigation accents follow the visible section. */
+
+/* Unified navigation state: home logo is active throughout the hero, then section accents take over. */
 (()=>{
+  const home=document.querySelector('.brand-home');
+  const hero=document.getElementById('top');
   const links=[...document.querySelectorAll('.hero .nav .nav-item')];
-  const map=new Map(links.map(link=>[link.getAttribute('href')?.slice(1),link]));
-  const sections=[...map.keys()].map(id=>document.getElementById(id)).filter(Boolean);
-  if(!sections.length)return;
-  const io=new IntersectionObserver(entries=>{
-    const visible=entries.filter(e=>e.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio)[0];
-    if(!visible)return;
-    links.forEach(l=>l.classList.remove('is-active'));
-    map.get(visible.target.id)?.classList.add('is-active');
-  },{rootMargin:'-30% 0px -55% 0px',threshold:[0,.1,.25,.5]});
-  sections.forEach(s=>io.observe(s));
+  const sections=links
+    .map(link=>({link,section:document.querySelector(link.getAttribute('href'))}))
+    .filter(item=>item.section);
+  if(!home||!hero)return;
+
+  let ticking=false;
+  const sync=()=>{
+    ticking=false;
+    const heroRect=hero.getBoundingClientRect();
+    const homeActive=heroRect.bottom>window.innerHeight*.42;
+
+    home.classList.toggle('is-active',homeActive);
+    links.forEach(link=>link.classList.remove('is-active'));
+    if(homeActive)return;
+
+    const probe=window.innerHeight*.36;
+    let current=null;
+    for(const item of sections){
+      const r=item.section.getBoundingClientRect();
+      if(r.top<=probe&&r.bottom>probe) current=item;
+    }
+    if(!current&&window.innerHeight+window.scrollY>=document.documentElement.scrollHeight-8){
+      current=sections[sections.length-1]||null;
+    }
+    current?.link.classList.add('is-active');
+  };
+
+  const requestSync=()=>{
+    if(ticking)return;
+    ticking=true;
+    requestAnimationFrame(sync);
+  };
+
+  home.addEventListener('click',()=>{
+    home.classList.add('is-active');
+    links.forEach(link=>link.classList.remove('is-active'));
+  });
   links.forEach(link=>link.addEventListener('click',()=>{
-    links.forEach(l=>l.classList.remove('is-active'));
-    link.classList.add('is-active');
+    home.classList.remove('is-active');
+    links.forEach(other=>other.classList.toggle('is-active',other===link));
   }));
+
+  sync();
+  window.addEventListener('scroll',requestSync,{passive:true});
+  window.addEventListener('resize',requestSync,{passive:true});
 })();
 
 /* Horizontal project streams: native touch scrolling + desktop grab/drag. */
@@ -581,31 +615,6 @@ document.getElementById('year').textContent=new Date().getFullYear();
       requestAnimationFrame(()=>{track.scrollLeft=Math.max(0,track.scrollWidth-track.clientWidth);});
     }
   });
-})();
-
-
-/* Home logo state: white underline while the hero/home is active. */
-(()=>{
-  const home=document.querySelector('.brand-home');
-  const hero=document.getElementById('top');
-  const navLinks=[...document.querySelectorAll('.hero .nav .nav-item')];
-  if(!home||!hero)return;
-
-  const sync=()=>{
-    const r=hero.getBoundingClientRect();
-    const homeActive=r.bottom>window.innerHeight*.55;
-    home.classList.toggle('is-active',homeActive);
-    if(homeActive) navLinks.forEach(link=>link.classList.remove('is-active'));
-  };
-
-  home.addEventListener('click',()=>{
-    home.classList.add('is-active');
-    navLinks.forEach(link=>link.classList.remove('is-active'));
-  });
-
-  sync();
-  window.addEventListener('scroll',sync,{passive:true});
-  window.addEventListener('resize',sync,{passive:true});
 })();
 
 
