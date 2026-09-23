@@ -1194,3 +1194,54 @@ body.is-scrolled .hero .topbar{
   .contact-mark--section .contact-yk{width:24px !important}
   .contact h2{font-size:clamp(42px,12vw,62px)}
 }
+
+
+/* Contact final pass: match About structure, orange identity */
+.contact{
+  background:
+    radial-gradient(900px 560px at 92% 8%,rgba(255,106,0,.10),transparent 70%),
+    linear-gradient(180deg,#fbfdff 0%,#f4f8fb 100%) !important;
+  color:#10151a !important;
+}
+.contact .section-id-row--contact{
+  display:flex;
+  align-items:center;
+  gap:22px;
+  margin-bottom:24px;
+}
+.contact .section-brand--contact{
+  width:88px;
+  height:74px;
+  margin:0;
+}
+.contact .section-brand--contact::after{
+  width:64px;
+  height:4px;
+  bottom:-11px;
+  background:#ff6a00 !important;
+}
+.contact .eyebrow{
+  color:#6f7c87 !important;
+}
+.contact h2,
+.contact-link{
+  color:#10151a !important;
+}
+.contact-location,
+.contact .foot{
+  color:#71808c !important;
+}
+.contact .foot{
+  border-top-color:rgba(16,21,26,.13) !important;
+}
+.contact-mark--section{
+  color:#10151a;
+}
+.contact-mark--section .contact-yk{
+  filter:invert(1);
+}
+@media(max-width:700px){
+  .contact .section-id-row--contact{gap:14px;margin-bottom:20px}
+  .contact .section-brand--contact{width:66px;height:56px}
+  .contact .section-brand--contact::after{width:46px;height:3px;bottom:-8px}
+}
