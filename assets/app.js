@@ -201,10 +201,10 @@ document.getElementById('year').textContent=new Date().getFullYear();
   const R0=520, RING_GAP=390;
   const MIN_Z=.055, MAX_Z=7;
   const palettes={
-    north:{dark:'#101923',mid:'#29445b',light:'#6f879a',glow:'rgba(79,128,164,.16)'},
-    east: {dark:'#0f1a17',mid:'#284b40',light:'#708f81',glow:'rgba(75,135,108,.14)'},
-    south:{dark:'#1a121a',mid:'#4d334b',light:'#90708b',glow:'rgba(132,78,122,.13)'},
-    west: {dark:'#1b1711',mid:'#51442e',light:'#9a845d',glow:'rgba(143,112,63,.12)'}
+    north:{dark:'#081522',mid:'#173a59',light:'#6d91b2',glow:'rgba(76,139,199,.13)'},
+    east: {dark:'#091725',mid:'#1d4263',light:'#7698b8',glow:'rgba(69,132,190,.12)'},
+    south:{dark:'#07131f',mid:'#153653',light:'#6288aa',glow:'rgba(65,122,177,.11)'},
+    west: {dark:'#0a1825',mid:'#21445f',light:'#7898b3',glow:'rgba(81,139,188,.11)'}
   };
   const dirs=['north','east','south','west'];
   const dirLabel={north:'NORTH',east:'EAST',south:'SOUTH',west:'WEST'};
@@ -228,7 +228,7 @@ document.getElementById('year').textContent=new Date().getFullYear();
   projects.forEach((p,i)=>{const a=p.angle*Math.PI/180;const r=ringRadius(p.year)+(i%2?26:-22);p.x=Math.cos(a)*r;p.y=Math.sin(a)*r;p.palette=quadrantFromAngle(p.angle);p.hover=0;p.open=0;});
 
   function rng(seed){return()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};}
-  const depthDefs=[{d:.17,count:58,min:280,max:1200,alpha:.10},{d:.42,count:44,min:190,max:760,alpha:.16},{d:.70,count:28,min:130,max:520,alpha:.23}];
+  const depthDefs=[{d:.24,count:10,min:260,max:900,alpha:.045},{d:.56,count:7,min:170,max:520,alpha:.065}];
   const depthObjects=[];
   depthDefs.forEach((def,li)=>{
     const r=rng(8801+li*719);
@@ -259,8 +259,8 @@ document.getElementById('year').textContent=new Date().getFullYear();
 
   // Cursor-controlled travel. Speeds are screen pixels/second at any zoom.
   // A small centre rest zone, a gentle linear start, then a cubic edge boost.
-  const MAX_PAN_SPEED=260, PAN_DEAD_ZONE=.10;
-  const PAN_ACCELERATION=9, PAN_BRAKING=24;
+  const MAX_PAN_SPEED=410, PAN_DEAD_ZONE=.17;
+  const PAN_ACCELERATION=5.2, PAN_BRAKING=18;
   const UI_SELECTOR='button,a,input,select,textarea,.explorer-hud,.archive-fact';
   const overUI=target=>target instanceof Element&&!!target.closest(UI_SELECTOR);
 
@@ -302,11 +302,7 @@ document.getElementById('year').textContent=new Date().getFullYear();
     const [sx,sy,s]=worldToScreen(x,y,depth);const rs=size*s;
     if(sx+rs< -100||sx-rs>w+100||sy+rs< -100||sy-rs>h+100)return;
     ctx.globalAlpha=alpha;ctx.drawImage(textures[palette],sx-rs,sy-rs,rs*2,rs*2);
-    // Two overlapping satellites create the reference-like layered depth without copying the image.
-    const p=palettes[palette];
-    const r1=rs*sat1,r2=rs*sat2;
-    ctx.globalAlpha=alpha*.72;ctx.fillStyle=p.glow;ctx.beginPath();ctx.arc(sx+rs*.28,sy+rs*.20,r1,0,Math.PI*2);ctx.fill();
-    ctx.globalAlpha=alpha*.56;ctx.beginPath();ctx.arc(sx-rs*.24,sy+rs*.31,r2,0,Math.PI*2);ctx.fill();
+    // Keep ambient depth simple: one soft sphere per object.
     ctx.globalAlpha=1;
   }
 
@@ -324,8 +320,8 @@ document.getElementById('year').textContent=new Date().getFullYear();
       if(rr<6)return;
       ctx.globalAlpha=1;ctx.lineWidth=major?1.15:.7;ctx.strokeStyle=major?'rgba(238,242,244,.16)':'rgba(238,242,244,.085)';
       ctx.beginPath();ctx.arc(cx,cy,rr,0,Math.PI*2);ctx.stroke();
-      // four quiet quadrant accents, each reflecting its local colour family
-      [['east',0],['south',Math.PI/2],['west',Math.PI],['north',Math.PI*1.5]].forEach(([dir,a])=>{ctx.strokeStyle=palettes[dir].glow.replace(/\.\d+\)$/,'.32)');ctx.lineWidth=1.3;ctx.beginPath();ctx.arc(cx,cy,rr,a-.035,a+.035);ctx.stroke();});
+      // One restrained blue orientation mark keeps the rings readable without visual noise.
+      ctx.strokeStyle='rgba(78,143,216,.24)';ctx.lineWidth=1.1;ctx.beginPath();ctx.arc(cx,cy,rr,-.025,.025);ctx.stroke();
 
       const points=[['north',0,-r],['east',r,0],['south',0,r],['west',-r,0]];
       points.forEach(([dir,x,y])=>{
@@ -334,7 +330,7 @@ document.getElementById('year').textContent=new Date().getFullYear();
         ctx.font=`500 ${fs}px Arial,Helvetica,sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
         ctx.fillStyle=hovered?'rgba(255,255,255,.98)':'rgba(244,245,245,.68)';ctx.fillText(String(year),sx,sy);
         const mw=ctx.measureText(String(year)).width;yearHits.push({year,dir,x:sx-mw/2-13,y:sy-fs*.7,w:mw+26,h:fs*1.4});
-        if(year===2025){ctx.font='500 7px Arial,Helvetica,sans-serif';ctx.fillStyle='rgba(240,68,82,.82)';ctx.fillText('NOW',sx,sy+fs*.82);}
+        if(year===2025){ctx.font='500 7px Arial,Helvetica,sans-serif';ctx.fillStyle='rgba(91,157,220,.86)';ctx.fillText('NOW',sx,sy+fs*.82);}
       });
     });
   }
@@ -357,11 +353,9 @@ document.getElementById('year').textContent=new Date().getFullYear();
     const aura=ctx.createRadialGradient(0,0,r*.36,0,0,r*1.22);aura.addColorStop(0,pal.glow.replace(/\.\d+\)$/,i===selected?'.20)':'.12)'));aura.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=aura;ctx.beginPath();ctx.arc(0,0,r*1.22,0,Math.PI*2);ctx.fill();
     // main sphere
     const g=ctx.createRadialGradient(-r*.27,-r*.30,r*.04,0,0,r);g.addColorStop(0,pal.light);g.addColorStop(.25,pal.mid);g.addColorStop(.72,pal.dark);g.addColorStop(1,'#080b0d');ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();
-    // layered inner bubbles inspired by the supplied reference
-    ctx.globalAlpha=.34;ctx.fillStyle=pal.light;ctx.beginPath();ctx.arc(r*.16,r*.12,r*.39,0,Math.PI*2);ctx.fill();
-    ctx.globalAlpha=.20;ctx.beginPath();ctx.arc(r*.43,r*.33,r*.18,0,Math.PI*2);ctx.fill();
-    ctx.globalAlpha=.14;ctx.beginPath();ctx.arc(-r*.28,-r*.35,r*.22,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
-    ctx.strokeStyle=i<2?'rgba(240,68,82,.52)':'rgba(255,255,255,.14)';ctx.lineWidth=i===hoverProject||i===selected?1.8:1;ctx.beginPath();ctx.arc(0,0,r-.7,0,Math.PI*2);ctx.stroke();
+    // Minimal inner highlight: enough depth without multiple competing bubbles.
+    ctx.globalAlpha=.11;ctx.fillStyle=pal.light;ctx.beginPath();ctx.arc(r*.14,r*.10,r*.34,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
+    ctx.strokeStyle=i<2?'rgba(78,143,216,.48)':'rgba(255,255,255,.12)';ctx.lineWidth=i===hoverProject||i===selected?1.8:1;ctx.beginPath();ctx.arc(0,0,r-.7,0,Math.PI*2);ctx.stroke();
     // text
     const compact=r<86;ctx.textAlign='left';ctx.textBaseline='alphabetic';
     const tx=-r*.62, maxW=r*1.24;
@@ -399,7 +393,7 @@ document.getElementById('year').textContent=new Date().getFullYear();
     const distance=Math.max(Math.abs(nx),Math.abs(ny));
     if(distance<=PAN_DEAD_ZONE)return [0,0];
     const t=(distance-PAN_DEAD_ZONE)/(1-PAN_DEAD_ZONE);
-    const strength=.22*t+.78*t*t*t;
+    const strength=.08*t+.92*Math.pow(t,2.35);
     // Normalize after easing so diagonal travel is smooth, not faster/slower.
     const length=Math.hypot(nx,ny);
     return [nx/length*strength,ny/length*strength];
@@ -429,7 +423,7 @@ document.getElementById('year').textContent=new Date().getFullYear();
         targetX+=edgeVX*dt/Math.max(zoom,MIN_Z);
         targetY+=edgeVY*dt/Math.max(zoom,MIN_Z);
       }else{stopPan();}
-      const camEase=reduce?1:(1-Math.exp(-dt*10));camX+=(targetX-camX)*camEase;camY+=(targetY-camY)*camEase;zoom+=(targetZoom-zoom)*(reduce?1:(1-Math.exp(-dt*10)));
+      const camEase=reduce?1:(1-Math.exp(-dt*7.5));camX+=(targetX-camX)*camEase;camY+=(targetY-camY)*camEase;zoom+=(targetZoom-zoom)*(reduce?1:(1-Math.exp(-dt*8)));
       projects.forEach((p,i)=>{p.hover+=( (i===hoverProject?1:0)-p.hover)*(1-Math.exp(-dt*12));p.open+=( (i===selected?1:0)-p.open)*(1-Math.exp(-dt*9));});
       draw();updateHud();
     }
@@ -526,4 +520,65 @@ document.getElementById('year').textContent=new Date().getFullYear();
     video.play().catch(()=>{});
     addEventListener('pagehide',()=>URL.revokeObjectURL(url),{once:true});
   }catch(error){console.warn('Hero video could not be loaded.',error);}
+})();
+
+
+/* Active navigation accents follow the visible section. */
+(()=>{
+  const links=[...document.querySelectorAll('.hero .nav .nav-item')];
+  const map=new Map(links.map(link=>[link.getAttribute('href')?.slice(1),link]));
+  const sections=[...map.keys()].map(id=>document.getElementById(id)).filter(Boolean);
+  if(!sections.length)return;
+  const io=new IntersectionObserver(entries=>{
+    const visible=entries.filter(e=>e.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio)[0];
+    if(!visible)return;
+    links.forEach(l=>l.classList.remove('is-active'));
+    map.get(visible.target.id)?.classList.add('is-active');
+  },{rootMargin:'-30% 0px -55% 0px',threshold:[0,.1,.25,.5]});
+  sections.forEach(s=>io.observe(s));
+  links.forEach(link=>link.addEventListener('click',()=>{
+    links.forEach(l=>l.classList.remove('is-active'));
+    link.classList.add('is-active');
+  }));
+})();
+
+/* Horizontal project streams: native touch scrolling + desktop grab/drag. */
+(()=>{
+  const section=document.querySelector('.project-streams-section');
+  if(!section)return;
+  const reveal=new IntersectionObserver(entries=>{
+    entries.forEach(entry=>{if(entry.isIntersecting){section.classList.add('is-built');reveal.disconnect();}});
+  },{threshold:.12});
+  reveal.observe(section);
+
+  section.querySelectorAll('.project-stream-track').forEach((track,index)=>{
+    let drag=false,startX=0,startScroll=0,pointerId=null;
+    const end=()=>{
+      if(!drag)return;
+      drag=false;track.classList.remove('is-dragging');
+      if(pointerId!==null){try{track.releasePointerCapture(pointerId);}catch{}}
+      pointerId=null;
+    };
+    track.addEventListener('pointerdown',e=>{
+      if(e.pointerType==='touch'||e.button!==0)return;
+      drag=true;startX=e.clientX;startScroll=track.scrollLeft;pointerId=e.pointerId;
+      track.classList.add('is-dragging');track.setPointerCapture?.(e.pointerId);e.preventDefault();
+    });
+    track.addEventListener('pointermove',e=>{
+      if(!drag)return;
+      track.scrollLeft=startScroll-(e.clientX-startX);
+    });
+    track.addEventListener('pointerup',end);
+    track.addEventListener('pointercancel',end);
+    track.addEventListener('lostpointercapture',end);
+
+    track.addEventListener('keydown',e=>{
+      if(e.key==='ArrowRight'){track.scrollBy({left:280,behavior:'smooth'});e.preventDefault();}
+      if(e.key==='ArrowLeft'){track.scrollBy({left:-280,behavior:'smooth'});e.preventDefault();}
+    });
+
+    if(track.classList.contains('project-stream-track--reverse')){
+      requestAnimationFrame(()=>{track.scrollLeft=Math.max(0,track.scrollWidth-track.clientWidth);});
+    }
+  });
 })();
