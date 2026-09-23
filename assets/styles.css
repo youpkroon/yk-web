@@ -1790,3 +1790,208 @@ body.archive-open{
     border-radius:12px;
   }
 }
+
+
+/* =========================================================
+   Contact redesign — same visual system as About
+   ========================================================= */
+.contact.contact-section{
+  position:relative;
+  overflow:hidden;
+  background:
+    radial-gradient(900px 540px at 88% 9%,rgba(255,106,0,.075),transparent 72%),
+    linear-gradient(180deg,#f5f9fc 0%,#eef5f9 100%) !important;
+  color:#10151a !important;
+  padding:clamp(88px,10vw,155px) 0 28px !important;
+}
+.contact.contact-section::before{
+  display:none !important;
+}
+.contact-card{
+  display:grid;
+  grid-template-columns:minmax(0,1.15fr) minmax(260px,.85fr);
+  gap:clamp(36px,8vw,120px);
+  align-items:stretch;
+}
+.contact-copy{
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  min-height:410px;
+}
+.contact-section .section-id-row--contact{
+  display:flex !important;
+  align-items:flex-start !important;
+  gap:28px !important;
+  margin:0 !important;
+}
+.contact-section .section-brand--contact{
+  width:84px !important;
+  height:74px !important;
+  margin:0 !important;
+}
+.contact-section .section-brand--contact img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  filter:invert(1);
+}
+.contact-section .section-brand--contact::after{
+  width:100% !important;
+  height:4px !important;
+  bottom:-10px !important;
+  background:#ff6a00 !important;
+}
+.contact-section .section-id-row > .section-title{
+  margin:26px 0 0 !important;
+  max-width:520px;
+  color:#10151a !important;
+  font-size:clamp(28px,2.35vw,38px) !important;
+  line-height:1.08 !important;
+  letter-spacing:-.035em !important;
+  font-weight:500 !important;
+}
+.contact-section .eyebrow{
+  color:#6f7c87 !important;
+}
+.contact-details{
+  margin-top:54px;
+}
+.contact-section .contact-link{
+  display:inline-block;
+  margin:0 !important;
+  color:#10151a !important;
+  font-size:clamp(20px,2vw,28px);
+  border-bottom:1px solid rgba(16,21,26,.55);
+  padding-bottom:4px;
+}
+.contact-section .contact-location{
+  margin-top:12px;
+  color:#71808c !important;
+  font-size:10px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+}
+
+.contact-visual{
+  position:relative;
+  min-height:410px;
+  overflow:hidden;
+  border:1px solid rgba(17,24,32,.10);
+  border-radius:var(--radius);
+  background:
+    radial-gradient(circle at 72% 24%,rgba(255,153,78,.18),transparent 31%),
+    linear-gradient(145deg,#edf3f7,#f9fbfc);
+}
+.contact-visual::before,
+.contact-visual::after{
+  content:"";
+  position:absolute;
+  border:1px solid rgba(255,106,0,.16);
+  border-radius:50%;
+}
+.contact-visual::before{
+  width:72%;
+  aspect-ratio:1;
+  right:-25%;
+  top:-28%;
+}
+.contact-visual::after{
+  width:38%;
+  aspect-ratio:1;
+  left:-11%;
+  bottom:-16%;
+}
+.contact-visual-mark{
+  position:absolute;
+  width:min(44%,180px);
+  height:auto;
+  left:50%;
+  top:48%;
+  transform:translate(-50%,-50%);
+  filter:invert(1);
+  opacity:.12;
+}
+.contact-visual-meta{
+  position:absolute;
+  left:22px;
+  right:22px;
+  bottom:22px;
+  display:flex;
+  justify-content:space-between;
+  gap:22px;
+  color:#788793;
+  font-size:8px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+}
+.contact-section .foot{
+  margin-top:clamp(65px,8vw,110px);
+  color:#788793 !important;
+  border-top-color:rgba(16,21,26,.13) !important;
+}
+.contact-section .footer-signature img{
+  filter:none;
+}
+
+/* The nav and the contact page use exactly the same contact asset. */
+.hero .nav .nav-item--contact .nav-symbol{
+  width:56px;
+  height:36px;
+}
+.hero .nav .nav-item--contact .nav-symbol img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  filter:none;
+}
+
+@media(max-width:1050px){
+  .contact-card{
+    grid-template-columns:1fr;
+  }
+  .contact-copy{
+    min-height:0;
+  }
+  .contact-visual{
+    min-height:330px;
+  }
+}
+@media(max-width:700px){
+  .contact.contact-section{
+    padding:78px 0 24px !important;
+  }
+  .contact-section .section-id-row--contact{
+    gap:18px !important;
+  }
+  .contact-section .section-brand--contact{
+    width:70px !important;
+    height:62px !important;
+  }
+  .contact-section .section-id-row > .section-title{
+    margin-top:18px !important;
+    max-width:260px;
+    font-size:clamp(22px,6vw,28px) !important;
+  }
+  .contact-details{
+    margin-top:38px;
+  }
+  .contact-visual{
+    min-height:290px;
+  }
+  .contact-visual-mark{
+    width:135px;
+  }
+  .contact-visual-meta{
+    left:18px;
+    right:18px;
+    bottom:18px;
+    flex-direction:column;
+    gap:5px;
+  }
+  .hero .nav .nav-item--contact .nav-symbol{
+    width:30px;
+    height:20px;
+  }
+}
