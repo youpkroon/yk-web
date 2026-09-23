@@ -82,9 +82,9 @@ document.getElementById('year').textContent=new Date().getFullYear();
   requestAnimationFrame(()=>{hero?.classList.add('hero-ready');const title=hero?.querySelector('h1.slide-text');if(title)setTimeout(()=>title.classList.add('is-built'),130);const meta=hero?.querySelector('.hero-meta.soft-build');if(meta)setTimeout(()=>meta.classList.add('is-built'),520);});
 })();
 
-(function(){
-  const root=document.querySelector('[data-project-explorer]');
-  if(!root)return;
+function initProjectExplorer(root){
+  if(!root||root.dataset.archiveInitialized)return;
+  root.dataset.archiveInitialized='1';
   const win=root.querySelector('.explorer-window');
   const canvas=root.querySelector('.archive-canvas');
   const ctx=canvas.getContext('2d',{alpha:true,desynchronized:false});
@@ -493,7 +493,50 @@ document.getElementById('year').textContent=new Date().getFullYear();
   win.addEventListener('keydown',e=>{if(['INPUT','TEXTAREA'].includes(e.target.tagName))return;stopPan();const step=110/Math.max(targetZoom,.08);if(e.key==='ArrowLeft')targetX-=step;else if(e.key==='ArrowRight')targetX+=step;else if(e.key==='ArrowUp')targetY-=step;else if(e.key==='ArrowDown')targetY+=step;else if(e.key==='+'||e.key==='=')zoomAt(win.getBoundingClientRect().left+w/2,win.getBoundingClientRect().top+h/2,1.25);else if(e.key==='-'||e.key==='_')zoomAt(win.getBoundingClientRect().left+w/2,win.getBoundingClientRect().top+h/2,1/1.25);else if(e.key.toLowerCase()==='r')reset();else return;e.preventDefault();});
 
   requestAnimationFrame(frame);
+}
+
+/* Lazy archive popup: the canvas and its JS are only created after the visitor asks for it. */
+(()=>{
+  const modal=document.getElementById('archive-modal');
+  const launch=document.querySelector('.archive-launch');
+  const template=document.getElementById('archive-template');
+  const mount=modal?.querySelector('[data-archive-mount]');
+  if(!modal||!launch||!template||!mount)return;
+
+  let mounted=false;
+  let lastFocus=null;
+
+  const open=()=>{
+    lastFocus=document.activeElement;
+    if(!mounted){
+      mount.appendChild(template.content.cloneNode(true));
+      const root=mount.querySelector('[data-project-explorer]');
+      initProjectExplorer(root);
+      mounted=true;
+    }
+    modal.hidden=false;
+    modal.setAttribute('aria-hidden','false');
+    launch.setAttribute('aria-expanded','true');
+    document.body.classList.add('archive-open');
+    requestAnimationFrame(()=>modal.querySelector('.archive-modal-close')?.focus());
+  };
+
+  const close=()=>{
+    modal.hidden=true;
+    modal.setAttribute('aria-hidden','true');
+    launch.setAttribute('aria-expanded','false');
+    document.body.classList.remove('archive-open');
+    if(lastFocus instanceof HTMLElement) lastFocus.focus();
+  };
+
+  launch.addEventListener('click',open);
+  modal.querySelectorAll('[data-archive-close]').forEach(el=>el.addEventListener('click',close));
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'&&!modal.hidden) close();
+  });
 })();
+
+
 
 (()=>{
   const syncHeader=()=>document.body.classList.toggle('is-scrolled',window.scrollY>36);
@@ -630,7 +673,7 @@ document.getElementById('year').textContent=new Date().getFullYear();
   track.addEventListener('pointercancel',endDrag);
   track.addEventListener('lostpointercapture',endDrag);
 
-  const step=()=>Math.max(320,track.clientWidth*.78);
+  const step=()=>Math.max(280,track.clientWidth*.68);
   left?.addEventListener('click',()=>track.scrollBy({left:-step(),behavior:'smooth'}));
   right?.addEventListener('click',()=>track.scrollBy({left:step(),behavior:'smooth'}));
 
