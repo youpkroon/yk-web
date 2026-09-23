@@ -1290,3 +1290,113 @@ body.is-scrolled .hero .topbar{
     bottom:-8px !important;
   }
 }
+
+
+/* =========================================================
+   FINAL section header hierarchy
+   Icon + accent + section label on the left.
+   Main section title sits directly to the right at icon height.
+   ========================================================= */
+.section-id-row{
+  display:flex !important;
+  flex-direction:row !important;
+  align-items:flex-start !important;
+  gap:28px !important;
+  min-height:104px !important;
+  margin:0 0 34px !important;
+}
+.section-id-mark{
+  position:relative;
+  flex:0 0 132px;
+  width:132px;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+}
+.section-id-mark .section-brand{
+  margin:0 !important;
+}
+.section-id-mark .eyebrow{
+  margin:18px 0 0 !important;
+  padding:0 !important;
+  font-size:8px !important;
+  line-height:1.25 !important;
+  letter-spacing:.16em !important;
+  white-space:nowrap;
+}
+.section-id-mark .eyebrow::before{
+  display:none !important;
+}
+
+/* Main titles are deliberately about 70% smaller than the old hero-sized treatment. */
+.section-id-row > .section-title{
+  margin:26px 0 0 !important;
+  padding:0 !important;
+  max-width:560px;
+  font-size:clamp(18px,1.55vw,24px) !important;
+  line-height:1.08 !important;
+  letter-spacing:-.035em !important;
+  font-weight:500 !important;
+  align-self:flex-start !important;
+}
+.section-id-row > .section-title::after{
+  display:none !important;
+}
+
+/* Accent bar exactly follows the visual width of each icon. */
+.section-id-mark .section-brand::after{
+  left:0 !important;
+  width:100% !important;
+  max-width:none !important;
+  height:4px !important;
+  bottom:-10px !important;
+}
+.section-id-row--about .section-brand::after{background:#2457ff !important}
+.section-id-row--capabilities .section-brand::after{background:#ef4553 !important}
+.section-id-row--workshop .section-brand::after{background:#4f9872 !important}
+.section-id-row--work .section-brand::after{background:#4e8fd8 !important}
+.section-id-row--contact .section-brand::after{background:#ff6a00 !important}
+
+/* Keep following copy aligned and give the new compact header room. */
+.about-copy .intro{margin-top:28px}
+.capabilities .cap-head > div:first-child > .intro{margin-top:8px}
+.workshop-head > div:first-child + .intro{margin-top:0}
+.project-explorer-section > .wrap > .intro{margin-top:8px}
+.contact .contact-link{margin-top:12px}
+
+/* Contact title now follows exactly the same hierarchy as every other section. */
+.contact .section-id-row > .section-title{
+  color:#10151a !important;
+  font-size:clamp(18px,1.55vw,24px) !important;
+  margin-top:26px !important;
+}
+
+/* Mobile: same system, just tighter. */
+@media(max-width:700px){
+  .section-id-row{
+    gap:18px !important;
+    min-height:86px !important;
+    margin-bottom:28px !important;
+  }
+  .section-id-mark{
+    flex-basis:96px;
+    width:96px;
+  }
+  .section-id-mark .eyebrow{
+    margin-top:14px !important;
+    font-size:7px !important;
+    letter-spacing:.13em !important;
+    white-space:normal;
+    max-width:96px;
+  }
+  .section-id-row > .section-title,
+  .contact .section-id-row > .section-title{
+    margin-top:18px !important;
+    font-size:clamp(17px,5vw,21px) !important;
+    max-width:240px;
+  }
+  .section-id-mark .section-brand::after{
+    height:3px !important;
+    bottom:-8px !important;
+  }
+}
