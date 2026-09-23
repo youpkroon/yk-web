@@ -760,79 +760,62 @@ body.is-scrolled .hero .topbar{
 }
 
 
-/* Hero identity refinement: smaller, heavier YK + interactive hover motion */
-.hero h1.hero-title--yk{
-  font-family:"Arial Black","Helvetica Neue",Arial,Helvetica,sans-serif;
-  font-size:clamp(88px,11.5vw,185px);
-  font-weight:900;
-  line-height:.76;
-  letter-spacing:-.105em;
-  perspective:900px;
+
+
+/* Hero lockup: quiet YKroon wordmark above the discipline, aligned left. */
+.hero .hero-copy{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  justify-content:flex-end;
+  gap:14px;
+  max-width:min(720px,calc(100vw - (2 * var(--pad))));
+}
+.hero h1.hero-title--ykroon{
+  margin:0;
+  max-width:none;
+  font-family:inherit;
+  font-size:clamp(46px,5.4vw,82px);
+  font-weight:500;
+  line-height:.92;
+  letter-spacing:-.06em;
+  color:#fff;
   cursor:default;
 }
-.hero-title--yk .slide-clip{
-  overflow:visible;
+.hero-title--ykroon .hero-name{
+  display:block;
+  font:inherit;
+  letter-spacing:inherit;
+  line-height:inherit;
 }
-.hero-title--yk .hero-name{
-  display:inline-block;
-  font-size:1em;
-  font-weight:900;
-  line-height:.76;
-  letter-spacing:-.105em;
-  transform-origin:50% 55%;
-  transform-style:preserve-3d;
-  backface-visibility:visible;
-  will-change:transform,filter;
+.hero h1.hero-title--ykroon:hover .hero-name{
+  animation:none;
+  transform:none;
+  filter:none;
 }
-.hero-title--yk:hover .hero-name{
-  animation:ykHeroFlip .82s cubic-bezier(.18,.8,.22,1);
-}
-@keyframes ykHeroFlip{
-  0%{transform:rotateY(0deg) rotateZ(0deg) scale(1);filter:brightness(1)}
-  38%{transform:rotateY(118deg) rotateZ(-3deg) scale(.88);filter:brightness(.68)}
-  68%{transform:rotateY(292deg) rotateZ(2deg) scale(1.08);filter:brightness(1.18)}
-  100%{transform:rotateY(360deg) rotateZ(0deg) scale(1);filter:brightness(1)}
-}
-
-/* Industrial Development & Operations: left-to-right lift wave on hover */
 .hero .hero-meta{
+  margin:0;
+  padding-top:17px;
+  min-width:0;
+  width:auto;
+  text-align:left;
+  font-size:clamp(17px,1.45vw,23px);
+  line-height:1.28;
   cursor:default;
 }
-.hero-meta-line{
-  overflow:visible;
+.hero .hero-meta:hover,
+.hero .hero-meta:hover *{
+  animation:none!important;
+  transform:none!important;
 }
-.meta-char{
-  display:inline-block;
-  position:relative;
-  transform:translateY(0);
-  will-change:transform,opacity;
+.hero-meta:before{
+  width:46px;
 }
-.meta-char.is-space{
-  width:.28em;
-}
-.hero .hero-meta:hover .meta-char{
-  animation:heroMetaWave .58s cubic-bezier(.2,.85,.25,1) both;
-  animation-delay:calc(var(--i) * 16ms);
-}
-@keyframes heroMetaWave{
-  0%{transform:translateY(0);opacity:1}
-  42%{transform:translateY(-11px);opacity:1}
-  70%{transform:translateY(2px);opacity:1}
-  100%{transform:translateY(0);opacity:1}
-}
-
 @media(max-width:850px){
-  .hero h1.hero-title--yk{font-size:clamp(82px,19vw,145px)}
+  .hero h1.hero-title--ykroon{font-size:clamp(44px,8vw,66px)}
 }
 @media(max-width:700px){
-  .hero h1.hero-title--yk{
-    font-size:clamp(72px,25vw,118px);
-    line-height:.78;
-  }
-  .hero-title--yk .hero-name{line-height:.78}
-  .hero .hero-meta:hover .meta-char{animation:none}
-}
-@media(prefers-reduced-motion:reduce){
-  .hero-title--yk:hover .hero-name,
-  .hero .hero-meta:hover .meta-char{animation:none!important}
+  .hero .hero-copy{gap:12px}
+  .hero h1.hero-title--ykroon{font-size:clamp(40px,12vw,58px)}
+  .hero .hero-meta{font-size:16px}
 }
