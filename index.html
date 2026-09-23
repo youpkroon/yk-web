@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="description" content="Y Kroon Industrial Development &amp; Operations. Industrial design, engineering and hands-on prototyping.">
 <title>Y Kroon | Industrial Development &amp; Operations</title>
-<link rel="stylesheet" href="assets/styles.css?v=20260923-gallery">
+<link rel="stylesheet" href="assets/styles.css?v=20260923-gallery3">
 <meta name="theme-color" content="#0c0d0f">
 <link rel="preload" as="image" href="assets/media/hero-poster.jpg">
 </head>
@@ -82,9 +82,61 @@
   </div>
 </div></section>
 
-<section class="section project-explorer-section" id="work"><div class="wrap">
-  <div class="section-id-row section-id-row--work"><div class="section-id-mark"><div class="section-brand section-brand--work" aria-hidden="true"><img src="assets/media/work.png" alt="" width="452" height="373" decoding="async"></div><div class="eyebrow">Selected work / Past projects</div></div><h2 class="section-title">Explore the archive.</h2></div>
-  <p class="intro">Move through the years in any direction. A quieter spatial archive keeps the projects central.</p>
+<section class="section project-streams-section" id="work">
+  <div class="project-gallery" data-project-gallery>
+    <button class="gallery-control gallery-control--left" type="button" aria-label="Scroll projects left">
+      <img src="assets/media/slide-left.svg" alt="" decoding="async">
+    </button>
+
+    <div class="project-gallery-track" tabindex="0" aria-label="Projects. Drag or scroll horizontally to browse.">
+      <article class="project-tile project-tile--tall demo-01" aria-label="Demo project visual 1"></article>
+      <article class="project-tile demo-02" aria-label="Demo project visual 2"></article>
+      <article class="project-tile demo-03" aria-label="Demo project visual 3"></article>
+      <article class="project-tile project-tile--wide demo-04" aria-label="Demo project visual 4"></article>
+      <article class="project-tile demo-05" aria-label="Demo project visual 5"></article>
+      <article class="project-tile demo-06" aria-label="Demo project visual 6"></article>
+      <article class="project-tile project-tile--tall demo-07" aria-label="Demo project visual 7"></article>
+      <article class="project-tile demo-08" aria-label="Demo project visual 8"></article>
+      <article class="project-tile demo-09" aria-label="Demo project visual 9"></article>
+      <article class="project-tile project-tile--wide demo-10" aria-label="Demo project visual 10"></article>
+      <article class="project-tile demo-11" aria-label="Demo project visual 11"></article>
+      <article class="project-tile demo-12" aria-label="Demo project visual 12"></article>
+      <article class="project-tile project-tile--tall demo-13" aria-label="Demo project visual 13"></article>
+      <article class="project-tile demo-14" aria-label="Demo project visual 14"></article>
+      <article class="project-tile demo-15" aria-label="Demo project visual 15"></article>
+      <article class="project-tile project-tile--wide demo-16" aria-label="Demo project visual 16"></article>
+      <article class="project-tile demo-17" aria-label="Demo project visual 17"></article>
+      <article class="project-tile demo-18" aria-label="Demo project visual 18"></article>
+      <article class="project-tile project-tile--tall demo-19" aria-label="Demo project visual 19"></article>
+      <article class="project-tile demo-20" aria-label="Demo project visual 20"></article>
+    </div>
+
+    <button class="gallery-control gallery-control--right" type="button" aria-label="Scroll projects right">
+      <img src="assets/media/slide-right.svg" alt="" decoding="async">
+    </button>
+  </div>
+
+  <div class="archive-access">
+    <button class="archive-launch" type="button" aria-controls="archive-modal" aria-expanded="false">
+      <span>Explore the archive.</span>
+      <small>Open spatial archive</small>
+    </button>
+  </div>
+</section>
+
+<div class="archive-modal" id="archive-modal" hidden aria-hidden="true">
+  <div class="archive-modal-backdrop" data-archive-close></div>
+  <div class="archive-modal-panel" role="dialog" aria-modal="true" aria-label="Spatial project archive">
+    <button class="archive-modal-close" type="button" data-archive-close aria-label="Close archive">×</button>
+    <div class="archive-modal-head">
+      <span>Selected work / Past projects</span>
+      <strong>Explore the archive.</strong>
+    </div>
+    <div class="archive-modal-content" data-archive-mount></div>
+  </div>
+</div>
+
+<template id="archive-template">
   <div class="project-explorer canvas-archive" data-project-explorer>
     <div class="explorer-chrome"><span>Spatial project archive</span><span>2025 → 2010 · move · drag · zoom · discover</span></div>
     <div class="explorer-window canvas-window" tabindex="0" aria-label="Interactive project archive. Move away from the centre to explore; closer to the edges moves faster. Return to the centre to stop. Hover a project or year to pause, or drag to travel. Hold Control or Command while scrolling to zoom. Arrow keys also navigate.">
@@ -111,37 +163,7 @@
       <div class="archive-help">Move · drag · zoom · discover</div>
     </div>
   </div>
-</div></section>
-
-
-<section class="section project-streams-section" id="project-streams">
-  <div class="project-gallery" data-project-gallery>
-    <button class="gallery-control gallery-control--left" type="button" aria-label="Scroll projects left">
-      <img src="assets/media/slide-left.svg" alt="" decoding="async">
-    </button>
-
-    <div class="project-gallery-track" tabindex="0" aria-label="Projects. Drag or scroll horizontally to browse.">
-      <article class="project-tile project-tile--tall demo-01" aria-label="Demo project visual 1"></article>
-      <article class="project-tile demo-02" aria-label="Demo project visual 2"></article>
-      <article class="project-tile demo-03" aria-label="Demo project visual 3"></article>
-      <article class="project-tile project-tile--wide demo-04" aria-label="Demo project visual 4"></article>
-      <article class="project-tile demo-05" aria-label="Demo project visual 5"></article>
-      <article class="project-tile demo-06" aria-label="Demo project visual 6"></article>
-      <article class="project-tile project-tile--tall demo-07" aria-label="Demo project visual 7"></article>
-      <article class="project-tile demo-08" aria-label="Demo project visual 8"></article>
-      <article class="project-tile demo-09" aria-label="Demo project visual 9"></article>
-      <article class="project-tile project-tile--wide demo-10" aria-label="Demo project visual 10"></article>
-      <article class="project-tile demo-11" aria-label="Demo project visual 11"></article>
-      <article class="project-tile demo-12" aria-label="Demo project visual 12"></article>
-      <article class="project-tile project-tile--tall demo-13" aria-label="Demo project visual 13"></article>
-      <article class="project-tile demo-14" aria-label="Demo project visual 14"></article>
-    </div>
-
-    <button class="gallery-control gallery-control--right" type="button" aria-label="Scroll projects right">
-      <img src="assets/media/slide-right.svg" alt="" decoding="async">
-    </button>
-  </div>
-</section>
+</template>
 
 <section class="contact" id="contact"><div class="wrap">
   <div class="section-id-row section-id-row--contact">
@@ -167,5 +189,5 @@
 </div></section>
 </main>
 
-<script src="assets/app.js?v=20260923-gallery" defer></script>
+<script src="assets/app.js?v=20260923-gallery3" defer></script>
 </body></html>
