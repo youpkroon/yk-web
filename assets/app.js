@@ -576,43 +576,80 @@ document.getElementById('year').textContent=new Date().getFullYear();
   window.addEventListener('resize',requestSync,{passive:true});
 })();
 
-/* Horizontal project streams: native touch scrolling + desktop grab/drag. */
+/* Full-width project gallery: drag, keyboard and branded left/right controls. */
 (()=>{
   const section=document.querySelector('.project-streams-section');
-  if(!section)return;
+  const track=section?.querySelector('.project-gallery-track');
+  if(!section||!track)return;
+
+  const left=section.querySelector('.gallery-control--left');
+  const right=section.querySelector('.gallery-control--right');
+
   const reveal=new IntersectionObserver(entries=>{
-    entries.forEach(entry=>{if(entry.isIntersecting){section.classList.add('is-built');reveal.disconnect();}});
-  },{threshold:.12});
+    entries.forEach(entry=>{
+      if(entry.isIntersecting){
+        section.classList.add('is-built');
+        reveal.disconnect();
+      }
+    });
+  },{threshold:.08});
   reveal.observe(section);
 
-  section.querySelectorAll('.project-stream-track').forEach((track,index)=>{
-    let drag=false,startX=0,startScroll=0,pointerId=null;
-    const end=()=>{
-      if(!drag)return;
-      drag=false;track.classList.remove('is-dragging');
-      if(pointerId!==null){try{track.releasePointerCapture(pointerId);}catch{}}
-      pointerId=null;
-    };
-    track.addEventListener('pointerdown',e=>{
-      if(e.pointerType==='touch'||e.button!==0)return;
-      drag=true;startX=e.clientX;startScroll=track.scrollLeft;pointerId=e.pointerId;
-      track.classList.add('is-dragging');track.setPointerCapture?.(e.pointerId);e.preventDefault();
-    });
-    track.addEventListener('pointermove',e=>{
-      if(!drag)return;
-      track.scrollLeft=startScroll-(e.clientX-startX);
-    });
-    track.addEventListener('pointerup',end);
-    track.addEventListener('pointercancel',end);
-    track.addEventListener('lostpointercapture',end);
+  let drag=false;
+  let startX=0;
+  let startScroll=0;
+  let pointerId=null;
 
-    track.addEventListener('keydown',e=>{
-      if(e.key==='ArrowRight'){track.scrollBy({left:280,behavior:'smooth'});e.preventDefault();}
-      if(e.key==='ArrowLeft'){track.scrollBy({left:-280,behavior:'smooth'});e.preventDefault();}
-    });
+  const endDrag=()=>{
+    if(!drag)return;
+    drag=false;
+    track.classList.remove('is-dragging');
+    if(pointerId!==null){
+      try{track.releasePointerCapture(pointerId);}catch{}
+    }
+    pointerId=null;
+  };
 
-    if(track.classList.contains('project-stream-track--reverse')){
-      requestAnimationFrame(()=>{track.scrollLeft=Math.max(0,track.scrollWidth-track.clientWidth);});
+  track.addEventListener('pointerdown',e=>{
+    if(e.pointerType==='touch'||e.button!==0)return;
+    drag=true;
+    startX=e.clientX;
+    startScroll=track.scrollLeft;
+    pointerId=e.pointerId;
+    track.classList.add('is-dragging');
+    track.setPointerCapture?.(e.pointerId);
+    e.preventDefault();
+  });
+
+  track.addEventListener('pointermove',e=>{
+    if(!drag)return;
+    track.scrollLeft=startScroll-(e.clientX-startX);
+  });
+
+  track.addEventListener('pointerup',endDrag);
+  track.addEventListener('pointercancel',endDrag);
+  track.addEventListener('lostpointercapture',endDrag);
+
+  const step=()=>Math.max(320,track.clientWidth*.78);
+  left?.addEventListener('click',()=>track.scrollBy({left:-step(),behavior:'smooth'}));
+  right?.addEventListener('click',()=>track.scrollBy({left:step(),behavior:'smooth'}));
+
+  track.addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'){
+      track.scrollBy({left:step(),behavior:'smooth'});
+      e.preventDefault();
+    }
+    if(e.key==='ArrowLeft'){
+      track.scrollBy({left:-step(),behavior:'smooth'});
+      e.preventDefault();
     }
   });
+
+  /* Start inside the rail instead of hard-left so both directions are immediately explorable. */
+  const positionRail=()=>{
+    const max=Math.max(0,track.scrollWidth-track.clientWidth);
+    if(max>0&&track.scrollLeft<4) track.scrollLeft=max*.22;
+  };
+  requestAnimationFrame(positionRail);
+  window.addEventListener('resize',positionRail,{passive:true});
 })();
