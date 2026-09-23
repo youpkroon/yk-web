@@ -1018,3 +1018,179 @@ body.is-scrolled .hero .topbar{
 .project-streams-section .section-title{
   font-size:clamp(38px,4.8vw,72px);
 }
+
+
+/* =========================================================
+   Consistent section identity rows + alignment refinement
+   ========================================================= */
+
+/* Home mark behaves like every other navigation item */
+.brand-home:hover::after,
+.brand-home:focus-visible::after,
+.brand-home.is-active::after{
+  transform:translateX(-50%) scaleX(1);
+}
+
+/* Icon + section label now form one horizontal lockup */
+.section-id-row{
+  display:flex;
+  align-items:center;
+  gap:22px;
+  margin:0 0 24px;
+  min-height:86px;
+}
+.section-id-row .section-brand{
+  flex:0 0 auto;
+  margin:0;
+  align-self:center;
+}
+.section-id-row .eyebrow{
+  margin:0;
+  align-self:center;
+  line-height:1.2;
+}
+.section-id-row .eyebrow::before{
+  display:none !important;
+}
+
+/* One bold colour key under every section icon */
+.section-brand::after{
+  bottom:-11px;
+  width:62px;
+  height:4px;
+  border-radius:999px;
+}
+.section-brand--capabilities::after{width:72px}
+.section-brand--contact{--section-key:#ff6a00;width:88px;height:74px}
+.section-brand--contact::after{width:62px}
+
+/* Section type scale: still large, but no longer dominates the whole screen */
+.section-title,
+.capabilities .section-title,
+.workshop-section .section-title,
+.project-explorer-section .section-title,
+.project-streams-section .section-title{
+  font-size:clamp(36px,4.2vw,64px);
+  line-height:.96;
+  letter-spacing:-.052em;
+}
+
+/* Capabilities alignment: cards share the exact left/right edges of the heading */
+.capabilities .cap-head{
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:end;
+}
+.capabilities .skill-grid{
+  width:100%;
+  max-width:none;
+  margin:clamp(58px,6vw,86px) 0 0;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+}
+
+/* Workshop: darker overall, green light comes subtly from the right */
+.workshop-section{
+  background:
+    radial-gradient(980px 700px at 100% 46%,rgba(41,121,74,.20),transparent 68%),
+    radial-gradient(600px 420px at 82% 18%,rgba(31,92,58,.08),transparent 72%),
+    linear-gradient(180deg,#050806 0%,#07100b 54%,#050806 100%);
+}
+.workshop-section .intro{
+  max-width:610px;
+  color:#9eaaa3;
+  font-size:clamp(15px,1.12vw,18px);
+  line-height:1.62;
+}
+.workshop-section .eyebrow{color:#72917e}
+.workshop-section .section-brand::after{background:#4f9872}
+
+/* Contact returns to the light visual family, with a restrained orange glow */
+.hero .nav .nav-item--contact{--nav-accent:#ff6a00;--nav-line:20px}
+.contact{
+  position:relative;
+  overflow:hidden;
+  background:
+    radial-gradient(980px 640px at 92% 4%,rgba(255,106,0,.12),transparent 68%),
+    radial-gradient(620px 420px at 100% 76%,rgba(255,154,82,.055),transparent 72%),
+    linear-gradient(180deg,#f7fafc 0%,#f2f7fa 100%);
+  color:#111820;
+}
+.contact::before{
+  content:"";
+  position:absolute;
+  right:-180px;
+  top:-250px;
+  width:680px;
+  height:680px;
+  border:1px solid rgba(255,106,0,.14);
+  border-radius:50%;
+  pointer-events:none;
+}
+.contact > .wrap{position:relative;z-index:1}
+.contact .eyebrow{color:#6c7b87}
+.contact h2{
+  margin-top:18px;
+  color:#111820;
+  font-size:clamp(44px,5.7vw,84px);
+}
+.contact h2:after{background:#111820;opacity:.12}
+.contact-link{
+  color:#111820;
+  margin-top:34px;
+}
+.contact-location{color:#6e7f8d}
+.contact .foot{
+  color:#788793;
+  border-top-color:rgba(17,24,32,.13);
+}
+.contact .footer-signature img{filter:none}
+
+/* Same contact symbol as the nav, adapted for the light section */
+.contact-mark--section{
+  position:relative;
+  display:block;
+  width:72px;
+  height:56px;
+  color:#111820;
+}
+.contact-mark--section .contact-orbit{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+}
+.contact-mark--section .contact-yk{
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:31px !important;
+  height:auto !important;
+  max-width:none !important;
+  transform:translate(-50%,-49%);
+  filter:invert(1);
+}
+
+/* Mobile keeps the same hierarchy without crowding */
+@media(max-width:900px){
+  .section-id-row{gap:16px;min-height:72px;margin-bottom:22px}
+  .section-brand::after{width:50px;height:3px}
+  .section-brand--capabilities::after{width:58px}
+  .capabilities .cap-head,
+  .workshop-head{grid-template-columns:1fr}
+  .capabilities .software{justify-content:flex-start}
+}
+@media(max-width:700px){
+  .section-id-row{gap:14px;min-height:58px;margin-bottom:20px}
+  .section-title,
+  .capabilities .section-title,
+  .workshop-section .section-title,
+  .project-explorer-section .section-title,
+  .project-streams-section .section-title{
+    font-size:clamp(36px,10vw,54px);
+  }
+  .section-brand::after{bottom:-8px;width:42px;height:3px}
+  .section-brand--capabilities::after{width:48px}
+  .section-brand--contact{width:66px;height:56px}
+  .contact-mark--section{width:56px;height:44px}
+  .contact-mark--section .contact-yk{width:24px !important}
+  .contact h2{font-size:clamp(42px,12vw,62px)}
+}
