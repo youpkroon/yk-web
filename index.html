@@ -1,1 +1,106 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>YK</title><style>html,body{margin:0;background:#0c0d0f;color:#fff;font-family:Arial,sans-serif}#loading{min-height:100vh;display:grid;place-items:center;font-size:12px;letter-spacing:.16em;text-transform:uppercase;opacity:.6}</style></head><body><div id="loading">Loading YK…</div><script>(async()=>{const files=['site/chunk-01.txt','site/chunk-02.txt','site/chunk-03.txt','site/chunk-04.txt','site/chunk-05.txt','site/chunk-06.txt','site/chunk-07.txt','site/chunk-08.txt','site/chunk-09.txt','site/chunk-10.txt','site/chunk-11.txt','site/chunk-12.txt','site/chunk-13.txt','site/chunk-14.txt','site/chunk-15.txt','site/chunk-16.txt','site/chunk-17.txt','site/chunk-18.txt','site/chunk-19.txt','site/chunk-20.txt','site/chunk-21.txt','site/chunk-22.txt','site/chunk-23.txt','site/chunk-24.txt','site/chunk-25.txt','site/chunk-26.txt'];try{const parts=await Promise.all(files.map(p=>fetch(p,{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(p);return r.text()})));document.open();document.write(parts.join(''));document.close()}catch(e){document.getElementById('loading').textContent='Unable to load YK';console.error(e)}})();</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Y Kroon Industrial Development &amp; Operations. Industrial design, engineering and hands-on prototyping.">
+<title>Y Kroon | Industrial Development &amp; Operations</title>
+<link rel="stylesheet" href="assets/styles.css">
+<meta name="theme-color" content="#0c0d0f">
+<link rel="preload" as="image" href="assets/media/hero-poster.jpg">
+</head>
+<body>
+<main>
+<section class="hero" id="top">
+  <video autoplay muted loop playsinline poster="assets/media/hero-poster.jpg" preload="none"><source type="video/mp4" data-video-parts="7"></video>
+  <div class="topbar"><a class="brand-home" href="#top" aria-label="YK home"><img class="logo" src="assets/media/yk-logo.png" alt="YK" width="452" height="357" fetchpriority="high"></a><nav class="nav" aria-label="Main navigation">
+    <a class="nav-item nav-item--about" href="#about">
+      <span class="nav-symbol" aria-hidden="true"><img src="assets/media/about-nav.png" alt="" width="452" height="397" decoding="async"></span>
+      <span class="nav-label">About</span>
+    </a>
+    <a class="nav-item nav-item--capabilities" href="#capabilities">
+      <span class="nav-symbol" aria-hidden="true"><img src="assets/media/capabilities.png" alt="" width="452" height="273" decoding="async"></span>
+      <span class="nav-label">Capabilities</span>
+    </a>
+    <a class="nav-item nav-item--workshop" href="#workshop">
+      <span class="nav-symbol" aria-hidden="true"><img src="assets/media/workshop.svg" alt="" width="452" height="384" decoding="async"></span>
+      <span class="nav-label">Workshop</span>
+    </a>
+    <a class="nav-item nav-item--work" href="#work">
+      <span class="nav-symbol" aria-hidden="true"><img src="assets/media/work.png" alt="" width="452" height="373" decoding="async"></span>
+      <span class="nav-label">Work</span>
+    </a>
+  </nav></div>
+  <div class="hero-copy">
+    <h1 class="hero-title" aria-label="Y Kroon Industrial Development &amp; Operations"><span class="hero-name">Y Kroon</span><br><span class="hero-discipline">Industrial Development</span><br><span class="hero-discipline">&amp; Operations</span></h1>
+    <p class="hero-meta"><span class="hero-meta-line">Industrial Design</span><span class="hero-meta-line"><span class="hero-meta-amp">&amp;</span> Engineering</span></p>
+  </div>
+</section>
+
+<section class="section" id="about"><div class="wrap"><div class="about-card">
+  <div class="about-copy"><div><div class="section-brand section-brand--about" aria-hidden="true"><img src="assets/media/about-section.png" alt="" width="452" height="397" decoding="async"></div><div class="eyebrow">About</div><h2 class="section-title">From idea to working hardware.</h2></div><p class="intro">YK focuses on practical product development, combining design, engineering and hands-on prototyping.</p></div>
+  <div class="about-visual"><div class="about-placeholder"><span>About image</span><span>add later</span></div></div>
+</div></div></section>
+
+<section class="section capabilities" id="capabilities"><div class="wrap">
+  <div class="cap-head"><div><div class="section-brand section-brand--capabilities" aria-hidden="true"><img src="assets/media/capabilities.png" alt="" width="452" height="273" decoding="async"></div><div class="eyebrow">Capabilities</div><h2 class="section-title">Design engineering skills.</h2><p class="intro">A mix of digital design, engineering, fabrication and validation.</p></div><div class="software"><span class="pill">Fusion 360</span><span class="pill">SolidWorks</span><span class="pill">KiCad</span><span class="pill">CAM</span><span class="pill">CNC Control</span></div></div>
+  <div class="skill-grid">
+    <article class="skill"><div class="skill-top"><span class="skill-num">01</span><span class="skill-dot"></span></div><div><h3>CAD Modelling</h3><p>Assemblies, joints, DFM, exploded views, renders and product animations.</p><div class="skill-tags"><span>Fusion 360</span><span>SolidWorks</span></div></div></article>
+    <article class="skill"><div class="skill-top"><span class="skill-num">02</span><span class="skill-dot"></span></div><div><h3>Prototyping</h3><p>Functional prototypes designed with manufacturability and practical implementation in mind.</p><div class="skill-tags"><span>Iteration</span><span>DFM</span></div></div></article>
+    <article class="skill"><div class="skill-top"><span class="skill-num">03</span><span class="skill-dot"></span></div><div><h3>3D Printing</h3><p>FDM, SLS and resin printing, including slicing, printability, tolerances and inserts.</p><div class="skill-tags"><span>FDM</span><span>SLS</span><span>Resin</span></div></div></article>
+    <article class="skill"><div class="skill-top"><span class="skill-num">04</span><span class="skill-dot"></span></div><div><h3>CNC Construction</h3><p>Custom CNC systems, CAM, CNC control and practical workholding.</p><div class="skill-tags"><span>CAM</span><span>Workholding</span></div></div></article>
+    <article class="skill"><div class="skill-top"><span class="skill-num">05</span><span class="skill-dot"></span></div><div><h3>Sheet Metal</h3><p>Designing and manufacturing sheet-metal parts, in-house and through suppliers.</p><div class="skill-tags"><span>DFM</span><span>Fabrication</span></div></div></article>
+    <article class="skill"><div class="skill-top"><span class="skill-num">06</span><span class="skill-dot"></span></div><div><h3>PCB / Electronics</h3><p>Custom PCBs in KiCad and integration of sensors, cameras, solar panels and batteries.</p><div class="skill-tags"><span>KiCad</span><span>Integration</span></div></div></article>
+    <article class="skill"><div class="skill-top"><span class="skill-num">07</span><span class="skill-dot"></span></div><div><h3>Component Sourcing</h3><p>Selecting components for technical requirements, performance, availability and cost.</p><div class="skill-tags"><span>Selection</span><span>Sourcing</span></div></div></article>
+    <article class="skill"><div class="skill-top"><span class="skill-num">08</span><span class="skill-dot"></span></div><div><h3>Testing & Validation</h3><p>Designing test setups, measuring performance and validating components and prototypes.</p><div class="skill-tags"><span>Test setups</span><span>Validation</span></div></div></article>
+  </div>
+</div></section>
+
+<section class="section" id="workshop"><div class="wrap">
+  <div class="workshop-head"><div><div class="section-brand section-brand--workshop" aria-hidden="true"><img src="assets/media/workshop.svg" alt="" width="452" height="384" decoding="async"></div><div class="eyebrow">Workshop / Prototyping</div><h2 class="section-title">Made in-house.</h2></div><p class="intro">Space for the tools and processes used to turn digital designs into physical prototypes.</p></div>
+  <div class="workshop-grid">
+    <div class="work-card"><span class="image-note">image later</span><div class="label"><small>01</small><strong>CNC machining</strong></div></div>
+    <div class="work-card"><span class="image-note">image later</span><div class="label"><small>02</small><strong>3D printing</strong></div></div>
+    <div class="work-card"><span class="image-note">image later</span><div class="label"><small>03</small><strong>Fabrication</strong></div></div>
+    <div class="work-card"><span class="image-note">image later</span><div class="label"><small>04</small><strong>Electronics</strong></div></div>
+  </div>
+</div></section>
+
+<section class="section project-explorer-section" id="work"><div class="wrap">
+  <div class="section-brand section-brand--work" aria-hidden="true"><img src="assets/media/work.png" alt="" width="452" height="373" decoding="async"></div>
+  <div class="eyebrow">Selected work / Past projects</div>
+  <h2 class="section-title">Explore the archive.</h2>
+  <p class="intro">Move through the years in any direction. Projects sit in the foreground while slower layers drift behind them.</p>
+  <div class="project-explorer canvas-archive" data-project-explorer>
+    <div class="explorer-chrome"><span>Spatial project archive</span><span>2025 → 2010 · move · drag · zoom · discover</span></div>
+    <div class="explorer-window canvas-window" tabindex="0" aria-label="Interactive project archive. Move away from the centre to explore; closer to the edges moves faster. Return to the centre to stop. Hover a project or year to pause, or drag to travel. Hold Control or Command while scrolling to zoom. Arrow keys also navigate.">
+      <canvas class="archive-canvas" aria-hidden="true"></canvas>
+      <div class="archive-fact" role="status" aria-live="polite" hidden>
+        <span class="archive-fact-meta"></span>
+        <strong class="archive-fact-year"></strong>
+        <span class="archive-fact-text"></span>
+      </div>
+      <div class="explorer-hud">
+        <div class="explorer-hud-left">
+          <span class="explorer-hint">move to explore / edges = faster</span>
+          <span class="explorer-pos">X 0 · Y 0</span>
+        </div>
+        <div class="explorer-hud-right">
+          <span class="zoom-readout">100%</span>
+          <div class="explorer-tools" aria-label="Archive zoom controls">
+            <button class="explorer-tool zoom-out" type="button" aria-label="Zoom out">−</button>
+            <button class="explorer-tool zoom-reset" type="button" aria-label="Reset view">○</button>
+            <button class="explorer-tool zoom-in" type="button" aria-label="Zoom in">+</button>
+          </div>
+        </div>
+      </div>
+      <div class="archive-help">Hover years for four different engineering facts · click a project to expand</div>
+    </div>
+  </div>
+</div></section>
+
+<section class="contact"><div class="wrap"><div class="eyebrow">Contact</div><h2>Let’s make<br>something real.</h2><a class="contact-link" href="mailto:info@ykroon.nl">info@ykroon.nl</a><div class="contact-location">Haarlem, Netherlands</div><div class="foot"><div class="footer-signature"><img src="assets/media/footer-logo.png" alt="YK" width="452" height="357" decoding="async"><span>Industrial Design &amp; Engineering</span></div><span>© <span id="year"></span> YK</span></div></div></section>
+</main>
+
+<script src="assets/app.js" defer></script>
+</body></html>

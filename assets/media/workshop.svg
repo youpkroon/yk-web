@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 452 384" width="452" height="384" role="img" aria-labelledby="title desc">
+<title id="title">YK Workshop</title>
+<desc id="desc">The angular YK monogram above a geometric workbench with two fixture jaws.</desc>
+<g fill="#ffffff" transform="translate(54 8) scale(.78)"><path d="M267 201 L250 224 L250 227 L321 337 L355 337 Z"/>
+<path d="M304 150 L287 174 L391 336 L426 337 Z"/>
+<path d="M344 8 L318 8 L193 203 L193 337 L221 337 L221 205 Z"/>
+<path d="M73 8 L177 169 L281 9 L255 9 L177 129 L99 8 Z"/>
+<path d="M11 8 L134 206 L133 336 L162 337 L162 203 L36 8 Z"/></g>
+<g fill="none" stroke="#ffffff" stroke-width="18" stroke-linejoin="miter" stroke-linecap="square">
+  <path d="M48 286 V311 H404 V286"/>
+  <path d="M106 326 L87 365 M346 326 L365 365"/>
+</g>
+</svg>

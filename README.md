@@ -2,23 +2,14 @@
 
 Portfolio website for **YK / Y Kroon Industrial Development & Operations**.
 
-## Website
+## Structure
+- `index.html` — page structure
+- `assets/styles.css` — styling and responsive layout
+- `assets/app.js` — interactions, motion and project archive
+- `assets/media/` — hero and brand assets
 
-The current website is contained in `index.html` and is ready for static hosting with GitHub Pages.
+GitHub Pages publishes the `main` branch.
 
-## GitHub Pages
-
-Publishing source:
-
-- Branch: `main`
-- Folder: `/(root)`
-
-Once GitHub Pages is enabled for this repository, the site will be available at:
-
-https://youpkroon.github.io/yk-web/
-
-## Workflow
-
-Website changes can be committed directly to this repository. GitHub Pages will then publish the newest version automatically.
+Live: https://youpkroon.github.io/yk-web/
 
 © Y Kroon.
