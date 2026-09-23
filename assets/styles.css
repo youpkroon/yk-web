@@ -1507,3 +1507,286 @@ body.is-scrolled .hero .topbar{
     bottom:-8px !important;
   }
 }
+
+
+/* =========================================================
+   Project gallery v2 — three rows, smaller tiles, smaller controls
+   ========================================================= */
+.project-gallery{
+  min-height:clamp(610px,72vh,790px);
+}
+.project-gallery-track{
+  --tile:clamp(185px,16vw,285px);
+  grid-template-rows:repeat(3,minmax(0,1fr));
+  grid-auto-columns:var(--tile);
+  gap:10px;
+  height:clamp(610px,72vh,790px);
+  padding:30px max(7vw,72px);
+}
+.project-tile{
+  border-radius:14px;
+}
+.gallery-control{
+  width:52px;
+  height:92px;
+}
+.gallery-control--left{left:10px}
+.gallery-control--right{right:10px}
+
+/* More temporary visual variety for the extra row. */
+.demo-15{
+  background:
+    radial-gradient(circle at 66% 32%,rgba(255,255,255,.82) 0 7%,transparent 8%),
+    linear-gradient(145deg,#26343a,#47646d 52%,#162126);
+}
+.demo-15::after{
+  width:58%;height:2px;left:19%;top:52%;
+  background:linear-gradient(90deg,transparent,#bdedf3,transparent);
+  transform:rotate(-18deg);
+}
+.demo-16{
+  background:
+    repeating-linear-gradient(135deg,rgba(255,255,255,.07) 0 1px,transparent 1px 18px),
+    linear-gradient(145deg,#6a1642,#b92862 52%,#ef6e88);
+}
+.demo-16::after{
+  inset:18%;
+  border:2px solid rgba(255,225,234,.6);
+  border-radius:28px;
+  transform:rotate(12deg);
+}
+.demo-17{
+  background:
+    radial-gradient(circle at 42% 42%,rgba(255,250,219,.95) 0 10%,transparent 11%),
+    radial-gradient(circle at 60% 62%,rgba(130,242,207,.72) 0 15%,transparent 16%),
+    linear-gradient(145deg,#10352f,#1b6b5b 52%,#091e1a);
+}
+.demo-17::after{
+  inset:11%;
+  border:1px solid rgba(176,255,232,.23);
+  border-radius:50%;
+}
+.demo-18{
+  background:
+    linear-gradient(90deg,transparent 0 49%,rgba(255,255,255,.78) 49.2% 50%,transparent 50.2%),
+    linear-gradient(145deg,#ffe3a8,#efb85f 50%,#b56824);
+}
+.demo-18::after{
+  width:34%;height:34%;border-radius:50%;
+  left:33%;top:33%;
+  background:rgba(119,66,24,.5);
+  box-shadow:0 14px 40px rgba(66,36,10,.25);
+}
+.demo-19{
+  background:
+    radial-gradient(circle at 50% 30%,rgba(154,221,255,.85) 0 9%,transparent 10%),
+    linear-gradient(160deg,#081b2f,#163f69 50%,#0a2843);
+}
+.demo-19::after{
+  left:18%;right:18%;bottom:18%;height:34%;
+  border:1px solid rgba(170,226,255,.5);
+  border-top-left-radius:50% 100%;
+  border-top-right-radius:50% 100%;
+  border-bottom:0;
+}
+.demo-20{
+  background:
+    radial-gradient(circle at 50% 50%,transparent 0 18%,rgba(255,255,255,.72) 18.5% 20%,transparent 20.5%),
+    conic-gradient(from 15deg,#5b2c93,#a04bc4,#415dd1,#5b2c93);
+}
+.demo-20::after{
+  inset:26%;
+  border:1px solid rgba(255,255,255,.34);
+  border-radius:50%;
+}
+
+/* Optional archive launcher. The heavy canvas is created only after a click. */
+.archive-access{
+  display:flex;
+  justify-content:center;
+  padding:30px var(--pad) 46px;
+  background:#090e14;
+}
+.archive-launch{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:42px;
+  width:min(760px,100%);
+  padding:18px 0;
+  border:0;
+  border-top:1px solid rgba(255,255,255,.14);
+  border-bottom:1px solid rgba(255,255,255,.14);
+  background:transparent;
+  color:#eef3f7;
+  cursor:pointer;
+  text-align:left;
+}
+.archive-launch span{
+  font-size:clamp(20px,2vw,30px);
+  letter-spacing:-.035em;
+}
+.archive-launch small{
+  color:#73889b;
+  font-size:8px;
+  letter-spacing:.15em;
+  text-transform:uppercase;
+}
+.archive-launch:hover span,
+.archive-launch:focus-visible span{
+  transform:translateX(6px);
+}
+.archive-launch span{
+  transition:transform .25s cubic-bezier(.16,1,.3,1);
+}
+.archive-launch:focus-visible{
+  outline:1px solid rgba(78,143,216,.55);
+  outline-offset:8px;
+}
+
+.archive-modal[hidden]{display:none !important}
+.archive-modal{
+  position:fixed;
+  inset:0;
+  z-index:1200;
+  display:grid;
+  place-items:center;
+  padding:3vh 3vw;
+}
+.archive-modal-backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(2,6,10,.84);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+}
+.archive-modal-panel{
+  position:relative;
+  z-index:1;
+  width:min(1500px,94vw);
+  height:min(940px,92vh);
+  padding:20px;
+  overflow:hidden;
+  border:1px solid rgba(120,163,204,.18);
+  border-radius:24px;
+  background:#07111b;
+  box-shadow:0 34px 120px rgba(0,0,0,.58);
+}
+.archive-modal-head{
+  height:54px;
+  padding:0 52px 12px 4px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:24px;
+  color:#7898b5;
+  font-size:8px;
+  letter-spacing:.15em;
+  text-transform:uppercase;
+}
+.archive-modal-head strong{
+  color:#f1f4f6;
+  font-size:16px;
+  font-weight:500;
+  letter-spacing:-.02em;
+  text-transform:none;
+}
+.archive-modal-close{
+  position:absolute;
+  z-index:10;
+  right:18px;
+  top:15px;
+  width:36px;
+  height:36px;
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:50%;
+  background:rgba(255,255,255,.03);
+  color:#fff;
+  font:300 25px/1 Arial,sans-serif;
+  cursor:pointer;
+}
+.archive-modal-close:hover{background:rgba(255,255,255,.08)}
+.archive-modal-content{
+  height:calc(100% - 54px);
+}
+.archive-modal-content .project-explorer{
+  height:100%;
+  margin:0;
+}
+.archive-modal-content .explorer-chrome{
+  display:none;
+}
+.archive-modal-content .explorer-window{
+  height:100%;
+  min-height:0;
+  border-radius:18px;
+}
+body.archive-open{
+  overflow:hidden;
+}
+
+@media(max-width:900px){
+  .project-gallery,
+  .project-gallery-track{
+    height:650px;
+    min-height:650px;
+  }
+  .project-gallery-track{
+    --tile:clamp(170px,28vw,240px);
+    padding-inline:52px;
+  }
+  .gallery-control{
+    width:40px;
+    height:72px;
+  }
+}
+@media(max-width:700px){
+  .project-gallery,
+  .project-gallery-track{
+    height:570px;
+    min-height:570px;
+  }
+  .project-gallery-track{
+    --tile:min(58vw,220px);
+    gap:8px;
+    padding:22px 34px;
+  }
+  .gallery-control{
+    width:32px;
+    height:58px;
+  }
+  .gallery-control--left{left:2px}
+  .gallery-control--right{right:2px}
+  .archive-launch{
+    gap:18px;
+  }
+  .archive-launch span{
+    font-size:20px;
+  }
+  .archive-launch small{
+    font-size:7px;
+  }
+  .archive-modal{
+    padding:0;
+  }
+  .archive-modal-panel{
+    width:100vw;
+    height:100dvh;
+    border:0;
+    border-radius:0;
+    padding:14px;
+  }
+  .archive-modal-head{
+    height:48px;
+    padding-left:2px;
+  }
+  .archive-modal-head span{
+    display:none;
+  }
+  .archive-modal-content{
+    height:calc(100% - 48px);
+  }
+  .archive-modal-content .explorer-window{
+    border-radius:12px;
+  }
+}
