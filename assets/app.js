@@ -619,14 +619,17 @@ function initProjectExplorer(root){
   window.addEventListener('resize',requestSync,{passive:true});
 })();
 
-/* Full-width project gallery: drag, keyboard and branded left/right controls. */
+/* Project gallery: three independent auto-moving lanes with proximity steering and spring packing. */
 (()=>{
   const section=document.querySelector('.project-streams-section');
-  const track=section?.querySelector('.project-gallery-track');
-  if(!section||!track)return;
+  const gallery=section?.querySelector('[data-project-gallery]');
+  const viewport=gallery?.querySelector('.project-gallery-lanes');
+  const laneEls=[...(gallery?.querySelectorAll('[data-gallery-lane]')||[])];
+  if(!section||!gallery||!viewport||!laneEls.length)return;
 
-  const left=section.querySelector('.gallery-control--left');
-  const right=section.querySelector('.gallery-control--right');
+  const left=gallery.querySelector('.gallery-control--left');
+  const right=gallery.querySelector('.gallery-control--right');
+  const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const reveal=new IntersectionObserver(entries=>{
     entries.forEach(entry=>{
@@ -638,61 +641,215 @@ function initProjectExplorer(root){
   },{threshold:.08});
   reveal.observe(section);
 
-  let drag=false;
-  let startX=0;
-  let startScroll=0;
-  let pointerId=null;
+  const states=laneEls.map((lane,index)=>{
+    const strip=lane.querySelector('.project-gallery-strip');
+    const originals=[...strip.children];
+    originals.forEach(item=>{
+      const clone=item.cloneNode(true);
+      clone.setAttribute('aria-hidden','true');
+      strip.appendChild(clone);
+    });
+    return {
+      lane,
+      strip,
+      originals,
+      speed:reduce?0:Number(lane.dataset.speed||24),
+      x:0,
+      loop:1,
+      anchors:[0],
+      impulse:0,
+      snap:null,
+      springV:0,
+      initialized:false,
+      factor:[1,.84,1.08][index]||1
+    };
+  });
 
-  const endDrag=()=>{
-    if(!drag)return;
-    drag=false;
-    track.classList.remove('is-dragging');
-    if(pointerId!==null){
-      try{track.releasePointerCapture(pointerId);}catch{}
-    }
-    pointerId=null;
+  const normalize=state=>{
+    if(!state.loop)return;
+    while(state.x<=-state.loop)state.x+=state.loop;
+    while(state.x>0)state.x-=state.loop;
   };
 
-  track.addEventListener('pointerdown',e=>{
-    if(e.pointerType==='touch'||e.button!==0)return;
+  const measure=()=>{
+    states.forEach((state,index)=>{
+      const style=getComputedStyle(state.strip);
+      const gap=parseFloat(style.columnGap||style.gap)||0;
+      let acc=0;
+      const anchors=[0];
+      state.originals.forEach((item,i)=>{
+        acc+=item.getBoundingClientRect().width;
+        if(i<state.originals.length-1)acc+=gap;
+        anchors.push(-acc);
+      });
+      acc+=gap;
+      state.loop=Math.max(1,acc);
+      state.anchors=anchors;
+      if(!state.initialized){
+        state.x=-state.loop*([.17,.41,.28][index]||.2);
+        state.initialized=true;
+      }
+      normalize(state);
+      state.strip.style.transform=`translate3d(${state.x}px,0,0)`;
+    });
+  };
+
+  requestAnimationFrame(measure);
+  new ResizeObserver(measure).observe(viewport);
+
+  let steering=0;
+  let wasSteering=false;
+  let drag=false;
+  let dragPointer=null;
+  let dragStartX=0;
+  let startPositions=[];
+  let packTimer=0;
+  let impulseTimer=0;
+  let last=performance.now();
+
+  const nearestAnchor=state=>{
+    normalize(state);
+    let best=state.anchors[0];
+    let bestDist=Math.abs(state.x-best);
+    for(const anchor of state.anchors){
+      const d=Math.abs(state.x-anchor);
+      if(d<bestDist){best=anchor;bestDist=d;}
+    }
+    return best;
+  };
+
+  const pack=()=>{
+    clearTimeout(packTimer);
+    states.forEach(state=>{
+      state.snap=nearestAnchor(state);
+      state.springV=0;
+    });
+    gallery.classList.remove('is-packing');
+    void gallery.offsetWidth;
+    gallery.classList.add('is-packing');
+    packTimer=setTimeout(()=>gallery.classList.remove('is-packing'),720);
+  };
+
+  const setSteering=value=>{
+    const next=Math.max(-1,Math.min(1,value));
+    if(Math.abs(next)<.02){
+      if(wasSteering&&!drag)pack();
+      steering=0;
+      wasSteering=false;
+      gallery.classList.remove('is-steering-left','is-steering-right');
+      return;
+    }
+    steering=next;
+    wasSteering=true;
+    gallery.classList.toggle('is-steering-left',next<0);
+    gallery.classList.toggle('is-steering-right',next>0);
+  };
+
+  const updateSteering=e=>{
+    if(drag)return;
+    const rect=gallery.getBoundingClientRect();
+    const x=e.clientX-rect.left;
+    const zone=Math.min(190,rect.width*.16);
+    if(x<zone){
+      const p=(zone-x)/zone;
+      setSteering(-p*p);
+    }else if(x>rect.width-zone){
+      const p=(x-(rect.width-zone))/zone;
+      setSteering(p*p);
+    }else{
+      setSteering(0);
+    }
+  };
+
+  gallery.addEventListener('pointermove',updateSteering);
+  gallery.addEventListener('pointerleave',()=>{
+    if(!drag)setSteering(0);
+  });
+
+  viewport.addEventListener('pointerdown',e=>{
+    if(e.button!==0||e.target.closest('.gallery-control'))return;
     drag=true;
-    startX=e.clientX;
-    startScroll=track.scrollLeft;
-    pointerId=e.pointerId;
-    track.classList.add('is-dragging');
-    track.setPointerCapture?.(e.pointerId);
+    setSteering(0);
+    dragPointer=e.pointerId;
+    dragStartX=e.clientX;
+    startPositions=states.map(state=>state.x);
+    viewport.classList.add('is-dragging');
+    viewport.setPointerCapture?.(e.pointerId);
     e.preventDefault();
   });
 
-  track.addEventListener('pointermove',e=>{
+  viewport.addEventListener('pointermove',e=>{
+    if(!drag||e.pointerId!==dragPointer)return;
+    const dx=e.clientX-dragStartX;
+    states.forEach((state,index)=>{
+      state.snap=null;
+      state.springV=0;
+      state.x=startPositions[index]+dx*state.factor;
+      normalize(state);
+    });
+  });
+
+  const endDrag=e=>{
     if(!drag)return;
-    track.scrollLeft=startScroll-(e.clientX-startX);
-  });
-
-  track.addEventListener('pointerup',endDrag);
-  track.addEventListener('pointercancel',endDrag);
-  track.addEventListener('lostpointercapture',endDrag);
-
-  const step=()=>Math.max(280,track.clientWidth*.68);
-  left?.addEventListener('click',()=>track.scrollBy({left:-step(),behavior:'smooth'}));
-  right?.addEventListener('click',()=>track.scrollBy({left:step(),behavior:'smooth'}));
-
-  track.addEventListener('keydown',e=>{
-    if(e.key==='ArrowRight'){
-      track.scrollBy({left:step(),behavior:'smooth'});
-      e.preventDefault();
-    }
-    if(e.key==='ArrowLeft'){
-      track.scrollBy({left:-step(),behavior:'smooth'});
-      e.preventDefault();
-    }
-  });
-
-  /* Start inside the rail instead of hard-left so both directions are immediately explorable. */
-  const positionRail=()=>{
-    const max=Math.max(0,track.scrollWidth-track.clientWidth);
-    if(max>0&&track.scrollLeft<4) track.scrollLeft=max*.22;
+    drag=false;
+    viewport.classList.remove('is-dragging');
+    try{viewport.releasePointerCapture?.(dragPointer);}catch{}
+    dragPointer=null;
+    pack();
   };
-  requestAnimationFrame(positionRail);
-  window.addEventListener('resize',positionRail,{passive:true});
+  viewport.addEventListener('pointerup',endDrag);
+  viewport.addEventListener('pointercancel',endDrag);
+  viewport.addEventListener('lostpointercapture',()=>{if(drag)endDrag({});});
+
+  const impulse=direction=>{
+    states.forEach((state,index)=>{
+      state.snap=null;
+      state.springV=0;
+      state.impulse+=direction*(360+index*24);
+    });
+    clearTimeout(impulseTimer);
+    impulseTimer=setTimeout(pack,520);
+  };
+  left?.addEventListener('click',()=>impulse(-1));
+  right?.addEventListener('click',()=>impulse(1));
+
+  viewport.addEventListener('keydown',e=>{
+    if(e.key==='ArrowLeft'){impulse(-1);e.preventDefault();}
+    if(e.key==='ArrowRight'){impulse(1);e.preventDefault();}
+  });
+
+  const tick=now=>{
+    const dt=Math.min(.04,(now-last)/1000||.016);
+    last=now;
+
+    states.forEach((state,index)=>{
+      if(state.snap!==null){
+        let delta=state.snap-state.x;
+        if(Math.abs(delta)>state.loop*.5){
+          state.snap+=delta>0?-state.loop:state.loop;
+          delta=state.snap-state.x;
+        }
+        const stiffness=72;
+        const damping=16;
+        const acceleration=delta*stiffness-state.springV*damping;
+        state.springV+=acceleration*dt;
+        state.x+=state.springV*dt;
+        if(Math.abs(delta)<.45&&Math.abs(state.springV)<2){
+          state.x=state.snap;
+          state.snap=null;
+          state.springV=0;
+        }
+      }else if(!drag){
+        const steerSpeed=steering*185*(.94+index*.08);
+        state.x-=(state.speed+steerSpeed+state.impulse)*dt;
+        state.impulse*=Math.exp(-dt*5.1);
+      }
+
+      normalize(state);
+      state.strip.style.transform=`translate3d(${state.x.toFixed(2)}px,0,0)`;
+    });
+
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
 })();
