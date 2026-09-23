@@ -683,3 +683,23 @@ body.is-scrolled .hero .topbar{
 @media(prefers-reduced-motion:reduce){
   .stream-card{opacity:1;transform:none;transition:none}
 }
+
+
+/* Contact navigation mark */
+.hero .nav .nav-item--contact{--nav-accent:#4e8fd8;--nav-line:20px}
+.nav-symbol--contact svg{
+  display:block;
+  width:100%;
+  height:100%;
+  color:#fff;
+  overflow:visible;
+}
+.hero .nav .nav-item--contact .nav-symbol{
+  width:46px;
+  height:29px;
+}
+@media(max-width:700px){
+  .hero .nav{grid-template-columns:repeat(5,minmax(0,1fr))}
+  .hero .nav .nav-item--contact .nav-symbol{width:25px;height:16px}
+  .hero .nav .nav-label{font-size:7px}
+}
