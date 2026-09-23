@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 120">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 128">
   <defs><filter id="s" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="1.6" dy="2" stdDeviation="1.2" flood-color="#d9e0ff" flood-opacity=".48"/></filter></defs>
   <g fill="#fff" filter="url(#s)">
     <circle cx="20" cy="9" r="6"/>
