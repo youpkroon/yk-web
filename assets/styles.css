@@ -1121,3 +1121,71 @@ body.archive-open{overflow:hidden}
   .gallery-control{transition:none}
   .project-gallery.is-packing .project-tile{animation:none}
 }
+
+
+/* Cross-lane project bubbles */
+.gallery-bridge-layer{
+  position:absolute;
+  inset:0;
+  z-index:3;
+  pointer-events:none;
+  overflow:hidden;
+}
+.gallery-bridge{
+  position:absolute;
+  left:0;
+  top:0;
+  width:240px;
+  height:220px;
+  overflow:hidden;
+  opacity:0;
+  transform-origin:center;
+  will-change:transform,height,border-radius,opacity;
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:0 20px 60px rgba(0,0,0,.22);
+  transition:opacity .18s linear;
+}
+.gallery-bridge::before,
+.gallery-bridge::after{
+  content:"";
+  position:absolute;
+  pointer-events:none;
+}
+.gallery-bridge::before{
+  inset:-12%;
+  border-radius:inherit;
+  transform:scaleY(calc(1 - var(--bridge-squeeze,0) * .28)) scaleX(calc(1 + var(--bridge-squeeze,0) * .12));
+  transition:transform .08s linear;
+}
+.gallery-bridge::after{
+  left:12%;
+  right:12%;
+  top:50%;
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.34),transparent);
+  opacity:calc(.18 + var(--bridge-align,1) * .42);
+}
+.gallery-bridge--violet{
+  background:
+    radial-gradient(circle at 34% 38%,rgba(226,220,255,.88) 0 9%,transparent 10%),
+    radial-gradient(circle at 66% 62%,rgba(129,93,255,.82) 0 15%,transparent 16%),
+    linear-gradient(145deg,#17162d,#3c2864 52%,#6c3ca0);
+}
+.gallery-bridge--amber{
+  background:
+    radial-gradient(circle at 50% 48%,rgba(255,242,186,.92) 0 12%,rgba(255,185,67,.45) 13% 28%,transparent 29%),
+    linear-gradient(145deg,#3a2a20,#8c5b31 55%,#d79a43);
+}
+.gallery-bridge--cyan{
+  background:
+    linear-gradient(125deg,transparent 0 47%,rgba(255,255,255,.82) 47.3% 48.2%,transparent 48.5%),
+    linear-gradient(145deg,#bcecff,#57b6dd 52%,#1f6f9e);
+}
+.gallery-bridge--rose{
+  background:
+    radial-gradient(circle at 30% 34%,rgba(255,226,220,.9) 0 8%,transparent 9%),
+    linear-gradient(155deg,#ff806e,#d74757 52%,#7d2039);
+}
+@media(max-width:700px){
+  .gallery-bridge{display:none}
+}
