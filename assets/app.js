@@ -851,3 +851,94 @@ function initProjectExplorer(root){
   };
   requestAnimationFrame(tick);
 })();
+
+/* Cross-lane bubbles: wide project cards can bridge two moving rows.
+   When the rows drift out of phase, the card squashes vertically and
+   shifts toward one lane, then stretches back across both when aligned. */
+(()=>{
+  const viewport=document.querySelector('.project-gallery-lanes');
+  if(!viewport||viewport.dataset.bridgeReady)return;
+  const strips=[...viewport.querySelectorAll('.project-gallery-strip')];
+  const lanes=[...viewport.querySelectorAll('.project-gallery-lane')];
+  if(strips.length<3||lanes.length<3)return;
+  viewport.dataset.bridgeReady='1';
+
+  const layer=document.createElement('div');
+  layer.className='gallery-bridge-layer';
+  viewport.appendChild(layer);
+
+  const defs=[
+    {pair:[0,1],follow:0,offset:.18,bias:0,width:1.06,shift:1,theme:'violet'},
+    {pair:[0,1],follow:1,offset:.69,bias:215,width:.92,shift:-1,theme:'amber'},
+    {pair:[1,2],follow:1,offset:.31,bias:125,width:1.12,shift:1,theme:'cyan'},
+    {pair:[1,2],follow:2,offset:.79,bias:335,width:.96,shift:-1,theme:'rose'}
+  ].map(d=>{
+    const el=document.createElement('div');
+    el.className='gallery-bridge gallery-bridge--'+d.theme;
+    layer.appendChild(el);
+    return {...d,el};
+  });
+
+  let vw=1,rows=[];
+  const measure=()=>{
+    vw=Math.max(1,viewport.clientWidth);
+    rows=lanes.map(l=>({top:l.offsetTop,height:l.offsetHeight}));
+  };
+  measure();
+  new ResizeObserver(measure).observe(viewport);
+
+  const tx=el=>{
+    const t=getComputedStyle(el).transform;
+    if(!t||t==='none')return 0;
+    try{return new DOMMatrixReadOnly(t).m41}catch{
+      const m=t.match(/matrix\([^,]+,[^,]+,[^,]+,[^,]+,\s*([^,]+)/);
+      return m?Number(m[1])||0:0;
+    }
+  };
+  const wrapSigned=(v,p)=>((v+p/2)%p+p)%p-p/2;
+  const closestX=(raw,period,width)=>{
+    const base=((raw%period)+period)%period;
+    const center=vw/2;
+    return [base-period,base,base+period].reduce((best,x)=>
+      Math.abs(x+width/2-center)<Math.abs(best+width/2-center)?x:best
+    );
+  };
+
+  const frame=()=>{
+    if(rows.length===3){
+      const xs=strips.map(tx);
+      const loops=strips.map(s=>Math.max(1,s.scrollWidth/2));
+
+      defs.forEach(d=>{
+        const upper=rows[d.pair[0]],lower=rows[d.pair[1]];
+        const rowH=(upper.height+lower.height)/2;
+        const fullH=(lower.top+lower.height)-upper.top;
+        const period=Math.max(380,Math.min(760,vw*.48));
+        const signed=wrapSigned((xs[d.pair[0]]-xs[d.pair[1]])+d.bias,period);
+        const mis=Math.min(1,Math.abs(signed)/(period*.48));
+        const smooth=mis*mis*(3-2*mis);
+        const align=1-smooth;
+        const squeeze=1-align;
+
+        const h=rowH*.56+(fullH-rowH*.56)*Math.pow(align,.78);
+        const center=(upper.top+lower.top+lower.height)/2;
+        const dir=signed===0?1:Math.sign(signed);
+        const y=center+dir*squeeze*rowH*.32*d.shift-h/2;
+        const width=Math.max(190,Math.min(350,rowH*1.55*d.width));
+        const raw=xs[d.follow]+loops[d.follow]*d.offset;
+        const x=closestX(raw,loops[d.follow],width);
+        const visible=x>-width*.9&&x<vw+width*.25;
+
+        d.el.style.width=width.toFixed(1)+'px';
+        d.el.style.height=h.toFixed(1)+'px';
+        d.el.style.opacity=visible?'1':'0';
+        d.el.style.borderRadius=(18+squeeze*54).toFixed(1)+'px';
+        d.el.style.transform='translate3d('+x.toFixed(1)+'px,'+y.toFixed(1)+'px,0) scaleX('+(1+squeeze*.12).toFixed(3)+') rotate('+(dir*squeeze*1.35).toFixed(2)+'deg)';
+        d.el.style.setProperty('--bridge-align',align.toFixed(3));
+        d.el.style.setProperty('--bridge-squeeze',squeeze.toFixed(3));
+      });
+    }
+    requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
+})();
