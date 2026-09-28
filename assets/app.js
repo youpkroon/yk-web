@@ -852,34 +852,38 @@ function initProjectExplorer(root){
   requestAnimationFrame(tick);
 })();
 
-/* Cross-lane bubbles: wide project cards can bridge two moving rows.
-   When the rows drift out of phase, the card squashes vertically and
-   shifts toward one lane, then stretches back across both when aligned. */
+/* Cross-row cards that physically fall into a lane when the rows drift apart. */
 (()=>{
   const viewport=document.querySelector('.project-gallery-lanes');
-  if(!viewport||viewport.dataset.bridgeReady)return;
+  if(!viewport||viewport.dataset.fallReady)return;
   const strips=[...viewport.querySelectorAll('.project-gallery-strip')];
   const lanes=[...viewport.querySelectorAll('.project-gallery-lane')];
   if(strips.length<3||lanes.length<3)return;
-  viewport.dataset.bridgeReady='1';
+  viewport.dataset.fallReady='1';
 
   const layer=document.createElement('div');
-  layer.className='gallery-bridge-layer';
+  layer.className='gallery-fall-layer';
   viewport.appendChild(layer);
 
   const defs=[
-    {pair:[0,1],follow:0,offset:.18,bias:0,width:1.06,shift:1,theme:'violet'},
-    {pair:[0,1],follow:1,offset:.69,bias:215,width:.92,shift:-1,theme:'amber'},
-    {pair:[1,2],follow:1,offset:.31,bias:125,width:1.12,shift:1,theme:'cyan'},
-    {pair:[1,2],follow:2,offset:.79,bias:335,width:.96,shift:-1,theme:'rose'}
+    {pair:[0,1],follow:0,offset:.16,bias:0,theme:'blue',landBias:1},
+    {pair:[0,1],follow:1,offset:.70,bias:190,theme:'amber',landBias:-1},
+    {pair:[1,2],follow:1,offset:.30,bias:80,theme:'violet',landBias:1},
+    {pair:[1,2],follow:2,offset:.78,bias:300,theme:'cyan',landBias:-1}
   ].map(d=>{
-    const el=document.createElement('div');
-    el.className='gallery-bridge gallery-bridge--'+d.theme;
-    layer.appendChild(el);
-    return {...d,el};
+    const shell=document.createElement('div');
+    shell.className='gallery-fall-shell';
+    shell.dataset.landRow='lower';
+    const card=document.createElement('div');
+    card.className='gallery-fall-card gallery-fall-card--'+d.theme;
+    shell.appendChild(card);
+    layer.appendChild(shell);
+    return {...d,shell,card,landed:false,targetRow:d.pair[1],impactTimer:0};
   });
 
-  let vw=1,rows=[];
+  let vw=1;
+  let rows=[];
+
   const measure=()=>{
     vw=Math.max(1,viewport.clientWidth);
     rows=lanes.map(l=>({top:l.offsetTop,height:l.offsetHeight}));
@@ -895,13 +899,33 @@ function initProjectExplorer(root){
       return m?Number(m[1])||0:0;
     }
   };
+
   const wrapSigned=(v,p)=>((v+p/2)%p+p)%p-p/2;
-  const closestX=(raw,period,width)=>{
+
+  const closestX=(raw,period,displayWidth)=>{
+    if(!period)return raw;
     const base=((raw%period)+period)%period;
     const center=vw/2;
-    return [base-period,base,base+period].reduce((best,x)=>
-      Math.abs(x+width/2-center)<Math.abs(best+width/2-center)?x:best
+    const candidates=[base-period,base,base+period];
+    return candidates.reduce((best,x)=>
+      Math.abs(x+displayWidth/2-center)<Math.abs(best+displayWidth/2-center)?x:best
     );
+  };
+
+  const setLanded=(d,landed,signed)=>{
+    if(d.landed===landed)return;
+    d.landed=landed;
+
+    if(landed){
+      const preferLower=signed*d.landBias>=0;
+      d.targetRow=preferLower?d.pair[1]:d.pair[0];
+      d.shell.dataset.landRow=preferLower?'lower':'upper';
+      d.shell.classList.add('is-landed','is-impact');
+      clearTimeout(d.impactTimer);
+      d.impactTimer=setTimeout(()=>d.shell.classList.remove('is-impact'),560);
+    }else{
+      d.shell.classList.remove('is-landed');
+    }
   };
 
   const frame=()=>{
@@ -910,35 +934,59 @@ function initProjectExplorer(root){
       const loops=strips.map(s=>Math.max(1,s.scrollWidth/2));
 
       defs.forEach(d=>{
-        const upper=rows[d.pair[0]],lower=rows[d.pair[1]];
+        const upper=rows[d.pair[0]];
+        const lower=rows[d.pair[1]];
+        const upperStateX=xs[d.pair[0]];
+        const lowerStateX=xs[d.pair[1]];
+        const sourceLoop=loops[d.follow];
+
+        const pairTop=upper.top;
+        const pairBottom=lower.top+lower.height;
+        const bridgeHeight=pairBottom-pairTop;
         const rowH=(upper.height+lower.height)/2;
-        const fullH=(lower.top+lower.height)-upper.top;
-        const period=Math.max(380,Math.min(760,vw*.48));
-        const signed=wrapSigned((xs[d.pair[0]]-xs[d.pair[1]])+d.bias,period);
-        const mis=Math.min(1,Math.abs(signed)/(period*.48));
-        const smooth=mis*mis*(3-2*mis);
-        const align=1-smooth;
-        const squeeze=1-align;
 
-        const h=rowH*.56+(fullH-rowH*.56)*Math.pow(align,.78);
-        const center=(upper.top+lower.top+lower.height)/2;
-        const dir=signed===0?1:Math.sign(signed);
-        const y=center+dir*squeeze*rowH*.32*d.shift-h/2;
-        const width=Math.max(190,Math.min(350,rowH*1.55*d.width));
-        const raw=xs[d.follow]+loops[d.follow]*d.offset;
-        const x=closestX(raw,loops[d.follow],width);
-        const visible=x>-width*.9&&x<vw+width*.25;
+        const phasePeriod=Math.max(360,Math.min(680,vw*.43));
+        const signed=wrapSigned((upperStateX-lowerStateX)+d.bias,phasePeriod);
+        const distance=Math.abs(signed);
 
-        d.el.style.width=width.toFixed(1)+'px';
-        d.el.style.height=h.toFixed(1)+'px';
-        d.el.style.opacity=visible?'1':'0';
-        d.el.style.borderRadius=(18+squeeze*54).toFixed(1)+'px';
-        d.el.style.transform='translate3d('+x.toFixed(1)+'px,'+y.toFixed(1)+'px,0) scaleX('+(1+squeeze*.12).toFixed(3)+') rotate('+(dir*squeeze*1.35).toFixed(2)+'deg)';
-        d.el.style.setProperty('--bridge-align',align.toFixed(3));
-        d.el.style.setProperty('--bridge-squeeze',squeeze.toFixed(3));
+        /* Hysteresis keeps the movement decisive: it stands across two rows
+           while they line up, then really topples into one row once they drift. */
+        if(!d.landed&&distance>phasePeriod*.29)setLanded(d,true,signed);
+        if(d.landed&&distance<phasePeriod*.105)setLanded(d,false,signed);
+
+        const uprightWidth=Math.max(150,Math.min(250,rowH*.90));
+        const uprightHeight=Math.max(rowH*1.88,bridgeHeight-2);
+        const displayedWidth=d.landed?uprightHeight:uprightWidth;
+
+        d.shell.style.width=uprightWidth.toFixed(1)+'px';
+        d.shell.style.height=uprightHeight.toFixed(1)+'px';
+
+        let anchorX;
+        let centerY;
+
+        if(d.landed){
+          const target=d.targetRow;
+          anchorX=xs[target]+loops[target]*d.offset;
+          centerY=rows[target].top+rows[target].height/2;
+        }else{
+          const averageX=(upperStateX+lowerStateX)/2;
+          const averageLoop=(loops[d.pair[0]]+loops[d.pair[1]])/2;
+          anchorX=averageX+averageLoop*d.offset;
+          centerY=(pairTop+pairBottom)/2;
+        }
+
+        const x=closestX(anchorX,d.landed?loops[d.targetRow]:(loops[d.pair[0]]+loops[d.pair[1]])/2,displayedWidth);
+        const left=x+(displayedWidth-uprightWidth)/2;
+        const top=centerY-uprightHeight/2;
+
+        d.shell.style.left=left.toFixed(1)+'px';
+        d.shell.style.top=top.toFixed(1)+'px';
+        d.shell.style.opacity=(x>-displayedWidth&&x<vw+displayedWidth*.25)?'1':'0';
       });
     }
     requestAnimationFrame(frame);
   };
+
   requestAnimationFrame(frame);
 })();
+
