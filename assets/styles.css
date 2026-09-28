@@ -1152,27 +1152,46 @@ body.archive-open{overflow:hidden}
   transform:rotate(0deg) scale(1);
   transform-origin:50% 50%;
   will-change:transform,filter;
-  transition:
-    transform 680ms cubic-bezier(.16,1.08,.28,1),
-    filter 420ms ease;
+  filter:brightness(1);
 }
 .gallery-fall-shell.is-landed .gallery-fall-card{
   filter:brightness(1.035);
 }
-.gallery-fall-shell.is-landed[data-land-row="upper"] .gallery-fall-card{
-  transform:rotate(-90deg) scale(1.015);
-}
-.gallery-fall-shell.is-landed[data-land-row="lower"] .gallery-fall-card{
-  transform:rotate(90deg) scale(1.015);
-}
 .gallery-fall-shell.is-impact{
-  animation:fallShellImpact .48s cubic-bezier(.18,.82,.2,1);
+  animation:fallShellImpact .72s cubic-bezier(.18,.82,.2,1);
+}
+.gallery-fall-shell.is-impact[data-land-row="lower"] .gallery-fall-card{
+  animation:fallCardDown .72s cubic-bezier(.16,1.05,.28,1);
+}
+.gallery-fall-shell.is-impact[data-land-row="upper"] .gallery-fall-card{
+  animation:fallCardUp .72s cubic-bezier(.16,1.05,.28,1);
+}
+.gallery-fall-shell.is-impact:not(.is-landed) .gallery-fall-card{
+  animation:fallCardStand .72s cubic-bezier(.16,1.05,.28,1);
 }
 @keyframes fallShellImpact{
   0%{border-radius:14px}
   38%{border-radius:24px}
   72%{border-radius:11px}
   100%{border-radius:14px}
+}
+@keyframes fallCardDown{
+  0%{transform:rotate(0deg) scale(1)}
+  56%{transform:rotate(88deg) scale(.965)}
+  78%{transform:rotate(94deg) scale(1.01)}
+  100%{transform:rotate(0deg) scale(1)}
+}
+@keyframes fallCardUp{
+  0%{transform:rotate(0deg) scale(1)}
+  56%{transform:rotate(-88deg) scale(.965)}
+  78%{transform:rotate(-94deg) scale(1.01)}
+  100%{transform:rotate(0deg) scale(1)}
+}
+@keyframes fallCardStand{
+  0%{transform:rotate(0deg) scale(1)}
+  48%{transform:rotate(-72deg) scale(.97)}
+  72%{transform:rotate(5deg) scale(1.015)}
+  100%{transform:rotate(0deg) scale(1)}
 }
 
 /* The underlying tile keeps its layout space but becomes invisible.
