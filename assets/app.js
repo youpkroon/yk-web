@@ -852,7 +852,7 @@ function initProjectExplorer(root){
   requestAnimationFrame(tick);
 })();
 
-/* Cross-row cards that occupy real lane space instead of floating above cards. */
+/* Cross-row cards that use real tile slots, while all three lanes keep independent speeds. */
 (()=>{
   const viewport=document.querySelector('.project-gallery-lanes');
   if(!viewport||viewport.dataset.fallReady)return;
@@ -862,17 +862,17 @@ function initProjectExplorer(root){
   if(strips.length<3||lanes.length<3)return;
   viewport.dataset.fallReady='1';
 
-  const originals=strips.map(strip=>[...strip.children].filter(el=>el.getAttribute('aria-hidden')!=='true'));
-  const allTiles=[...viewport.querySelectorAll('.project-tile')];
-
   const layer=document.createElement('div');
   layer.className='gallery-fall-layer';
   viewport.appendChild(layer);
 
+  const children=strips.map(strip=>[...strip.children]);
+  const standardTiles=children.map(items=>items.filter(el=>!el.classList.contains('project-tile--wide')));
+  const wideTiles=children.map(items=>items.filter(el=>el.classList.contains('project-tile--wide')));
+
   const defs=[
-    {pair:[0,1],follow:0,slot:2,bias:0,theme:'blue',landBias:1},
-    {pair:[0,1],follow:1,slot:5,bias:210,theme:'amber',landBias:-1},
-    {pair:[1,2],follow:1,slot:3,bias:90,theme:'cyan',landBias:1}
+    {pair:[0,1],preferred:.42,theme:'amber',landBias:1},
+    {pair:[1,2],preferred:.70,theme:'blue',landBias:-1}
   ].map(def=>{
     const shell=document.createElement('div');
     shell.className='gallery-fall-shell';
@@ -889,22 +889,25 @@ function initProjectExplorer(root){
       card,
       landed:false,
       targetRow:def.pair[1],
-      targetSlot:0,
-      x:NaN,
-      y:NaN,
+      transitionStart:0,
+      transitionDuration:720,
+      from:null,
+      x:0,
+      y:0,
+      w:0,
+      h:0,
+      initialized:false,
       impactTimer:0
     };
   });
 
-  let vw=1;
+  let viewportWidth=1;
   let rows=[];
+  let last=performance.now();
 
   const measure=()=>{
-    vw=Math.max(1,viewport.clientWidth);
-    rows=lanes.map(lane=>({
-      top:lane.offsetTop,
-      height:lane.offsetHeight
-    }));
+    viewportWidth=Math.max(1,viewport.clientWidth);
+    rows=lanes.map(lane=>({top:lane.offsetTop,height:lane.offsetHeight}));
   };
   measure();
   new ResizeObserver(measure).observe(viewport);
@@ -918,153 +921,181 @@ function initProjectExplorer(root){
     }
   };
 
-  const loopWidth=row=>Math.max(1,strips[row].scrollWidth/2);
-  const wrapSigned=(value,period)=>((value+period/2)%period+period)%period-period/2;
-
-  const repeatedSlotLeft=(row,index,displayWidth)=>{
-    const items=originals[row];
-    if(!items.length)return 0;
-    const item=items[((index%items.length)+items.length)%items.length];
-    const loop=loopWidth(row);
-    const raw=stripX(strips[row])+item.offsetLeft;
-    const center=vw/2;
-    const candidates=[raw-loop,raw,raw+loop,raw+loop*2];
-    return candidates.reduce((best,value)=>
-      Math.abs(value+displayWidth/2-center)<Math.abs(best+displayWidth/2-center)?value:best
-    ,candidates[0]);
+  const tileGeom=(row,tile,xOffset)=>{
+    if(!tile)return null;
+    return {
+      tile,
+      left:xOffset+tile.offsetLeft,
+      width:tile.offsetWidth,
+      center:xOffset+tile.offsetLeft+tile.offsetWidth/2
+    };
   };
 
-  const nearestSlot=(row,desiredLeft,displayWidth)=>{
-    const items=originals[row];
-    if(!items.length)return 0;
-    let bestIndex=0;
-    let bestDistance=Infinity;
+  const visibleCandidates=(row,list,xOffset)=>{
+    const margin=viewportWidth*.35;
+    return list
+      .map(tile=>tileGeom(row,tile,xOffset))
+      .filter(g=>g&&g.left+g.width>-margin&&g.left<viewportWidth+margin);
+  };
 
-    items.forEach((item,index)=>{
-      const left=repeatedSlotLeft(row,index,displayWidth);
-      const distance=Math.abs(left-desiredLeft);
-      if(distance<bestDistance){
-        bestDistance=distance;
-        bestIndex=index;
-      }
+  const nearestWide=(row,xOffset,desiredCenter)=>{
+    const candidates=visibleCandidates(row,wideTiles[row],xOffset);
+    if(!candidates.length)return null;
+    return candidates.reduce((best,g)=>
+      Math.abs(g.center-desiredCenter)<Math.abs(best.center-desiredCenter)?g:best
+    );
+  };
+
+  const bestAlignedPair=(pair,xs,desiredCenter)=>{
+    const upper=visibleCandidates(pair[0],standardTiles[pair[0]],xs[pair[0]]);
+    const lower=visibleCandidates(pair[1],standardTiles[pair[1]],xs[pair[1]]);
+    let best=null;
+
+    upper.forEach(a=>{
+      lower.forEach(b=>{
+        const align=Math.abs(a.left-b.left);
+        const center=(a.center+b.center)/2;
+        const distance=Math.abs(center-desiredCenter);
+        const score=align*4+distance*.28;
+        if(!best||score<best.score)best={a,b,align,center,score};
+      });
     });
-    return bestIndex;
+    return best;
   };
 
-  const setLanded=(def,landed,signed,currentDisplayLeft)=>{
-    if(def.landed===landed)return;
-    def.landed=landed;
+  const clearReservations=()=>{
+    viewport.querySelectorAll('.is-reserved-by-fall').forEach(tile=>tile.classList.remove('is-reserved-by-fall'));
+  };
 
-    if(landed){
-      const landLower=signed*def.landBias>=0;
-      def.targetRow=landLower?def.pair[1]:def.pair[0];
-      def.shell.dataset.landRow=landLower?'lower':'upper';
-      def.targetSlot=nearestSlot(def.targetRow,currentDisplayLeft,1);
-      def.shell.classList.add('is-landed','is-impact');
-      clearTimeout(def.impactTimer);
-      def.impactTimer=setTimeout(()=>def.shell.classList.remove('is-impact'),560);
-    }else{
-      def.shell.classList.remove('is-landed');
+  const reserve=tile=>{
+    tile?.classList.add('is-reserved-by-fall');
+  };
+
+  const ease=t=>{
+    const u=1-Math.max(0,Math.min(1,t));
+    return 1-u*u*u;
+  };
+
+  const beginTransition=(def,target,landed,targetRow)=>{
+    def.transitionStart=performance.now();
+    def.from={x:def.x,y:def.y,w:def.w,h:def.h};
+    def.landed=landed;
+    def.targetRow=targetRow;
+    def.shell.dataset.landRow=targetRow===def.pair[0]?'upper':'lower';
+    def.shell.classList.toggle('is-landed',landed);
+    def.shell.classList.add('is-impact');
+    clearTimeout(def.impactTimer);
+    def.impactTimer=setTimeout(()=>def.shell.classList.remove('is-impact'),520);
+
+    if(!def.initialized){
+      def.x=target.x; def.y=target.y; def.w=target.w; def.h=target.h;
+      def.from={...target};
+      def.initialized=true;
     }
   };
 
-  const overlap=(a,b)=>{
-    const x=Math.min(a.right,b.right)-Math.max(a.left,b.left);
-    const y=Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top);
-    return x>14&&y>14&&x*y>900;
+  const interpolateBox=(def,target,now)=>{
+    if(!def.initialized){
+      def.x=target.x;def.y=target.y;def.w=target.w;def.h=target.h;
+      def.initialized=true;
+      return;
+    }
+
+    const elapsed=now-def.transitionStart;
+    if(def.transitionStart&&elapsed<def.transitionDuration){
+      const p=ease(elapsed/def.transitionDuration);
+      const from=def.from||target;
+      def.x=from.x+(target.x-from.x)*p;
+      def.y=from.y+(target.y-from.y)*p;
+      def.w=from.w+(target.w-from.w)*p;
+      def.h=from.h+(target.h-from.h)*p;
+    }else{
+      def.transitionStart=0;
+      def.x=target.x;
+      def.y=target.y;
+      def.w=target.w;
+      def.h=target.h;
+    }
   };
-
-  const updateOcclusion=()=>{
-    allTiles.forEach(tile=>tile.classList.remove('is-occluded-by-fall'));
-    const activeRects=defs
-      .filter(def=>Number(def.shell.style.opacity)>0)
-      .map(def=>def.card.getBoundingClientRect());
-
-    if(!activeRects.length)return;
-
-    allTiles.forEach(tile=>{
-      const rect=tile.getBoundingClientRect();
-      if(activeRects.some(active=>overlap(rect,active))){
-        tile.classList.add('is-occluded-by-fall');
-      }
-    });
-  };
-
-  let last=performance.now();
 
   const frame=now=>{
     const dt=Math.min(.04,(now-last)/1000||.016);
     last=now;
+    if(rows.length!==3){requestAnimationFrame(frame);return;}
 
-    if(rows.length===3){
-      const xs=strips.map(stripX);
+    const xs=strips.map(stripX);
+    clearReservations();
 
-      defs.forEach(def=>{
-        const upper=rows[def.pair[0]];
-        const lower=rows[def.pair[1]];
-        const gap=Math.max(0,lower.top-(upper.top+upper.height));
-        const uprightWidth=Math.max(120,Math.min(upper.height,lower.height));
-        const uprightHeight=upper.height+gap+lower.height;
+    defs.forEach(def=>{
+      const upperRow=rows[def.pair[0]];
+      const lowerRow=rows[def.pair[1]];
+      const desiredCenter=def.initialized
+        ? def.x+def.w/2
+        : viewportWidth*def.preferred;
 
-        const period=Math.max(360,Math.min(700,vw*.44));
-        const signed=wrapSigned((xs[def.pair[0]]-xs[def.pair[1]])+def.bias,period);
-        const distance=Math.abs(signed);
+      const aligned=bestAlignedPair(def.pair,xs,desiredCenter);
+      if(!aligned){def.shell.style.opacity='0';return;}
 
-        const spanLeft=repeatedSlotLeft(def.follow,def.slot,uprightWidth);
-        const currentDisplayLeft=Number.isFinite(def.x)
-          ? def.x+(def.landed?(uprightWidth-uprightHeight)/2:0)
-          : spanLeft;
+      const uprightTarget={
+        x:(aligned.a.left+aligned.b.left)/2,
+        y:upperRow.top,
+        w:(aligned.a.width+aligned.b.width)/2,
+        h:(lowerRow.top+lowerRow.height)-upperRow.top
+      };
 
-        if(!def.landed&&distance>period*.31){
-          setLanded(def,true,signed,currentDisplayLeft);
-        }else if(def.landed&&distance<period*.105){
-          setLanded(def,false,signed,currentDisplayLeft);
+      const difference=aligned.a.left-aligned.b.left;
+      const standThreshold=14;
+      const fallThreshold=Math.max(34,uprightTarget.w*.18);
+
+      if(!def.initialized){
+        def.x=uprightTarget.x;def.y=uprightTarget.y;def.w=uprightTarget.w;def.h=uprightTarget.h;
+        def.initialized=true;
+      }
+
+      if(!def.landed&&aligned.align>fallThreshold){
+        const landLower=difference*def.landBias>=0;
+        const targetRow=landLower?def.pair[1]:def.pair[0];
+        const wide=nearestWide(targetRow,xs[targetRow],def.x+def.w/2);
+        if(wide){
+          const target={
+            x:wide.left,
+            y:rows[targetRow].top,
+            w:wide.width,
+            h:rows[targetRow].height
+          };
+          beginTransition(def,target,true,targetRow);
         }
+      }else if(def.landed&&aligned.align<standThreshold&&Math.abs(aligned.center-(def.x+def.w/2))<Math.max(180,def.w*.75)){
+        beginTransition(def,uprightTarget,false,def.pair[0]);
+      }
 
-        let targetLeft;
-        let targetTop;
+      let target;
+      let reservations=[];
 
-        if(def.landed){
-          const displayWidth=uprightHeight;
-          const slotLeft=repeatedSlotLeft(def.targetRow,def.targetSlot,displayWidth);
-          const row=rows[def.targetRow];
-
-          /* Shell stays tall; after the 90° rotation its visible card is exactly
-             one lane high and begins on a real tile slot. */
-          targetLeft=slotLeft+(displayWidth-uprightWidth)/2;
-          targetTop=row.top+row.height/2-uprightHeight/2;
+      if(def.landed){
+        const row=def.targetRow;
+        const wide=nearestWide(row,xs[row],def.x+def.w/2);
+        if(wide){
+          target={x:wide.left,y:rows[row].top,w:wide.width,h:rows[row].height};
+          reservations=[wide.tile];
         }else{
-          targetLeft=spanLeft;
-          targetTop=upper.top;
+          target={x:def.x,y:def.y,w:def.w,h:def.h};
         }
+      }else{
+        target=uprightTarget;
+        reservations=[aligned.a.tile,aligned.b.tile];
+      }
 
-        if(!Number.isFinite(def.x)||Math.abs(targetLeft-def.x)>vw*.7){
-          def.x=targetLeft;
-        }else{
-          const followRate=1-Math.pow(.012,dt);
-          def.x+=(targetLeft-def.x)*followRate;
-        }
+      reservations.forEach(reserve);
+      interpolateBox(def,target,now);
 
-        if(!Number.isFinite(def.y)){
-          def.y=targetTop;
-        }else{
-          const fallRate=1-Math.pow(.0025,dt);
-          def.y+=(targetTop-def.y)*fallRate;
-        }
+      def.shell.style.width=def.w.toFixed(2)+'px';
+      def.shell.style.height=def.h.toFixed(2)+'px';
+      def.shell.style.transform='translate3d('+def.x.toFixed(2)+'px,'+def.y.toFixed(2)+'px,0)';
 
-        def.shell.style.width=uprightWidth.toFixed(1)+'px';
-        def.shell.style.height=uprightHeight.toFixed(1)+'px';
-        def.shell.style.left=def.x.toFixed(1)+'px';
-        def.shell.style.top=def.y.toFixed(1)+'px';
-
-        const visibleWidth=def.landed?uprightHeight:uprightWidth;
-        const displayLeft=def.x+(def.landed?(uprightWidth-uprightHeight)/2:0);
-        const visible=displayLeft>-visibleWidth&&displayLeft<vw+visibleWidth*.25;
-        def.shell.style.opacity=visible?'1':'0';
-      });
-
-      updateOcclusion();
-    }
+      const visible=def.x+def.w>-def.w*.25&&def.x<viewportWidth+def.w*.25;
+      def.shell.style.opacity=visible?'1':'0';
+    });
 
     requestAnimationFrame(frame);
   };
