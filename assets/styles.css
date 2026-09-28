@@ -1136,7 +1136,11 @@ body.archive-open{overflow:hidden}
   left:0;
   top:0;
   overflow:visible;
-  will-change:left,top;
+  opacity:0;
+  will-change:left,top,opacity;
+  transition:
+    top 760ms cubic-bezier(.16,1.08,.28,1),
+    opacity .18s linear;
 }
 .gallery-fall-card{
   position:absolute;
