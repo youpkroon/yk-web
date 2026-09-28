@@ -2,7 +2,7 @@ document.getElementById('year').textContent=new Date().getFullYear();
 (function(){
   const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const hero=document.querySelector('.hero');
-  const textTargets=[...document.querySelectorAll('.hero h1'),...document.querySelectorAll('.eyebrow,.section-title,.skill h3,.work-card strong,.project-title,.contact h2,.contact-link')];
+  const textTargets=[...document.querySelectorAll('.hero h1'),...document.querySelectorAll('.eyebrow,.section-title,.skill h3,.work-card strong,.contact h2,.contact-link')];
   function wrapHorizontal(el,targetIndex){
     if(el.dataset.buildReady)return;
     const parts=el.innerHTML.split(/<br\s*\/?>/i);
@@ -35,9 +35,8 @@ document.getElementById('year').textContent=new Date().getFullYear();
   if(aboutVisual){aboutVisual.classList.add('fly-build');aboutVisual.style.setProperty('--fx','36vw');aboutVisual.style.setProperty('--fy','-16vh');aboutVisual.style.setProperty('--fr','5deg');aboutVisual.style.setProperty('--mr','.5deg');aboutVisual.style.setProperty('--fs','.86');aboutVisual.style.setProperty('--ms','1.015');aboutVisual.style.setProperty('--mx','34px');aboutVisual.style.setProperty('--my','-12px');aboutVisual.style.setProperty('--fly-dur','2.35s');}
   document.querySelectorAll('.skill').forEach((el,i)=>makeFly(el,i,.035*(i%4)));
   document.querySelectorAll('.work-card').forEach((el,i)=>makeFly(el,i+2,.07*i));
-  document.querySelectorAll('.project').forEach((el,i)=>makeFly(el,i+6,.09*i));
   document.querySelectorAll('.pill').forEach((el,i)=>{el.classList.add('fly-build');const v=vectors[(i+4)%vectors.length];el.style.setProperty('--fx',v.x);el.style.setProperty('--fy',v.y);el.style.setProperty('--fr',v.r);el.style.setProperty('--mr',v.mr);el.style.setProperty('--fs','.80');el.style.setProperty('--ms','1.018');el.style.setProperty('--mx',v.mx);el.style.setProperty('--my',v.my);el.style.setProperty('--fly-dur',v.d);el.style.setProperty('--fly-delay',`${.055*i}s`);});
-  document.querySelectorAll('.section-brand,.intro,.about-placeholder,.hero-meta,.skill p,.skill-tags,.image-note,.skill-num,.skill-dot,.project small,.work-card small,.foot').forEach((el,i)=>{el.classList.add('soft-build');el.style.setProperty('--soft-x',i%2?'42px':'-42px');el.style.setProperty('--soft-y',i%3===0?'18px':'0px');el.style.transitionDelay=`${(i%4)*.045}s`;});
+  document.querySelectorAll('.section-brand,.intro,.about-placeholder,.hero-meta,.skill p,.skill-tags,.image-note,.skill-num,.skill-dot,.work-card small,.foot').forEach((el,i)=>{el.classList.add('soft-build');el.style.setProperty('--soft-x',i%2?'42px':'-42px');el.style.setProperty('--soft-y',i%3===0?'18px':'0px');el.style.transitionDelay=`${(i%4)*.045}s`;});
   const buildTargets=document.querySelectorAll('.slide-text,.soft-build,.fly-build');
   if(reduce){buildTargets.forEach(el=>el.classList.add('is-built'));hero?.classList.add('hero-ready');return;}
 
@@ -49,7 +48,6 @@ document.getElementById('year').textContent=new Date().getFullYear();
     document.querySelector('#capabilities .skill-grid'),
     document.querySelector('#workshop .workshop-head'),
     document.querySelector('#workshop .workshop-grid'),
-    document.querySelector('#work > .wrap'),
     document.querySelector('.contact > .wrap')
   ].filter(Boolean);
 
