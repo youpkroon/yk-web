@@ -897,7 +897,8 @@ function initProjectExplorer(root){
       w:0,
       h:0,
       initialized:false,
-      impactTimer:0
+      impactTimer:0,
+      transitionReserve:[]
     };
   });
 
@@ -956,7 +957,7 @@ function initProjectExplorer(root){
         const align=Math.abs(a.left-b.left);
         const center=(a.center+b.center)/2;
         const distance=Math.abs(center-desiredCenter);
-        const score=align*4+distance*.28;
+        const score=align*8+distance*.18;
         if(!best||score<best.score)best={a,b,align,center,score};
       });
     });
@@ -976,8 +977,9 @@ function initProjectExplorer(root){
     return 1-u*u*u;
   };
 
-  const beginTransition=(def,target,landed,targetRow)=>{
+  const beginTransition=(def,target,landed,targetRow,oldReserve=[])=>{
     def.transitionStart=performance.now();
+    def.transitionReserve=oldReserve.filter(Boolean);
     def.from={x:def.x,y:def.y,w:def.w,h:def.h};
     def.landed=landed;
     def.targetRow=targetRow;
@@ -1011,6 +1013,7 @@ function initProjectExplorer(root){
       def.h=from.h+(target.h-from.h)*p;
     }else{
       def.transitionStart=0;
+      def.transitionReserve=[];
       def.x=target.x;
       def.y=target.y;
       def.w=target.w;
@@ -1044,8 +1047,8 @@ function initProjectExplorer(root){
       };
 
       const difference=aligned.a.left-aligned.b.left;
-      const standThreshold=14;
-      const fallThreshold=Math.max(34,uprightTarget.w*.18);
+      const standThreshold=6;
+      const fallThreshold=Math.max(20,uprightTarget.w*.08);
 
       if(!def.initialized){
         def.x=uprightTarget.x;def.y=uprightTarget.y;def.w=uprightTarget.w;def.h=uprightTarget.h;
@@ -1063,10 +1066,11 @@ function initProjectExplorer(root){
             w:wide.width,
             h:rows[targetRow].height
           };
-          beginTransition(def,target,true,targetRow);
+          beginTransition(def,target,true,targetRow,[aligned.a.tile,aligned.b.tile]);
         }
-      }else if(def.landed&&aligned.align<standThreshold&&Math.abs(aligned.center-(def.x+def.w/2))<Math.max(180,def.w*.75)){
-        beginTransition(def,uprightTarget,false,def.pair[0]);
+      }else if(def.landed&&aligned.align<standThreshold&&Math.abs(aligned.center-(def.x+def.w/2))<Math.max(210,def.w*.82)){
+        const oldWide=nearestWide(def.targetRow,xs[def.targetRow],def.x+def.w/2);
+        beginTransition(def,uprightTarget,false,def.pair[0],[oldWide?.tile]);
       }
 
       let target;
@@ -1086,6 +1090,7 @@ function initProjectExplorer(root){
         reservations=[aligned.a.tile,aligned.b.tile];
       }
 
+      def.transitionReserve.forEach(reserve);
       reservations.forEach(reserve);
       interpolateBox(def,target,now);
 
