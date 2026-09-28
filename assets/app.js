@@ -617,25 +617,23 @@ function initProjectExplorer(root){
   window.addEventListener('resize',requestSync,{passive:true});
 })();
 
-/* Project gallery: three independent auto-moving lanes with proximity steering and spring packing. */
+/* Project gallery: three independent lanes, edge steering and periodic magnetic re-packing. */
 (()=>{
   const section=document.querySelector('.project-streams-section');
   const gallery=section?.querySelector('[data-project-gallery]');
   const viewport=gallery?.querySelector('.project-gallery-lanes');
   const laneEls=[...(gallery?.querySelectorAll('[data-gallery-lane]')||[])];
-  if(!section||!gallery||!viewport||!laneEls.length)return;
+  if(!section||!gallery||!viewport||laneEls.length!==3)return;
 
   const left=gallery.querySelector('.gallery-control--left');
   const right=gallery.querySelector('.gallery-control--right');
   const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const reveal=new IntersectionObserver(entries=>{
-    entries.forEach(entry=>{
-      if(entry.isIntersecting){
-        section.classList.add('is-built');
-        reveal.disconnect();
-      }
-    });
+    if(entries.some(entry=>entry.isIntersecting)){
+      section.classList.add('is-built');
+      reveal.disconnect();
+    }
   },{threshold:.08});
   reveal.observe(section);
 
@@ -651,20 +649,20 @@ function initProjectExplorer(root){
       lane,
       strip,
       originals,
-      speed:reduce?0:Number(lane.dataset.speed||24),
+      items:[...strip.children],
+      speed:reduce?0:Number(lane.dataset.speed||20),
       x:0,
       loop:1,
-      anchors:[0],
       impulse:0,
-      snap:null,
-      springV:0,
+      packTarget:null,
+      packV:0,
       initialized:false,
-      factor:[1,.84,1.08][index]||1
+      dragFactor:[1,.86,1.08][index]||1
     };
   });
 
   const normalize=state=>{
-    if(!state.loop)return;
+    if(state.loop<=1)return;
     while(state.x<=-state.loop)state.x+=state.loop;
     while(state.x>0)state.x-=state.loop;
   };
@@ -673,104 +671,120 @@ function initProjectExplorer(root){
     states.forEach((state,index)=>{
       const style=getComputedStyle(state.strip);
       const gap=parseFloat(style.columnGap||style.gap)||0;
-      let acc=0;
-      const anchors=[0];
+      let width=0;
       state.originals.forEach((item,i)=>{
-        acc+=item.getBoundingClientRect().width;
-        if(i<state.originals.length-1)acc+=gap;
-        anchors.push(-acc);
+        width+=item.getBoundingClientRect().width;
+        if(i<state.originals.length-1)width+=gap;
       });
-      acc+=gap;
-      state.loop=Math.max(1,acc);
-      state.anchors=anchors;
+      width+=gap;
+      state.loop=Math.max(1,width);
       if(!state.initialized){
-        state.x=-state.loop*([.17,.41,.28][index]||.2);
+        state.x=-state.loop*([.16,.39,.27][index]||.2);
         state.initialized=true;
       }
       normalize(state);
-      state.strip.style.transform=`translate3d(${state.x}px,0,0)`;
+      state.strip.style.transform='translate3d('+state.x.toFixed(2)+'px,0,0)';
     });
   };
 
   requestAnimationFrame(measure);
   new ResizeObserver(measure).observe(viewport);
 
-  let steering=0;
-  let wasSteering=false;
   let drag=false;
   let dragPointer=null;
   let dragStartX=0;
-  let startPositions=[];
-  let packTimer=0;
-  let impulseTimer=0;
+  let dragStarts=[];
+  let steerTarget=0;
+  let steer=0;
   let last=performance.now();
+  let nextPack=performance.now()+5200;
+  let requestedPackAt=0;
+  let packing=false;
+  let packEnd=0;
+  let packClassTimer=0;
 
-  const nearestAnchor=state=>{
-    normalize(state);
-    let best=state.anchors[0];
-    let bestDist=Math.abs(state.x-best);
-    for(const anchor of state.anchors){
-      const d=Math.abs(state.x-anchor);
-      if(d<bestDist){best=anchor;bestDist=d;}
-    }
-    return best;
+  const requestPack=(delay=500)=>{
+    requestedPackAt=performance.now()+delay;
+    nextPack=Math.max(nextPack,requestedPackAt+3200);
   };
 
-  const pack=()=>{
-    clearTimeout(packTimer);
-    states.forEach(state=>{
-      state.snap=nearestAnchor(state);
-      state.springV=0;
+  const magneticTarget=(state,anchor)=>{
+    let best=null;
+    state.items.forEach(item=>{
+      const currentLeft=state.x+item.offsetLeft;
+      const distance=Math.abs(currentLeft-anchor);
+      if(!best||distance<best.distance){
+        best={offset:item.offsetLeft,distance};
+      }
     });
-    gallery.classList.remove('is-packing');
-    void gallery.offsetWidth;
-    gallery.classList.add('is-packing');
-    packTimer=setTimeout(()=>gallery.classList.remove('is-packing'),720);
+    if(!best)return state.x;
+    let target=anchor-best.offset;
+    while(target-state.x>state.loop/2)target-=state.loop;
+    while(target-state.x<-state.loop/2)target+=state.loop;
+    return target;
   };
 
-  const setSteering=value=>{
-    const next=Math.max(-1,Math.min(1,value));
-    if(Math.abs(next)<.02){
-      if(wasSteering&&!drag)pack();
-      steering=0;
-      wasSteering=false;
-      gallery.classList.remove('is-steering-left','is-steering-right');
-      return;
-    }
-    steering=next;
-    wasSteering=true;
-    gallery.classList.toggle('is-steering-left',next<0);
-    gallery.classList.toggle('is-steering-right',next>0);
+  const startPack=()=>{
+    if(drag||Math.abs(steerTarget)>.03)return;
+    const anchor=Math.max(54,Math.min(viewport.clientWidth*.105,150));
+    states.forEach(state=>{
+      state.packTarget=magneticTarget(state,anchor);
+      state.packV=0;
+      state.impulse=0;
+    });
+    packing=true;
+    packEnd=performance.now()+900;
+    requestedPackAt=0;
+    nextPack=performance.now()+7600;
+
+    gallery.classList.remove('is-magnetic-pack');
+    void gallery.offsetWidth;
+    gallery.classList.add('is-magnetic-pack');
+    clearTimeout(packClassTimer);
+    packClassTimer=setTimeout(()=>gallery.classList.remove('is-magnetic-pack'),900);
   };
 
   const updateSteering=e=>{
     if(drag)return;
     const rect=gallery.getBoundingClientRect();
     const x=e.clientX-rect.left;
-    const zone=Math.min(190,rect.width*.16);
+    const zone=Math.max(120,Math.min(220,rect.width*.15));
+    let target=0;
     if(x<zone){
       const p=(zone-x)/zone;
-      setSteering(-p*p);
+      target=Math.min(1,p*p);
     }else if(x>rect.width-zone){
       const p=(x-(rect.width-zone))/zone;
-      setSteering(p*p);
-    }else{
-      setSteering(0);
+      target=-Math.min(1,p*p);
     }
+    if(Math.abs(target-steerTarget)>.025){
+      steerTarget=target;
+      requestedPackAt=0;
+      nextPack=performance.now()+5000;
+    }
+    gallery.classList.toggle('is-steering-left',target>.04);
+    gallery.classList.toggle('is-steering-right',target<-.04);
   };
 
   gallery.addEventListener('pointermove',updateSteering);
   gallery.addEventListener('pointerleave',()=>{
-    if(!drag)setSteering(0);
+    if(drag)return;
+    const wasSteering=Math.abs(steerTarget)>.04;
+    steerTarget=0;
+    gallery.classList.remove('is-steering-left','is-steering-right');
+    if(wasSteering)requestPack(650);
   });
 
   viewport.addEventListener('pointerdown',e=>{
     if(e.button!==0||e.target.closest('.gallery-control'))return;
     drag=true;
-    setSteering(0);
+    steerTarget=0;
+    steer=0;
+    packing=false;
+    states.forEach(state=>{state.packTarget=null;state.packV=0;});
     dragPointer=e.pointerId;
     dragStartX=e.clientX;
-    startPositions=states.map(state=>state.x);
+    dragStarts=states.map(state=>state.x);
     viewport.classList.add('is-dragging');
     viewport.setPointerCapture?.(e.pointerId);
     e.preventDefault();
@@ -780,9 +794,7 @@ function initProjectExplorer(root){
     if(!drag||e.pointerId!==dragPointer)return;
     const dx=e.clientX-dragStartX;
     states.forEach((state,index)=>{
-      state.snap=null;
-      state.springV=0;
-      state.x=startPositions[index]+dx*state.factor;
+      state.x=dragStarts[index]+dx*state.dragFactor;
       normalize(state);
     });
   });
@@ -793,318 +805,81 @@ function initProjectExplorer(root){
     viewport.classList.remove('is-dragging');
     try{viewport.releasePointerCapture?.(dragPointer);}catch{}
     dragPointer=null;
-    pack();
+    requestPack(420);
   };
   viewport.addEventListener('pointerup',endDrag);
   viewport.addEventListener('pointercancel',endDrag);
   viewport.addEventListener('lostpointercapture',()=>{if(drag)endDrag({});});
 
-  const impulse=direction=>{
+  const kick=direction=>{
+    packing=false;
+    requestedPackAt=0;
     states.forEach((state,index)=>{
-      state.snap=null;
-      state.springV=0;
-      state.impulse+=direction*(360+index*24);
+      state.packTarget=null;
+      state.packV=0;
+      state.impulse+=direction*(285+index*22);
     });
-    clearTimeout(impulseTimer);
-    impulseTimer=setTimeout(pack,520);
+    requestPack(720);
   };
-  left?.addEventListener('click',()=>impulse(-1));
-  right?.addEventListener('click',()=>impulse(1));
+
+  /* Left control reveals earlier work by pushing the rails right; right does the opposite. */
+  left?.addEventListener('click',()=>kick(1));
+  right?.addEventListener('click',()=>kick(-1));
 
   viewport.addEventListener('keydown',e=>{
-    if(e.key==='ArrowLeft'){impulse(-1);e.preventDefault();}
-    if(e.key==='ArrowRight'){impulse(1);e.preventDefault();}
+    if(e.key==='ArrowLeft'){kick(1);e.preventDefault();}
+    if(e.key==='ArrowRight'){kick(-1);e.preventDefault();}
   });
 
   const tick=now=>{
     const dt=Math.min(.04,(now-last)/1000||.016);
     last=now;
 
+    const steerEase=1-Math.exp(-dt*7.5);
+    steer+=(steerTarget-steer)*steerEase;
+
+    if(!drag&&!packing){
+      if(requestedPackAt&&now>=requestedPackAt)startPack();
+      else if(now>=nextPack&&Math.abs(steer)<.035)startPack();
+    }
+
+    let allPacked=true;
     states.forEach((state,index)=>{
-      if(state.snap!==null){
-        let delta=state.snap-state.x;
-        if(Math.abs(delta)>state.loop*.5){
-          state.snap+=delta>0?-state.loop:state.loop;
-          delta=state.snap-state.x;
+      if(state.packTarget!==null){
+        let delta=state.packTarget-state.x;
+        const stiffness=82;
+        const damping=17.5;
+        const acceleration=delta*stiffness-state.packV*damping;
+        state.packV+=acceleration*dt;
+        state.x+=state.packV*dt;
+        if(Math.abs(delta)<.35&&Math.abs(state.packV)<1.6){
+          state.x=state.packTarget;
+          state.packTarget=null;
+          state.packV=0;
+        }else{
+          allPacked=false;
         }
-        const stiffness=72;
-        const damping=16;
-        const acceleration=delta*stiffness-state.springV*damping;
-        state.springV+=acceleration*dt;
-        state.x+=state.springV*dt;
-        if(Math.abs(delta)<.45&&Math.abs(state.springV)<2){
-          state.x=state.snap;
-          state.snap=null;
-          state.springV=0;
-        }
-      }else if(!drag){
-        const steerSpeed=steering*185*(.94+index*.08);
-        state.x-=(state.speed+steerSpeed+state.impulse)*dt;
-        state.impulse*=Math.exp(-dt*5.1);
+      }else if(!drag&&!packing){
+        /* Base speeds are all leftward; edge steering can slow, accelerate or reverse them. */
+        const steerVelocity=steer*145*(.95+index*.07);
+        state.x+=(-state.speed+steerVelocity+state.impulse)*dt;
+        state.impulse*=Math.exp(-dt*5.4);
+      }else if(packing){
+        state.impulse*=Math.exp(-dt*8);
       }
 
       normalize(state);
-      state.strip.style.transform=`translate3d(${state.x.toFixed(2)}px,0,0)`;
+      state.strip.style.transform='translate3d('+state.x.toFixed(2)+'px,0,0)';
     });
+
+    if(packing&&(allPacked||now>=packEnd)){
+      packing=false;
+      states.forEach(state=>{state.packTarget=null;state.packV=0;});
+      nextPack=now+7600;
+    }
 
     requestAnimationFrame(tick);
   };
+
   requestAnimationFrame(tick);
 })();
-
-/* Cross-row cards that use real tile slots, while all three lanes keep independent speeds. */
-(()=>{
-  const viewport=document.querySelector('.project-gallery-lanes');
-  if(!viewport||viewport.dataset.fallReady)return;
-
-  const strips=[...viewport.querySelectorAll('.project-gallery-strip')];
-  const lanes=[...viewport.querySelectorAll('.project-gallery-lane')];
-  if(strips.length<3||lanes.length<3)return;
-  viewport.dataset.fallReady='1';
-
-  const layer=document.createElement('div');
-  layer.className='gallery-fall-layer';
-  viewport.appendChild(layer);
-
-  const children=strips.map(strip=>[...strip.children]);
-  const standardTiles=children.map(items=>items.filter(el=>!el.classList.contains('project-tile--wide')));
-  const wideTiles=children.map(items=>items.filter(el=>el.classList.contains('project-tile--wide')));
-
-  const defs=[
-    {pair:[0,1],preferred:.42,theme:'amber',landBias:1},
-    {pair:[1,2],preferred:.70,theme:'blue',landBias:-1}
-  ].map(def=>{
-    const shell=document.createElement('div');
-    shell.className='gallery-fall-shell';
-    shell.dataset.landRow='lower';
-
-    const card=document.createElement('div');
-    card.className='gallery-fall-card gallery-fall-card--'+def.theme;
-    shell.appendChild(card);
-    layer.appendChild(shell);
-
-    return {
-      ...def,
-      shell,
-      card,
-      landed:false,
-      targetRow:def.pair[1],
-      transitionStart:0,
-      transitionDuration:720,
-      from:null,
-      x:0,
-      y:0,
-      w:0,
-      h:0,
-      initialized:false,
-      impactTimer:0,
-      transitionReserve:[]
-    };
-  });
-
-  let viewportWidth=1;
-  let rows=[];
-  let last=performance.now();
-
-  const measure=()=>{
-    viewportWidth=Math.max(1,viewport.clientWidth);
-    rows=lanes.map(lane=>({top:lane.offsetTop,height:lane.offsetHeight}));
-  };
-  measure();
-  new ResizeObserver(measure).observe(viewport);
-
-  const stripX=strip=>{
-    const transform=getComputedStyle(strip).transform;
-    if(!transform||transform==='none')return 0;
-    try{return new DOMMatrixReadOnly(transform).m41}catch{
-      const match=transform.match(/matrix\([^,]+,[^,]+,[^,]+,[^,]+,\s*([^,]+)/);
-      return match?Number(match[1])||0:0;
-    }
-  };
-
-  const tileGeom=(row,tile,xOffset)=>{
-    if(!tile)return null;
-    return {
-      tile,
-      left:xOffset+tile.offsetLeft,
-      width:tile.offsetWidth,
-      center:xOffset+tile.offsetLeft+tile.offsetWidth/2
-    };
-  };
-
-  const visibleCandidates=(row,list,xOffset)=>{
-    const margin=viewportWidth*.35;
-    return list
-      .map(tile=>tileGeom(row,tile,xOffset))
-      .filter(g=>g&&g.left+g.width>-margin&&g.left<viewportWidth+margin);
-  };
-
-  const nearestWide=(row,xOffset,desiredCenter)=>{
-    const candidates=visibleCandidates(row,wideTiles[row],xOffset);
-    if(!candidates.length)return null;
-    return candidates.reduce((best,g)=>
-      Math.abs(g.center-desiredCenter)<Math.abs(best.center-desiredCenter)?g:best
-    );
-  };
-
-  const bestAlignedPair=(pair,xs,desiredCenter)=>{
-    const upper=visibleCandidates(pair[0],standardTiles[pair[0]],xs[pair[0]]);
-    const lower=visibleCandidates(pair[1],standardTiles[pair[1]],xs[pair[1]]);
-    let best=null;
-
-    upper.forEach(a=>{
-      lower.forEach(b=>{
-        const align=Math.abs(a.left-b.left);
-        const center=(a.center+b.center)/2;
-        const distance=Math.abs(center-desiredCenter);
-        const score=align*8+distance*.18;
-        if(!best||score<best.score)best={a,b,align,center,score};
-      });
-    });
-    return best;
-  };
-
-  const clearReservations=()=>{
-    viewport.querySelectorAll('.is-reserved-by-fall').forEach(tile=>tile.classList.remove('is-reserved-by-fall'));
-  };
-
-  const reserve=tile=>{
-    tile?.classList.add('is-reserved-by-fall');
-  };
-
-  const ease=t=>{
-    const u=1-Math.max(0,Math.min(1,t));
-    return 1-u*u*u;
-  };
-
-  const beginTransition=(def,target,landed,targetRow,oldReserve=[])=>{
-    def.transitionStart=performance.now();
-    def.transitionReserve=oldReserve.filter(Boolean);
-    def.from={x:def.x,y:def.y,w:def.w,h:def.h};
-    def.landed=landed;
-    def.targetRow=targetRow;
-    def.shell.dataset.landRow=targetRow===def.pair[0]?'upper':'lower';
-    def.shell.classList.toggle('is-landed',landed);
-    def.shell.classList.add('is-impact');
-    clearTimeout(def.impactTimer);
-    def.impactTimer=setTimeout(()=>def.shell.classList.remove('is-impact'),520);
-
-    if(!def.initialized){
-      def.x=target.x; def.y=target.y; def.w=target.w; def.h=target.h;
-      def.from={...target};
-      def.initialized=true;
-    }
-  };
-
-  const interpolateBox=(def,target,now)=>{
-    if(!def.initialized){
-      def.x=target.x;def.y=target.y;def.w=target.w;def.h=target.h;
-      def.initialized=true;
-      return;
-    }
-
-    const elapsed=now-def.transitionStart;
-    if(def.transitionStart&&elapsed<def.transitionDuration){
-      const p=ease(elapsed/def.transitionDuration);
-      const from=def.from||target;
-      def.x=from.x+(target.x-from.x)*p;
-      def.y=from.y+(target.y-from.y)*p;
-      def.w=from.w+(target.w-from.w)*p;
-      def.h=from.h+(target.h-from.h)*p;
-    }else{
-      def.transitionStart=0;
-      def.transitionReserve=[];
-      def.x=target.x;
-      def.y=target.y;
-      def.w=target.w;
-      def.h=target.h;
-    }
-  };
-
-  const frame=now=>{
-    const dt=Math.min(.04,(now-last)/1000||.016);
-    last=now;
-    if(rows.length!==3){requestAnimationFrame(frame);return;}
-
-    const xs=strips.map(stripX);
-    clearReservations();
-
-    defs.forEach(def=>{
-      const upperRow=rows[def.pair[0]];
-      const lowerRow=rows[def.pair[1]];
-      const desiredCenter=def.initialized
-        ? def.x+def.w/2
-        : viewportWidth*def.preferred;
-
-      const aligned=bestAlignedPair(def.pair,xs,desiredCenter);
-      if(!aligned){def.shell.style.opacity='0';return;}
-
-      const uprightTarget={
-        x:(aligned.a.left+aligned.b.left)/2,
-        y:upperRow.top,
-        w:(aligned.a.width+aligned.b.width)/2,
-        h:(lowerRow.top+lowerRow.height)-upperRow.top
-      };
-
-      const difference=aligned.a.left-aligned.b.left;
-      const standThreshold=6;
-      const fallThreshold=Math.max(20,uprightTarget.w*.08);
-
-      if(!def.initialized){
-        def.x=uprightTarget.x;def.y=uprightTarget.y;def.w=uprightTarget.w;def.h=uprightTarget.h;
-        def.initialized=true;
-      }
-
-      if(!def.landed&&aligned.align>fallThreshold){
-        const landLower=difference*def.landBias>=0;
-        const targetRow=landLower?def.pair[1]:def.pair[0];
-        const wide=nearestWide(targetRow,xs[targetRow],def.x+def.w/2);
-        if(wide){
-          const target={
-            x:wide.left,
-            y:rows[targetRow].top,
-            w:wide.width,
-            h:rows[targetRow].height
-          };
-          beginTransition(def,target,true,targetRow,[aligned.a.tile,aligned.b.tile]);
-        }
-      }else if(def.landed&&aligned.align<standThreshold&&Math.abs(aligned.center-(def.x+def.w/2))<Math.max(210,def.w*.82)){
-        const oldWide=nearestWide(def.targetRow,xs[def.targetRow],def.x+def.w/2);
-        beginTransition(def,uprightTarget,false,def.pair[0],[oldWide?.tile]);
-      }
-
-      let target;
-      let reservations=[];
-
-      if(def.landed){
-        const row=def.targetRow;
-        const wide=nearestWide(row,xs[row],def.x+def.w/2);
-        if(wide){
-          target={x:wide.left,y:rows[row].top,w:wide.width,h:rows[row].height};
-          reservations=[wide.tile];
-        }else{
-          target={x:def.x,y:def.y,w:def.w,h:def.h};
-        }
-      }else{
-        target=uprightTarget;
-        reservations=[aligned.a.tile,aligned.b.tile];
-      }
-
-      def.transitionReserve.forEach(reserve);
-      reservations.forEach(reserve);
-      interpolateBox(def,target,now);
-
-      def.shell.style.width=def.w.toFixed(2)+'px';
-      def.shell.style.height=def.h.toFixed(2)+'px';
-      def.shell.style.transform='translate3d('+def.x.toFixed(2)+'px,'+def.y.toFixed(2)+'px,0)';
-
-      const visible=def.x+def.w>-def.w*.25&&def.x<viewportWidth+def.w*.25;
-      def.shell.style.opacity=visible?'1':'0';
-    });
-
-    requestAnimationFrame(frame);
-  };
-
-  requestAnimationFrame(frame);
-})();
-
