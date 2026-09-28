@@ -1135,25 +1135,25 @@ body.archive-open{overflow:hidden}
   position:absolute;
   left:0;
   top:0;
-  overflow:visible;
   opacity:0;
+  overflow:visible;
   will-change:left,top,opacity;
-  transition:
-    top 760ms cubic-bezier(.16,1.08,.28,1),
-    opacity .18s linear;
 }
 .gallery-fall-card{
   position:absolute;
-  inset:0;
+  left:50%;
+  top:50%;
+  width:100%;
+  height:100%;
   overflow:hidden;
   border-radius:14px;
   border:1px solid rgba(255,255,255,.08);
   box-shadow:0 24px 72px rgba(0,0,0,.28);
-  transform:rotate(0deg);
-  transform-origin:50% 58%;
+  transform:translate(-50%,-50%) rotate(0deg);
+  transform-origin:50% 50%;
   will-change:transform,filter,border-radius;
   transition:
-    transform 760ms cubic-bezier(.16,1.18,.28,1),
+    transform 760ms cubic-bezier(.16,1.12,.28,1),
     border-radius 520ms cubic-bezier(.2,.8,.2,1),
     filter 420ms ease;
 }
@@ -1162,20 +1162,29 @@ body.archive-open{overflow:hidden}
   filter:brightness(1.035);
 }
 .gallery-fall-shell.is-landed[data-land-row="upper"] .gallery-fall-card{
-  transform:rotate(-90deg);
+  transform:translate(-50%,-50%) rotate(-90deg);
 }
 .gallery-fall-shell.is-landed[data-land-row="lower"] .gallery-fall-card{
-  transform:rotate(90deg);
+  transform:translate(-50%,-50%) rotate(90deg);
 }
 .gallery-fall-shell.is-impact .gallery-fall-card{
-  animation:fallCardImpact .52s cubic-bezier(.18,.82,.2,1);
+  animation:fallCardImpact .5s cubic-bezier(.18,.82,.2,1);
 }
 @keyframes fallCardImpact{
   0%{filter:brightness(1);border-radius:14px}
-  38%{filter:brightness(1.12);border-radius:24px}
-  68%{filter:brightness(1.02);border-radius:12px}
+  38%{filter:brightness(1.12);border-radius:22px}
+  70%{filter:brightness(1.02);border-radius:12px}
   100%{filter:brightness(1.035);border-radius:16px}
 }
+
+/* Regular cards disappear only where a falling card actually occupies the lane,
+   so the special card looks inserted into the stream instead of floating above it. */
+.project-streams-section .project-tile.is-occluded-by-fall{
+  opacity:0 !important;
+  transform:scale(.96) !important;
+  transition:opacity .18s ease,transform .22s ease !important;
+}
+
 .gallery-fall-card::before,
 .gallery-fall-card::after{
   content:"";
@@ -1217,6 +1226,7 @@ body.archive-open{overflow:hidden}
     linear-gradient(125deg,transparent 0 47%,rgba(255,255,255,.84) 47.3% 48.1%,transparent 48.4%),
     linear-gradient(145deg,#c9f1ff,#69bddd 52%,#2676a2);
 }
+
 @media(max-width:700px){
   .gallery-fall-layer{display:none}
 }
