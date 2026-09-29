@@ -885,11 +885,9 @@ function initProjectExplorer(root){
 })();
 
 
-/* Cross-row falling cards restored from the 2026-09-28 gallery concept.
-   Two project cards temporarily bridge row 1-2 and row 2-3. Because the
-   rows move independently, each bridge eventually loses alignment and
-   physically falls/rotates into a real wide slot in one row. When the
-   rows line up again it stands back up across both rows. */
+/* Cross-row hero cards: two large tiles bridge adjacent rows, then occasionally
+   tip over into a horizontal slot, cruise with that row, sometimes hop to the
+   neighbouring row, and finally stand back up across both rows. */
 (()=>{
   const viewport=document.querySelector('.project-gallery-lanes');
   if(!viewport||viewport.dataset.fallReady)return;
@@ -899,6 +897,9 @@ function initProjectExplorer(root){
   if(strips.length<3||lanes.length<3)return;
   viewport.dataset.fallReady='1';
 
+  const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce)return;
+
   const layer=document.createElement('div');
   layer.className='gallery-fall-layer';
   viewport.appendChild(layer);
@@ -907,13 +908,14 @@ function initProjectExplorer(root){
   const standardTiles=children.map(items=>items.filter(el=>!el.classList.contains('project-tile--wide')));
   const wideTiles=children.map(items=>items.filter(el=>el.classList.contains('project-tile--wide')));
 
+  const started=performance.now();
   const defs=[
-    {pair:[0,1],preferred:.34,theme:'amber',landBias:1},
-    {pair:[1,2],preferred:.72,theme:'blue',landBias:-1}
-  ].map(def=>{
+    {pair:[0,1],preferred:.43,theme:'amber',firstDelay:3200,startLower:true},
+    {pair:[1,2],preferred:.76,theme:'blue',firstDelay:6100,startLower:false}
+  ].map((def,index)=>{
     const shell=document.createElement('div');
     shell.className='gallery-fall-shell';
-    shell.dataset.landRow='lower';
+    shell.dataset.landRow=def.startLower?'lower':'upper';
 
     const card=document.createElement('div');
     card.className='gallery-fall-card gallery-fall-card--'+def.theme;
@@ -922,25 +924,28 @@ function initProjectExplorer(root){
 
     return {
       ...def,
+      index,
       shell,
       card,
-      landed:false,
-      targetRow:def.pair[1],
+      mode:'bridge',
+      targetRow:def.startLower?def.pair[1]:def.pair[0],
       transitionStart:0,
-      transitionDuration:760,
+      transitionDuration:820,
+      transitionArc:0,
       from:null,
-      x:0,
-      y:0,
-      w:0,
-      h:0,
+      x:0,y:0,w:0,h:0,
       initialized:false,
       impactTimer:0,
-      transitionReserve:[]
+      transitionReserve:[],
+      nextAt:started+def.firstDelay,
+      cycle:0,
+      hops:0
     };
   });
 
   let viewportWidth=1;
   let rows=[];
+  let activeDef=null;
 
   const measure=()=>{
     viewportWidth=Math.max(1,viewport.clientWidth);
@@ -969,7 +974,7 @@ function initProjectExplorer(root){
   };
 
   const visibleCandidates=(list,xOffset)=>{
-    const margin=viewportWidth*.35;
+    const margin=viewportWidth*.42;
     return list
       .map(tile=>tileGeom(tile,xOffset))
       .filter(g=>g&&g.left+g.width>-margin&&g.left<viewportWidth+margin);
@@ -987,13 +992,12 @@ function initProjectExplorer(root){
     const upper=visibleCandidates(standardTiles[pair[0]],xs[pair[0]]);
     const lower=visibleCandidates(standardTiles[pair[1]],xs[pair[1]]);
     let best=null;
-
     upper.forEach(a=>{
       lower.forEach(b=>{
         const align=Math.abs(a.left-b.left);
         const center=(a.center+b.center)/2;
         const distance=Math.abs(center-desiredCenter);
-        const score=align*8+distance*.18;
+        const score=align*7+distance*.18;
         if(!best||score<best.score)best={a,b,align,center,score};
       });
     });
@@ -1010,25 +1014,27 @@ function initProjectExplorer(root){
     return 1-u*u*u;
   };
 
-  const beginTransition=(def,target,landed,targetRow,oldReserve=[])=>{
-    def.transitionStart=performance.now();
-    def.transitionReserve=oldReserve.filter(Boolean);
-    def.from={x:def.x,y:def.y,w:def.w,h:def.h};
-    def.landed=landed;
-    def.targetRow=targetRow;
+  const triggerImpact=(def,landed,targetRow)=>{
     def.shell.dataset.landRow=targetRow===def.pair[0]?'upper':'lower';
     def.shell.classList.toggle('is-landed',landed);
     def.shell.classList.remove('is-impact');
     void def.shell.offsetWidth;
     def.shell.classList.add('is-impact');
     clearTimeout(def.impactTimer);
-    def.impactTimer=setTimeout(()=>def.shell.classList.remove('is-impact'),760);
+    def.impactTimer=setTimeout(()=>def.shell.classList.remove('is-impact'),820);
+  };
+
+  const beginTransition=(def,target,{landed,targetRow,kind,oldReserve=[]})=>{
+    def.transitionStart=performance.now();
+    def.transitionReserve=oldReserve.filter(Boolean);
+    def.from={x:def.x,y:def.y,w:def.w,h:def.h};
+    def.targetRow=targetRow;
+    def.transitionDuration=kind==='hop'?900:kind==='stand'?980:840;
+    def.transitionArc=kind==='hop'?-34:kind==='stand'?-24:-18;
+    triggerImpact(def,landed,targetRow);
 
     if(!def.initialized){
-      def.x=target.x;
-      def.y=target.y;
-      def.w=target.w;
-      def.h=target.h;
+      def.x=target.x;def.y=target.y;def.w=target.w;def.h=target.h;
       def.from={...target};
       def.initialized=true;
     }
@@ -1036,30 +1042,103 @@ function initProjectExplorer(root){
 
   const interpolateBox=(def,target,now)=>{
     if(!def.initialized){
-      def.x=target.x;
-      def.y=target.y;
-      def.w=target.w;
-      def.h=target.h;
+      def.x=target.x;def.y=target.y;def.w=target.w;def.h=target.h;
       def.initialized=true;
-      return;
+      return true;
     }
 
     const elapsed=now-def.transitionStart;
     if(def.transitionStart&&elapsed<def.transitionDuration){
       const p=ease(elapsed/def.transitionDuration);
       const from=def.from||target;
+      const arc=Math.sin(Math.PI*p)*def.transitionArc;
       def.x=from.x+(target.x-from.x)*p;
-      def.y=from.y+(target.y-from.y)*p;
+      def.y=from.y+(target.y-from.y)*p+arc;
       def.w=from.w+(target.w-from.w)*p;
       def.h=from.h+(target.h-from.h)*p;
-    }else{
-      def.transitionStart=0;
-      def.transitionReserve=[];
-      def.x=target.x;
-      def.y=target.y;
-      def.w=target.w;
-      def.h=target.h;
+      return false;
     }
+
+    def.transitionStart=0;
+    def.transitionReserve=[];
+    def.x=target.x;def.y=target.y;def.w=target.w;def.h=target.h;
+    return true;
+  };
+
+  const scheduleNextBridgeAction=(def,now)=>{
+    const base=def.index===0?4800:5900;
+    def.nextAt=now+base+(def.cycle%3)*850;
+  };
+
+  const startFall=(def,aligned,xs,now)=>{
+    const rowChoice=(def.cycle+(def.startLower?1:0))%2;
+    const targetRow=rowChoice?def.pair[1]:def.pair[0];
+    const wide=nearestWide(targetRow,xs[targetRow],def.x+def.w/2);
+    if(!wide)return false;
+
+    def.mode='landed';
+    def.hops=0;
+    def.cycle+=1;
+    activeDef=def;
+    def.nextAt=now+2600+(def.index*450)+(def.cycle%2)*800;
+
+    beginTransition(def,{
+      x:wide.left,
+      y:rows[targetRow].top,
+      w:wide.width,
+      h:rows[targetRow].height
+    },{
+      landed:true,
+      targetRow,
+      kind:'fall',
+      oldReserve:[aligned.a.tile,aligned.b.tile]
+    });
+    return true;
+  };
+
+  const startHop=(def,xs,now)=>{
+    const otherRow=def.targetRow===def.pair[0]?def.pair[1]:def.pair[0];
+    const wide=nearestWide(otherRow,xs[otherRow],def.x+def.w/2);
+    if(!wide)return false;
+
+    const previous=nearestWide(def.targetRow,xs[def.targetRow],def.x+def.w/2);
+    def.targetRow=otherRow;
+    def.hops+=1;
+    def.nextAt=now+1900+(def.index*350);
+
+    beginTransition(def,{
+      x:wide.left,
+      y:rows[otherRow].top,
+      w:wide.width,
+      h:rows[otherRow].height
+    },{
+      landed:true,
+      targetRow:otherRow,
+      kind:'hop',
+      oldReserve:[previous?.tile]
+    });
+    return true;
+  };
+
+  const startStand=(def,aligned,now)=>{
+    const oldWide=nearestWide(def.targetRow,stripX(strips[def.targetRow]),def.x+def.w/2);
+    const upperRow=rows[def.pair[0]];
+    const lowerRow=rows[def.pair[1]];
+    const upright={
+      x:(aligned.a.left+aligned.b.left)/2,
+      y:upperRow.top,
+      w:(aligned.a.width+aligned.b.width)/2,
+      h:(lowerRow.top+lowerRow.height)-upperRow.top
+    };
+
+    def.mode='rising';
+    def.nextAt=Infinity;
+    beginTransition(def,upright,{
+      landed:false,
+      targetRow:def.pair[0],
+      kind:'stand',
+      oldReserve:[oldWide?.tile]
+    });
   };
 
   const frame=now=>{
@@ -1076,7 +1155,6 @@ function initProjectExplorer(root){
       const lowerRow=rows[def.pair[1]];
       const desiredCenter=def.initialized?def.x+def.w/2:viewportWidth*def.preferred;
       const aligned=bestAlignedPair(def.pair,xs,desiredCenter);
-
       if(!aligned){
         def.shell.style.opacity='0';
         return;
@@ -1089,66 +1167,59 @@ function initProjectExplorer(root){
         h:(lowerRow.top+lowerRow.height)-upperRow.top
       };
 
-      const difference=aligned.a.left-aligned.b.left;
-      const standThreshold=7;
-      const fallThreshold=Math.max(22,uprightTarget.w*.09);
-
       if(!def.initialized){
-        def.x=uprightTarget.x;
-        def.y=uprightTarget.y;
-        def.w=uprightTarget.w;
-        def.h=uprightTarget.h;
+        def.x=uprightTarget.x;def.y=uprightTarget.y;def.w=uprightTarget.w;def.h=uprightTarget.h;
         def.initialized=true;
       }
 
-      if(!def.landed&&aligned.align>fallThreshold){
-        const landLower=difference*def.landBias>=0;
-        const targetRow=landLower?def.pair[1]:def.pair[0];
-        const wide=nearestWide(targetRow,xs[targetRow],def.x+def.w/2);
-        if(wide){
-          const target={
-            x:wide.left,
-            y:rows[targetRow].top,
-            w:wide.width,
-            h:rows[targetRow].height
-          };
-          beginTransition(def,target,true,targetRow,[aligned.a.tile,aligned.b.tile]);
-        }
-      }else if(
-        def.landed&&
-        aligned.align<standThreshold&&
-        Math.abs(aligned.center-(def.x+def.w/2))<Math.max(210,def.w*.82)
-      ){
-        const oldWide=nearestWide(def.targetRow,xs[def.targetRow],def.x+def.w/2);
-        beginTransition(def,uprightTarget,false,def.pair[0],[oldWide?.tile]);
+      let target=uprightTarget;
+      let reservations=[aligned.a.tile,aligned.b.tile];
+
+      if(def.mode==='bridge'){
+        if(now>=def.nextAt&&!activeDef) startFall(def,aligned,xs,now);
       }
 
-      let target;
-      let reservations=[];
-
-      if(def.landed){
-        const row=def.targetRow;
-        const wide=nearestWide(row,xs[row],def.x+def.w/2);
+      if(def.mode==='landed'){
+        const wide=nearestWide(def.targetRow,xs[def.targetRow],def.x+def.w/2);
         if(wide){
-          target={x:wide.left,y:rows[row].top,w:wide.width,h:rows[row].height};
+          target={x:wide.left,y:rows[def.targetRow].top,w:wide.width,h:rows[def.targetRow].height};
           reservations=[wide.tile];
         }else{
           target={x:def.x,y:def.y,w:def.w,h:def.h};
+          reservations=[];
         }
-      }else{
+
+        if(now>=def.nextAt&&def.transitionStart===0){
+          const shouldHop=def.hops===0&&def.cycle%2===0;
+          if(shouldHop&&!startHop(def,xs,now)){
+            startStand(def,aligned,now);
+          }else if(!shouldHop){
+            startStand(def,aligned,now);
+          }
+        }
+      }
+
+      if(def.mode==='rising'){
         target=uprightTarget;
         reservations=[aligned.a.tile,aligned.b.tile];
       }
 
       def.transitionReserve.forEach(reserve);
       reservations.forEach(reserve);
-      interpolateBox(def,target,now);
+      const settled=interpolateBox(def,target,now);
 
+      if(def.mode==='rising'&&settled){
+        def.mode='bridge';
+        activeDef=null;
+        scheduleNextBridgeAction(def,now);
+      }
+
+      def.shell.classList.toggle('is-cruising',def.mode==='landed'&&def.transitionStart===0);
       def.shell.style.width=def.w.toFixed(2)+'px';
       def.shell.style.height=def.h.toFixed(2)+'px';
       def.shell.style.transform='translate3d('+def.x.toFixed(2)+'px,'+def.y.toFixed(2)+'px,0)';
 
-      const visible=def.x+def.w>-def.w*.25&&def.x<viewportWidth+def.w*.25;
+      const visible=def.x+def.w>-def.w*.30&&def.x<viewportWidth+def.w*.30;
       def.shell.style.opacity=visible?'1':'0';
     });
 
