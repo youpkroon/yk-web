@@ -2131,3 +2131,86 @@ body.archive-open{overflow:hidden}
 @media(prefers-reduced-motion:reduce){
   .gallery-fall-layer{display:none}
 }
+
+
+/* =========================================================
+   WORK OVERVIEW — same section language as Workshop
+   ========================================================= */
+.project-streams-section{
+  background:
+    radial-gradient(980px 640px at 92% 18%,rgba(45,91,139,.18),transparent 70%),
+    linear-gradient(180deg,#08111b 0%,#090e14 55%,#090e14 100%);
+}
+.work-overview{
+  position:relative;
+  padding:clamp(88px,10vw,150px) 0 clamp(52px,6vw,82px);
+  border-bottom:1px solid rgba(255,255,255,.07);
+}
+.work-head{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(320px,.62fr);
+  gap:60px;
+  align-items:end;
+}
+.work-overview .eyebrow{color:#6f8faa}
+.work-overview .intro{
+  max-width:620px;
+  margin:0;
+  color:#91a0ad;
+  font-size:clamp(15px,1.12vw,18px);
+  line-height:1.62;
+}
+.work-overview .section-brand--work{
+  width:96px;
+  height:80px;
+}
+.work-overview .section-brand--work img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  object-position:left bottom;
+}
+.work-overview .section-id-row--work .section-brand::after{
+  background:#4e8fd8;
+}
+.work-overview + .project-gallery{
+  border-top:0;
+}
+
+/* Keep the gallery fluid. The cross-row cards are now the main playful motion,
+   so the whole grid no longer performs a periodic squash animation. */
+.project-gallery.is-magnetic-pack .project-gallery-strip,
+.project-gallery.is-magnetic-pack .project-tile{
+  animation:none !important;
+}
+.project-tile{
+  box-shadow:0 16px 45px rgba(0,0,0,.16);
+  transition:
+    transform .55s cubic-bezier(.16,1,.3,1),
+    opacity .34s ease,
+    filter .25s ease;
+}
+.project-streams-section.is-built .project-tile:nth-child(2n),
+.project-streams-section.is-built .project-tile:nth-child(3n){
+  transition-delay:0s;
+}
+.gallery-fall-shell{
+  box-shadow:0 16px 46px rgba(0,0,0,.22);
+}
+.gallery-fall-shell.is-cruising .gallery-fall-card{
+  animation:fallCardCruise 4.4s ease-in-out infinite;
+}
+@keyframes fallCardCruise{
+  0%,100%{transform:translate3d(0,0,0) rotate(0deg)}
+  50%{transform:translate3d(.8px,-.6px,0) rotate(.12deg)}
+}
+
+@media(max-width:900px){
+  .work-head{grid-template-columns:1fr;gap:30px}
+  .work-overview{padding-bottom:48px}
+  .work-overview .intro{max-width:640px}
+}
+@media(max-width:700px){
+  .work-overview{padding:78px 0 40px}
+  .work-overview .section-brand--work{width:80px;height:66px}
+}
