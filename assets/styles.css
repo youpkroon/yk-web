@@ -1236,15 +1236,14 @@ body.is-scrolled .hero .topbar{
 }
 
 
+
+
 /* =========================================================
-   WORK TILE MORPH V6 — coupled packing + more playful vertical rhythm
+   WORK TILE MORPH V7 — slot aligned vertical units
    ========================================================= */
-.project-gallery.has-three-bubbles .project-tile.is-bubble-hero{
-  box-shadow:0 20px 52px rgba(0,0,0,.27);
+.project-gallery.has-two-bubbles .project-tile.is-bubble-hero{
+  box-shadow:0 22px 58px rgba(0,0,0,.29);
 }
 .project-tile.is-bubble-hero{
   outline:1px solid rgba(255,255,255,.025);
-}
-.project-gallery.has-bubble-hero .project-gallery-strip{
-  transform-style:preserve-3d;
 }

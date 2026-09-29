@@ -423,10 +423,10 @@ document.getElementById('year').textContent=new Date().getFullYear();
 })();
 
 
-/* Work gallery coupled bubble morph V6.
-   Vertical units and every neighbouring tile are solved as one 1D packing system.
-   Source rows close the released width exactly; crossed rows open the required width exactly.
-   Local squish is added only at the gap edges for a softer bubble feel. */
+/* Work gallery slot-coupled bubble morph V7.
+   Each vertical card keeps its source-row slot. The crossed row opens only at a
+   real boundary between two cards, then translates both row segments so that
+   the resulting gap is centered exactly on the vertical card. */
 (()=>{
   const section=document.querySelector('.project-streams-section');
   const gallery=section?.querySelector('[data-project-gallery]');
@@ -436,14 +436,14 @@ document.getElementById('year').textContent=new Date().getFullYear();
   if(!section||!gallery||!viewport||lanes.length!==3||strips.some(x=>!x))return;
   if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
 
-  const t0=performance.now();
+  const start=performance.now();
   const defs=[
-    {selector:'.demo-07',row:0,direction:1,preferred:.22,nextAt:t0+1100,hold:6200,seed:.4,cycle:0},
-    {selector:'.demo-13',row:1,direction:1,preferred:.73,nextAt:t0+2600,hold:5600,seed:1.8,cycle:0},
-    {selector:'.demo-16',row:2,direction:-1,preferred:.47,nextAt:t0+4300,hold:6500,seed:3.1,cycle:0},
-    {selector:'.demo-01',row:0,direction:1,preferred:.78,nextAt:t0+6900,hold:5100,seed:4.6,cycle:0},
-    {selector:'.demo-11',row:1,direction:-1,preferred:.34,nextAt:t0+8400,hold:5900,seed:5.8,cycle:0},
-    {selector:'.demo-19',row:2,direction:-1,preferred:.79,nextAt:t0+10100,hold:5400,seed:7.2,cycle:0}
+    {selector:'.demo-07',row:0,direction:1,preferred:.24,nextAt:start+900,hold:7000,seed:.3,cycle:0},
+    {selector:'.demo-13',row:1,direction:1,preferred:.72,nextAt:start+2600,hold:6400,seed:1.7,cycle:0},
+    {selector:'.demo-16',row:2,direction:-1,preferred:.43,nextAt:start+4900,hold:6900,seed:3.0,cycle:0},
+    {selector:'.demo-01',row:0,direction:1,preferred:.76,nextAt:start+8200,hold:6100,seed:4.3,cycle:0},
+    {selector:'.demo-11',row:1,direction:-1,preferred:.31,nextAt:start+10400,hold:6500,seed:5.6,cycle:0},
+    {selector:'.demo-19',row:2,direction:-1,preferred:.77,nextAt:start+12800,hold:6200,seed:6.9,cycle:0}
   ];
 
   const active=[];
@@ -462,26 +462,30 @@ document.getElementById('year').textContent=new Date().getFullYear();
   };
   const loopLength=row=>{
     const loop=strips[row].__ykLoop;
-    return Number.isFinite(loop)&&loop>1?loop:strips[row].scrollWidth/2;
+    return Number.isFinite(loop)&&loop>1?loop:Math.max(1,strips[row].scrollWidth/2);
   };
   const wrappedDelta=(delta,row)=>{
     const loop=loopLength(row);
-    if(!Number.isFinite(loop)||loop<=1)return delta;
     while(delta>loop/2)delta-=loop;
     while(delta<-loop/2)delta+=loop;
     return delta;
   };
+  const nearestRepeat=(screenX,row,reference)=>{
+    const loop=loopLength(row);
+    while(screenX-reference>loop/2)screenX-=loop;
+    while(screenX-reference<-loop/2)screenX+=loop;
+    return screenX;
+  };
 
-  const gapSize=()=>{
-    const style=getComputedStyle(viewport);
-    return parseFloat(style.rowGap||style.gap)||10;
+  const stripGap=row=>{
+    const style=getComputedStyle(strips[row]);
+    return parseFloat(style.columnGap||style.gap)||10;
   };
 
   const baseCenter=(tile,row)=>laneX(row)+tile.offsetLeft+tile.offsetWidth/2;
 
   const visibleInstances=def=>{
     const x=laneX(def.row);
-    const width=viewport.clientWidth;
     return [...strips[def.row].querySelectorAll(def.selector)]
       .map(tile=>({
         tile,
@@ -489,17 +493,49 @@ document.getElementById('year').textContent=new Date().getFullYear();
         left:x+tile.offsetLeft,
         width:tile.offsetWidth
       }))
-      .filter(m=>m.left+m.width>50&&m.left<width-50);
+      .filter(m=>m.left+m.width>70&&m.left<viewport.clientWidth-70);
   };
 
   const chooseTile=def=>{
-    const candidates=visibleInstances(def)
-      .filter(m=>!active.some(s=>s.tile===m.tile));
+    const candidates=visibleInstances(def).filter(m=>!active.some(s=>s.tile===m.tile));
     if(!candidates.length)return null;
     const desired=viewport.clientWidth*def.preferred;
     return candidates.reduce((best,m)=>
       Math.abs(m.center-desired)<Math.abs(best.center-desired)?m:best
     );
+  };
+
+  const boundaries=row=>{
+    const items=[...strips[row].children].filter(tile=>tile.classList.contains('project-tile'));
+    const result=[];
+    for(let i=0;i<items.length-1;i++){
+      const left=items[i];
+      const right=items[i+1];
+      const leftEdge=left.offsetLeft+left.offsetWidth;
+      const rightEdge=right.offsetLeft;
+      if(rightEdge<=leftEdge)continue;
+      result.push({
+        offset:(leftEdge+rightEdge)/2,
+        baseGap:rightEdge-leftEdge
+      });
+    }
+    return result;
+  };
+
+  const nearestBoundary=(row,reference)=>{
+    const x=laneX(row);
+    const candidates=boundaries(row);
+    if(!candidates.length)return null;
+
+    let best=null;
+    for(const boundary of candidates){
+      const screen=nearestRepeat(x+boundary.offset,row,reference);
+      const distance=Math.abs(screen-reference);
+      if(!best||distance<best.distance){
+        best={...boundary,screen,distance};
+      }
+    }
+    return best;
   };
 
   const ensure=(map,tile)=>{
@@ -537,17 +573,21 @@ document.getElementById('year').textContent=new Date().getFullYear();
   };
 
   const spring=(state,dt)=>{
-    const stiffness=44;
-    const damping=11.9;
-    const acceleration=(state.target-state.p)*stiffness-state.v*damping;
-    state.v+=acceleration*dt;
+    const stiffness=43;
+    const damping=11.8;
+    const a=(state.target-state.p)*stiffness-state.v*damping;
+    state.v+=a*dt;
     state.p+=state.v*dt;
-    state.p=Math.max(-.035,Math.min(1.065,state.p));
+    state.p=Math.max(-.035,Math.min(1.06,state.p));
   };
 
   const activate=(def,chosen,now)=>{
+    const targetRow=def.row+def.direction;
+    const boundary=nearestBoundary(targetRow,chosen.center);
+    if(!boundary)return false;
+
     const rowHeight=lanes[def.row].clientHeight;
-    const gap=gapSize();
+    const verticalGap=parseFloat(getComputedStyle(viewport).rowGap||getComputedStyle(viewport).gap)||10;
     const normal=[...strips[def.row].children].find(tile=>
       tile.classList.contains('project-tile')&&!tile.classList.contains('project-tile--wide')
     );
@@ -561,124 +601,150 @@ document.getElementById('year').textContent=new Date().getFullYear();
       target:1,
       phase:'grow',
       holdUntil:0,
-      startedAt:now,
+      targetRow,
+      boundaryOffset:boundary.offset,
+      boundaryBaseGap:boundary.baseGap,
       rowHeight,
-      gap,
+      verticalGap,
       targetSx:Math.min(.70,Math.max(.40,normalWidth/Math.max(1,chosen.tile.offsetWidth))),
-      targetSy:(rowHeight*2+gap)/Math.max(1,chosen.tile.offsetHeight)
+      targetSy:(rowHeight*2+verticalGap)/Math.max(1,chosen.tile.offsetHeight),
+      startedAt:now
     });
+
     def.nextAt=Infinity;
+    return true;
   };
 
   const finish=(state,now)=>{
-    const index=active.indexOf(state);
-    if(index>=0)active.splice(index,1);
+    const i=active.indexOf(state);
+    if(i>=0)active.splice(i,1);
     state.def.cycle+=1;
-    state.def.nextAt=now+6500+(state.def.cycle%4)*900+state.def.row*420;
+    state.def.nextAt=now+4700+(state.def.cycle%3)*750+state.def.row*350;
   };
 
   const maxActive=()=>{
-    if(viewport.clientWidth>=1500)return 3;
-    if(viewport.clientWidth>=950)return 2;
+    if(viewport.clientWidth>=1420)return 2;
     return 1;
   };
 
-  const statePrep=state=>{
+  const prepState=state=>{
     const p=clamp01(state.p);
     const eased=smooth(p);
     const sourceRow=state.def.row;
-    const targetRow=sourceRow+state.def.direction;
-    const center0=baseCenter(state.tile,sourceRow);
+    const targetRow=state.targetRow;
+    const heroCenter=baseCenter(state.tile,sourceRow);
     const sx=1+(state.targetSx-1)*eased;
     const sy=1+(state.targetSy-1)*eased;
     const visualWidth=state.tile.offsetWidth*sx;
+    const sourceRelease=(state.tile.offsetWidth-visualWidth)/2;
+
+    const rawBoundary=laneX(targetRow)+state.boundaryOffset;
+    const boundary=nearestRepeat(rawBoundary,targetRow,heroCenter);
 
     return {
-      state,p,eased,sourceRow,targetRow,
-      center0,center:center0,
-      sx,sy,visualWidth,
-      releaseHalf:Math.max(0,(state.tile.offsetWidth-visualWidth)/2),
-      gapHalf:(visualWidth+state.gap*1.45)*.5*eased
+      state,p,eased,sourceRow,targetRow,heroCenter,boundary,
+      sx,sy,visualWidth,sourceRelease,
+      extraGap:(visualWidth+state.boundaryBaseGap)*eased,
+      align:(heroCenter-boundary)*eased
     };
   };
 
-  const shiftAt=(row,point,preps,excludeState=null,useAdjusted=false)=>{
+  const ownShiftAt=(prep,row,point)=>{
+    let shift=0;
+
+    if(row===prep.sourceRow){
+      const d=wrappedDelta(point-prep.heroCenter,row);
+      if(Math.abs(d)>.5){
+        shift+=d<0?prep.sourceRelease:-prep.sourceRelease;
+      }
+    }
+
+    if(row===prep.targetRow){
+      const d=wrappedDelta(point-prep.boundary,row);
+      const half=prep.extraGap/2;
+      if(d<0)shift+=prep.align-half;
+      else shift+=prep.align+half;
+    }
+
+    return shift;
+  };
+
+  const combinedShiftAt=(row,point,preps,exclude=null)=>{
     let shift=0;
     for(const prep of preps){
-      const state=prep.state;
-      if(state===excludeState)continue;
-      const center=useAdjusted?prep.center:prep.center0;
-      const d=wrappedDelta(point-center,row);
-      if(Math.abs(d)<.5)continue;
-
-      if(row===prep.sourceRow){
-        shift+=d<0?prep.releaseHalf:-prep.releaseHalf;
-      }
-      if(row===prep.targetRow){
-        shift+=d<0?-prep.gapHalf:prep.gapHalf;
-      }
+      if(prep===exclude)continue;
+      shift+=ownShiftAt(prep,row,point);
     }
     return shift;
   };
 
-  const prepareStates=()=>{
-    const preps=active.map(statePrep);
+  const refinePreps=()=>{
+    const preps=active.map(prepState);
 
-    // First pass: move each hero with the environment created by all other heroes.
-    preps.forEach(prep=>{
-      prep.environmentX=shiftAt(
-        prep.sourceRow,
-        prep.center0,
-        preps,
-        prep.state,
-        false
-      );
-      prep.center=prep.center0+prep.environmentX;
-    });
+    // Two small fixed-point passes align every target gap after all other
+    // vertical units have shifted the same row.
+    for(let pass=0;pass<2;pass++){
+      for(const prep of preps){
+        const heroOther=combinedShiftAt(prep.sourceRow,prep.heroCenter,preps,prep);
+        const leftOther=combinedShiftAt(prep.targetRow,prep.boundary-1,preps,prep);
+        const rightOther=combinedShiftAt(prep.targetRow,prep.boundary+1,preps,prep);
+        const boundaryOther=(leftOther+rightOther)/2;
+        prep.align=(prep.heroCenter+heroOther-(prep.boundary+boundaryOther))*prep.eased;
+      }
+    }
 
     return preps;
   };
 
-  const conflict=(chosen,def,preps)=>{
-    const minDistance=Math.max(315,viewport.clientWidth*.17);
-    return preps.some(prep=>{
-      const targetPairA=[def.row,def.row+def.direction].sort().join('-');
-      const targetPairB=[prep.sourceRow,prep.targetRow].sort().join('-');
-      const distance=Math.abs(chosen.center-prep.center);
-      return distance<minDistance || (targetPairA===targetPairB&&distance<390);
+  const conflicts=(def,chosen,boundary)=>{
+    const pair=[def.row,def.row+def.direction].sort().join('-');
+    const minDistance=Math.max(360,viewport.clientWidth*.20);
+
+    return active.some(state=>{
+      const prep=prepState(state);
+      const otherPair=[prep.sourceRow,prep.targetRow].sort().join('-');
+      const distance=Math.abs(chosen.center-prep.heroCenter);
+      return distance<minDistance || (pair===otherPair&&distance<460);
     });
   };
 
   const tryStart=now=>{
     if(active.length>=maxActive())return;
-    const preps=prepareStates();
 
     const due=defs
-      .filter(def=>now>=def.nextAt&&!active.some(s=>s.def===def))
+      .filter(def=>now>=def.nextAt&&!active.some(state=>state.def===def))
       .sort((a,b)=>a.nextAt-b.nextAt);
 
     for(const def of due){
       if(active.length>=maxActive())break;
+
       const chosen=chooseTile(def);
       if(!chosen){
-        def.nextAt=now+550;
+        def.nextAt=now+500;
         continue;
       }
-      if(conflict(chosen,def,preps)){
+
+      const targetRow=def.row+def.direction;
+      const boundary=nearestBoundary(targetRow,chosen.center);
+      if(!boundary){
+        def.nextAt=now+600;
+        continue;
+      }
+
+      if(conflicts(def,chosen,boundary)){
         def.nextAt=now+650;
         continue;
       }
+
       activate(def,chosen,now);
-      preps.push(statePrep(active[active.length-1]));
     }
   };
 
   const render=now=>{
-    const preps=prepareStates();
+    const preps=refinePreps();
     const map=new Map();
-    const heroTiles=new Set(active.map(s=>s.tile));
+    const heroTiles=new Set(active.map(state=>state.tile));
 
-    // First solve every normal tile as one rigidly coupled row packing system.
     for(let row=0;row<strips.length;row++){
       const tiles=[...strips[row].children].filter(tile=>tile.classList.contains('project-tile'));
 
@@ -686,57 +752,69 @@ document.getElementById('year').textContent=new Date().getFullYear();
         if(heroTiles.has(tile))continue;
 
         const center=baseCenter(tile,row);
-        const x=shiftAt(row,center,preps,null,true);
-        let edgePressure=0;
-        let edgeSign=0;
+        const s=ensure(map,tile);
+        s.x=combinedShiftAt(row,center,preps);
 
-        // Only the shape, not the position, gets a local soft falloff.
+        // Soft deformation only at the edge of a real gap.
+        let pressure=0;
+        let pressureSign=0;
         for(const prep of preps){
-          if(row!==prep.sourceRow&&row!==prep.targetRow)continue;
-          const d=wrappedDelta(center-prep.center,row);
-          const edge=row===prep.targetRow?prep.gapHalf:prep.visualWidth*.5;
-          const distToEdge=Math.abs(Math.abs(d)-edge);
-          const local=Math.max(0,1-distToEdge/150)*prep.eased;
-          if(local>edgePressure){
-            edgePressure=local;
-            edgeSign=d<0?-1:1;
+          let edgeCenter=null;
+          let edgeDistance=Infinity;
+
+          if(row===prep.sourceRow){
+            const d=wrappedDelta(center-prep.heroCenter,row);
+            edgeDistance=Math.abs(Math.abs(d)-prep.visualWidth/2);
+            edgeCenter=prep.heroCenter;
+          }
+          if(row===prep.targetRow){
+            const d=wrappedDelta(center-(prep.boundary+prep.align),row);
+            const distance=Math.abs(Math.abs(d)-prep.visualWidth/2);
+            if(distance<edgeDistance){
+              edgeDistance=distance;
+              edgeCenter=prep.boundary+prep.align;
+            }
+          }
+
+          if(edgeCenter!==null){
+            const local=Math.max(0,1-edgeDistance/120)*prep.eased;
+            if(local>pressure){
+              pressure=local;
+              pressureSign=wrappedDelta(center-edgeCenter,row)<0?-1:1;
+            }
           }
         }
 
-        const s=ensure(map,tile);
-        s.x=x;
-        s.r=edgeSign*.65*edgePressure;
-        s.sx=1-.034*edgePressure;
-        s.sy=1+.014*edgePressure;
-        s.radius=13+7*edgePressure;
+        s.r=pressureSign*.7*pressure;
+        s.sx=1-.030*pressure;
+        s.sy=1+.012*pressure;
+        s.radius=13+7*pressure;
       }
     }
 
-    // Then render the vertical units themselves on top of that same packing solution.
     for(const prep of preps){
       const state=prep.state;
       const s=ensure(map,state.tile);
+      const envX=combinedShiftAt(prep.sourceRow,prep.heroCenter,preps,prep);
       const breathe=state.phase==='hold'
-        ? Math.sin(now*.0017+state.def.seed)*prep.eased
+        ? Math.sin(now*.00165+state.def.seed)*prep.eased
         : 0;
       const squeeze=Math.sin(Math.PI*prep.p);
-      const verticalStep=(state.rowHeight+state.gap)*.5*prep.eased;
 
       s.hero=true;
-      s.x=prep.environmentX+breathe*2.8;
-      s.y=state.def.direction*verticalStep+breathe*1.2;
-      s.r=state.def.direction*4.6*squeeze+state.v*1.05+breathe*.8;
-      s.sx=prep.sx*(1-.026*squeeze);
-      s.sy=prep.sy*(1+.012*squeeze);
-      s.radius=13+22*squeeze+Math.abs(breathe)*2.5;
+      s.x=envX+breathe*2.4;
+      s.y=state.def.direction*(state.rowHeight+state.verticalGap)*.5*prep.eased+breathe*1.0;
+      s.r=state.def.direction*4.2*squeeze+state.v*.95+breathe*.65;
+      s.sx=prep.sx*(1-.023*squeeze);
+      s.sy=prep.sy*(1+.011*squeeze);
+      s.radius=13+21*squeeze+Math.abs(breathe)*2;
     }
 
     applyStyles(map);
-
     gallery.classList.toggle('has-bubble-hero',active.length>0);
     gallery.classList.toggle('has-crossrow-active',active.length>0);
     gallery.classList.toggle('has-two-bubbles',active.length>1);
-    gallery.classList.toggle('has-three-bubbles',active.length>2);
+    gallery.classList.remove('has-three-bubbles');
   };
 
   const tick=now=>{
