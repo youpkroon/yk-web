@@ -2019,3 +2019,116 @@ body.archive-open{overflow:hidden}
   .project-gallery.is-steering-left .gallery-control--left,
   .project-gallery.is-steering-right .gallery-control--right{opacity:.24 !important}
 }
+
+
+/* =========================================================
+   CROSS-ROW FALLING CARDS — restored from the good 28 Sep build
+   ========================================================= */
+.gallery-fall-layer{
+  position:absolute;
+  inset:0;
+  z-index:3;
+  pointer-events:none;
+  overflow:hidden;
+}
+.gallery-fall-shell{
+  position:absolute;
+  left:0;
+  top:0;
+  opacity:0;
+  overflow:hidden;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.09);
+  box-shadow:0 20px 60px rgba(0,0,0,.26);
+  transform:translate3d(0,0,0);
+  transform-origin:center;
+  will-change:transform,width,height,opacity;
+}
+.gallery-fall-card{
+  position:absolute;
+  inset:0;
+  overflow:hidden;
+  border-radius:inherit;
+  transform:rotate(0deg) scale(1);
+  transform-origin:50% 50%;
+  will-change:transform,filter;
+  filter:brightness(1);
+}
+.gallery-fall-shell.is-landed .gallery-fall-card{
+  filter:brightness(1.035);
+}
+.gallery-fall-shell.is-impact{
+  animation:fallShellImpact .76s cubic-bezier(.18,.82,.2,1);
+}
+.gallery-fall-shell.is-impact[data-land-row="lower"] .gallery-fall-card{
+  animation:fallCardDown .76s cubic-bezier(.16,1.05,.28,1);
+}
+.gallery-fall-shell.is-impact[data-land-row="upper"] .gallery-fall-card{
+  animation:fallCardUp .76s cubic-bezier(.16,1.05,.28,1);
+}
+.gallery-fall-shell.is-impact:not(.is-landed) .gallery-fall-card{
+  animation:fallCardStand .76s cubic-bezier(.16,1.05,.28,1);
+}
+@keyframes fallShellImpact{
+  0%{border-radius:14px;scale:1}
+  34%{border-radius:25px;scale:.985 1.025}
+  68%{border-radius:11px;scale:1.012 .992}
+  100%{border-radius:14px;scale:1}
+}
+@keyframes fallCardDown{
+  0%{transform:rotate(0deg) scale(1)}
+  52%{transform:rotate(86deg) scale(.965)}
+  76%{transform:rotate(94deg) scale(1.012)}
+  100%{transform:rotate(0deg) scale(1)}
+}
+@keyframes fallCardUp{
+  0%{transform:rotate(0deg) scale(1)}
+  52%{transform:rotate(-86deg) scale(.965)}
+  76%{transform:rotate(-94deg) scale(1.012)}
+  100%{transform:rotate(0deg) scale(1)}
+}
+@keyframes fallCardStand{
+  0%{transform:rotate(0deg) scale(1)}
+  46%{transform:rotate(-72deg) scale(.97)}
+  72%{transform:rotate(6deg) scale(1.018)}
+  100%{transform:rotate(0deg) scale(1)}
+}
+
+/* The real lane slots remain in the flex layout but disappear visually.
+   This prevents gaps changing while the cross-row card moves between rows. */
+.project-streams-section .project-tile.is-reserved-by-fall{
+  opacity:0 !important;
+  pointer-events:none;
+  transition:opacity .14s ease !important;
+}
+
+.gallery-fall-card::before,
+.gallery-fall-card::after{
+  content:"";
+  position:absolute;
+  pointer-events:none;
+}
+.gallery-fall-card--blue{
+  background:
+    radial-gradient(circle at 42% 42%,rgba(255,255,255,.88) 0 9%,transparent 10%),
+    radial-gradient(circle at 58% 63%,rgba(103,125,255,.9) 0 15%,transparent 16%),
+    linear-gradient(155deg,#5667ef 0%,#2e347d 52%,#151a3e 100%);
+}
+.gallery-fall-card--blue::after{
+  inset:10%;
+  border:1px solid rgba(255,255,255,.18);
+  border-radius:50%;
+}
+.gallery-fall-card--amber{
+  background:
+    radial-gradient(circle at 50% 42%,rgba(255,238,174,.95) 0 12%,rgba(255,177,56,.58) 13% 26%,transparent 27%),
+    repeating-radial-gradient(circle at 50% 42%,transparent 0 9px,rgba(255,204,112,.08) 10px 12px),
+    linear-gradient(155deg,#34261e,#76502f 54%,#b67a33);
+}
+
+@media(max-width:700px){
+  .gallery-fall-layer{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+  .gallery-fall-layer{display:none}
+}
