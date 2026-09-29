@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 140" role="img" aria-labelledby="title desc">
+  <title id="title">YK contact mark</title>
+  <desc id="desc">YK monogram inside an orbital contact symbol.</desc>
+  <g fill="none" stroke="#ffffff" stroke-width="3.2" stroke-linecap="round">
+    <path d="M31 37A49 49 0 0 1 89 18"/>
+    <path d="M105 31A49 49 0 0 1 106 88"/>
+    <path d="M91 108A49 49 0 0 1 40 104"/>
+    <path d="M27 91A49 49 0 0 1 25 50"/>
+    <circle cx="99" cy="23" r="6.2"/>
+    <circle cx="34" cy="102" r="6.2"/>
+  </g>
+  <g fill="#ffffff" transform="translate(42.5 48) scale(.13)">
+    <path d="M267 201 L250 224 L250 227 L321 337 L355 337 Z"/>
+    <path d="M304 150 L287 174 L391 336 L426 337 Z"/>
+    <path d="M344 8 L318 8 L193 203 L193 337 L221 337 L221 205 Z"/>
+    <path d="M73 8 L177 169 L281 9 L255 9 L177 129 L99 8 Z"/>
+    <path d="M11 8 L134 206 L133 336 L162 337 L162 203 L36 8 Z"/>
+  </g>
+</svg>
