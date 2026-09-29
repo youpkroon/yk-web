@@ -683,6 +683,7 @@ function initProjectExplorer(root){
         state.initialized=true;
       }
       normalize(state);
+      state.strip.__ykLaneX=state.x;
       state.strip.style.transform='translate3d('+state.x.toFixed(2)+'px,0,0)';
     });
   };
@@ -725,7 +726,10 @@ function initProjectExplorer(root){
   };
 
   const startPack=()=>{
-    if(drag||Math.abs(steerTarget)>.03)return;
+    if(drag||Math.abs(steerTarget)>.03||gallery.classList.contains('has-crossrow-active')){
+      nextPack=performance.now()+2200;
+      return;
+    }
     const anchor=Math.max(54,Math.min(viewport.clientWidth*.105,150));
     states.forEach(state=>{
       state.packTarget=magneticTarget(state,anchor);
@@ -869,6 +873,7 @@ function initProjectExplorer(root){
       }
 
       normalize(state);
+      state.strip.__ykLaneX=state.x;
       state.strip.style.transform='translate3d('+state.x.toFixed(2)+'px,0,0)';
     });
 
@@ -885,28 +890,54 @@ function initProjectExplorer(root){
 })();
 
 
-/* Cross-row hero cards: two large tiles bridge adjacent rows, then occasionally
-   tip over into a horizontal slot, cruise with that row, sometimes hop to the
-   neighbouring row, and finally stand back up across both rows. */
+/* Cross-row hero cards: smooth version.
+   The tall card only spans two rows while the two reserved slots are nearly
+   perfectly aligned. Once they drift apart it falls into a real wide slot.
+   Geometry is cached and lane positions are read from JS memory to avoid
+   forced layout/style reads on every animation frame. */
 (()=>{
   const viewport=document.querySelector('.project-gallery-lanes');
-  if(!viewport||viewport.dataset.fallReady)return;
+  const gallery=viewport?.closest('[data-project-gallery]');
+  if(!viewport||!gallery||viewport.dataset.fallReady)return;
 
   const strips=[...viewport.querySelectorAll('.project-gallery-strip')];
   const lanes=[...viewport.querySelectorAll('.project-gallery-lane')];
   if(strips.length<3||lanes.length<3)return;
   viewport.dataset.fallReady='1';
 
-  const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(reduce)return;
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
 
   const layer=document.createElement('div');
   layer.className='gallery-fall-layer';
   viewport.appendChild(layer);
 
-  const children=strips.map(strip=>[...strip.children]);
-  const standardTiles=children.map(items=>items.filter(el=>!el.classList.contains('project-tile--wide')));
-  const wideTiles=children.map(items=>items.filter(el=>el.classList.contains('project-tile--wide')));
+  let standardMetrics=[[],[],[]];
+  let wideMetrics=[[],[],[]];
+  let rows=[];
+  let viewportWidth=1;
+
+  const readLaneX=strip=>{
+    const x=strip.__ykLaneX;
+    return Number.isFinite(x)?x:0;
+  };
+
+  const measure=()=>{
+    viewportWidth=Math.max(1,viewport.clientWidth);
+    rows=lanes.map(lane=>({top:lane.offsetTop,height:lane.offsetHeight}));
+    strips.forEach((strip,row)=>{
+      const all=[...strip.children].filter(el=>el.classList.contains('project-tile'));
+      const metric=el=>({
+        tile:el,
+        left:el.offsetLeft,
+        width:el.offsetWidth,
+        center:el.offsetLeft+el.offsetWidth/2
+      });
+      standardMetrics[row]=all.filter(el=>!el.classList.contains('project-tile--wide')).map(metric);
+      wideMetrics[row]=all.filter(el=>el.classList.contains('project-tile--wide')).map(metric);
+    });
+  };
+  measure();
+  new ResizeObserver(measure).observe(viewport);
 
   const started=performance.now();
   const defs=[
@@ -923,95 +954,83 @@ function initProjectExplorer(root){
     layer.appendChild(shell);
 
     return {
-      ...def,
-      index,
-      shell,
-      card,
+      ...def,index,shell,card,
       mode:'bridge',
       targetRow:def.startLower?def.pair[1]:def.pair[0],
-      transitionStart:0,
-      transitionDuration:820,
-      transitionArc:0,
-      from:null,
       x:0,y:0,w:0,h:0,
       initialized:false,
-      impactTimer:0,
+      transitionStart:0,
+      transitionDuration:0,
+      transitionArc:0,
+      from:null,
       transitionReserve:[],
       nextAt:started+def.firstDelay,
       cycle:0,
-      hops:0
+      hops:0,
+      bridgeChoice:null,
+      impactTimer:0
     };
   });
 
-  let viewportWidth=1;
-  let rows=[];
   let activeDef=null;
+  let reservedPrev=new Set();
 
-  const measure=()=>{
-    viewportWidth=Math.max(1,viewport.clientWidth);
-    rows=lanes.map(lane=>({top:lane.offsetTop,height:lane.offsetHeight}));
-  };
-  measure();
-  new ResizeObserver(measure).observe(viewport);
-
-  const stripX=strip=>{
-    const transform=getComputedStyle(strip).transform;
-    if(!transform||transform==='none')return 0;
-    try{return new DOMMatrixReadOnly(transform).m41}catch{
-      const match=transform.match(/matrix\([^,]+,[^,]+,[^,]+,[^,]+,\s*([^,]+)/);
-      return match?Number(match[1])||0:0;
-    }
-  };
-
-  const tileGeom=(tile,xOffset)=>{
-    if(!tile)return null;
-    return {
-      tile,
-      left:xOffset+tile.offsetLeft,
-      width:tile.offsetWidth,
-      center:xOffset+tile.offsetLeft+tile.offsetWidth/2
-    };
-  };
-
-  const visibleCandidates=(list,xOffset)=>{
+  const visible=(metrics,xOffset)=>{
     const margin=viewportWidth*.42;
-    return list
-      .map(tile=>tileGeom(tile,xOffset))
-      .filter(g=>g&&g.left+g.width>-margin&&g.left<viewportWidth+margin);
+    return metrics
+      .map(m=>({
+        ...m,
+        screenLeft:xOffset+m.left,
+        screenCenter:xOffset+m.center
+      }))
+      .filter(m=>m.screenLeft+m.width>-margin&&m.screenLeft<viewportWidth+margin);
   };
 
   const nearestWide=(row,xOffset,desiredCenter)=>{
-    const candidates=visibleCandidates(wideTiles[row],xOffset);
+    const candidates=visible(wideMetrics[row],xOffset);
     if(!candidates.length)return null;
-    return candidates.reduce((best,g)=>
-      Math.abs(g.center-desiredCenter)<Math.abs(best.center-desiredCenter)?g:best
+    return candidates.reduce((best,m)=>
+      Math.abs(m.screenCenter-desiredCenter)<Math.abs(best.screenCenter-desiredCenter)?m:best
     );
   };
 
-  const bestAlignedPair=(pair,xs,desiredCenter)=>{
-    const upper=visibleCandidates(standardTiles[pair[0]],xs[pair[0]]);
-    const lower=visibleCandidates(standardTiles[pair[1]],xs[pair[1]]);
+  const chooseBridgePair=(def,xs,desiredCenter)=>{
+    const upper=visible(standardMetrics[def.pair[0]],xs[def.pair[0]]);
+    const lower=visible(standardMetrics[def.pair[1]],xs[def.pair[1]]);
     let best=null;
-    upper.forEach(a=>{
-      lower.forEach(b=>{
-        const align=Math.abs(a.left-b.left);
-        const center=(a.center+b.center)/2;
-        const distance=Math.abs(center-desiredCenter);
-        const score=align*7+distance*.18;
+
+    for(const a of upper){
+      for(const b of lower){
+        const align=Math.abs(a.screenLeft-b.screenLeft);
+        const center=(a.screenCenter+b.screenCenter)/2;
+        const score=align*8+Math.abs(center-desiredCenter)*.16;
         if(!best||score<best.score)best={a,b,align,center,score};
-      });
-    });
+      }
+    }
+    if(!best)return null;
+
+    const current=def.bridgeChoice;
+    if(current){
+      const a=upper.find(m=>m.tile===current.a.tile);
+      const b=lower.find(m=>m.tile===current.b.tile);
+      if(a&&b){
+        const align=Math.abs(a.screenLeft-b.screenLeft);
+        const center=(a.screenCenter+b.screenCenter)/2;
+        const score=align*8+Math.abs(center-desiredCenter)*.16;
+        if(score<=best.score*1.28+14){
+          def.bridgeChoice={a,b,align,center,score};
+          return def.bridgeChoice;
+        }
+      }
+    }
+
+    def.bridgeChoice=best;
     return best;
   };
 
-  const clearReservations=()=>{
-    viewport.querySelectorAll('.is-reserved-by-fall').forEach(tile=>tile.classList.remove('is-reserved-by-fall'));
-  };
-  const reserve=tile=>tile?.classList.add('is-reserved-by-fall');
-
   const ease=t=>{
-    const u=1-Math.max(0,Math.min(1,t));
-    return 1-u*u*u;
+    const p=Math.max(0,Math.min(1,t));
+    return 1-Math.pow(1-p,3);
   };
 
   const triggerImpact=(def,landed,targetRow)=>{
@@ -1021,7 +1040,7 @@ function initProjectExplorer(root){
     void def.shell.offsetWidth;
     def.shell.classList.add('is-impact');
     clearTimeout(def.impactTimer);
-    def.impactTimer=setTimeout(()=>def.shell.classList.remove('is-impact'),820);
+    def.impactTimer=setTimeout(()=>def.shell.classList.remove('is-impact'),760);
   };
 
   const beginTransition=(def,target,{landed,targetRow,kind,oldReserve=[]})=>{
@@ -1029,18 +1048,12 @@ function initProjectExplorer(root){
     def.transitionReserve=oldReserve.filter(Boolean);
     def.from={x:def.x,y:def.y,w:def.w,h:def.h};
     def.targetRow=targetRow;
-    def.transitionDuration=kind==='hop'?900:kind==='stand'?980:840;
-    def.transitionArc=kind==='hop'?-34:kind==='stand'?-24:-18;
+    def.transitionDuration=kind==='hop'?820:kind==='stand'?900:760;
+    def.transitionArc=kind==='hop'?-24:kind==='stand'?-16:-12;
     triggerImpact(def,landed,targetRow);
-
-    if(!def.initialized){
-      def.x=target.x;def.y=target.y;def.w=target.w;def.h=target.h;
-      def.from={...target};
-      def.initialized=true;
-    }
   };
 
-  const interpolateBox=(def,target,now)=>{
+  const moveBox=(def,target,now)=>{
     if(!def.initialized){
       def.x=target.x;def.y=target.y;def.w=target.w;def.h=target.h;
       def.initialized=true;
@@ -1065,80 +1078,86 @@ function initProjectExplorer(root){
     return true;
   };
 
-  const scheduleNextBridgeAction=(def,now)=>{
-    const base=def.index===0?4800:5900;
-    def.nextAt=now+base+(def.cycle%3)*850;
+  const bridgeBox=(def,aligned)=>{
+    const upper=rows[def.pair[0]];
+    const lower=rows[def.pair[1]];
+    const x=Math.round((aligned.a.screenLeft+aligned.b.screenLeft)/2);
+    const width=Math.round((aligned.a.width+aligned.b.width)/2);
+    return {
+      x,
+      y:upper.top,
+      w:width,
+      h:(lower.top+lower.height)-upper.top
+    };
+  };
+
+  const scheduleBridge=(def,now)=>{
+    def.nextAt=now+(def.index===0?4700:5600)+(def.cycle%3)*700;
   };
 
   const startFall=(def,aligned,xs,now)=>{
     const rowChoice=(def.cycle+(def.startLower?1:0))%2;
-    const targetRow=rowChoice?def.pair[1]:def.pair[0];
-    const wide=nearestWide(targetRow,xs[targetRow],def.x+def.w/2);
+    const row=rowChoice?def.pair[1]:def.pair[0];
+    const wide=nearestWide(row,xs[row],def.x+def.w/2);
     if(!wide)return false;
 
     def.mode='landed';
     def.hops=0;
     def.cycle+=1;
     activeDef=def;
-    def.nextAt=now+2600+(def.index*450)+(def.cycle%2)*800;
+    gallery.classList.add('has-crossrow-active');
+    def.nextAt=now+2500+(def.index*350)+(def.cycle%2)*650;
 
     beginTransition(def,{
-      x:wide.left,
-      y:rows[targetRow].top,
+      x:wide.screenLeft,
+      y:rows[row].top,
       w:wide.width,
-      h:rows[targetRow].height
+      h:rows[row].height
     },{
-      landed:true,
-      targetRow,
-      kind:'fall',
+      landed:true,targetRow:row,kind:'fall',
       oldReserve:[aligned.a.tile,aligned.b.tile]
     });
     return true;
   };
 
   const startHop=(def,xs,now)=>{
-    const otherRow=def.targetRow===def.pair[0]?def.pair[1]:def.pair[0];
-    const wide=nearestWide(otherRow,xs[otherRow],def.x+def.w/2);
+    const other=def.targetRow===def.pair[0]?def.pair[1]:def.pair[0];
+    const wide=nearestWide(other,xs[other],def.x+def.w/2);
     if(!wide)return false;
+    const old=nearestWide(def.targetRow,xs[def.targetRow],def.x+def.w/2);
 
-    const previous=nearestWide(def.targetRow,xs[def.targetRow],def.x+def.w/2);
-    def.targetRow=otherRow;
     def.hops+=1;
-    def.nextAt=now+1900+(def.index*350);
-
+    def.nextAt=now+1800+(def.index*250);
     beginTransition(def,{
-      x:wide.left,
-      y:rows[otherRow].top,
+      x:wide.screenLeft,
+      y:rows[other].top,
       w:wide.width,
-      h:rows[otherRow].height
+      h:rows[other].height
     },{
-      landed:true,
-      targetRow:otherRow,
-      kind:'hop',
-      oldReserve:[previous?.tile]
+      landed:true,targetRow:other,kind:'hop',
+      oldReserve:[old?.tile]
     });
     return true;
   };
 
-  const startStand=(def,aligned,now)=>{
-    const oldWide=nearestWide(def.targetRow,stripX(strips[def.targetRow]),def.x+def.w/2);
-    const upperRow=rows[def.pair[0]];
-    const lowerRow=rows[def.pair[1]];
-    const upright={
-      x:(aligned.a.left+aligned.b.left)/2,
-      y:upperRow.top,
-      w:(aligned.a.width+aligned.b.width)/2,
-      h:(lowerRow.top+lowerRow.height)-upperRow.top
-    };
-
+  const startStand=(def,aligned,xs)=>{
+    const old=nearestWide(def.targetRow,xs[def.targetRow],def.x+def.w/2);
     def.mode='rising';
     def.nextAt=Infinity;
-    beginTransition(def,upright,{
-      landed:false,
-      targetRow:def.pair[0],
-      kind:'stand',
-      oldReserve:[oldWide?.tile]
+    beginTransition(def,bridgeBox(def,aligned),{
+      landed:false,targetRow:def.pair[0],kind:'stand',
+      oldReserve:[old?.tile]
     });
+  };
+
+  const applyReservations=next=>{
+    for(const tile of reservedPrev){
+      if(!next.has(tile))tile.classList.remove('is-reserved-by-fall');
+    }
+    for(const tile of next){
+      if(!reservedPrev.has(tile))tile.classList.add('is-reserved-by-fall');
+    }
+    reservedPrev=next;
   };
 
   const frame=now=>{
@@ -1147,82 +1166,85 @@ function initProjectExplorer(root){
       return;
     }
 
-    const xs=strips.map(stripX);
-    clearReservations();
+    const xs=strips.map(readLaneX);
+    const reservedNext=new Set();
 
-    defs.forEach(def=>{
-      const upperRow=rows[def.pair[0]];
-      const lowerRow=rows[def.pair[1]];
+    for(const def of defs){
       const desiredCenter=def.initialized?def.x+def.w/2:viewportWidth*def.preferred;
-      const aligned=bestAlignedPair(def.pair,xs,desiredCenter);
+      const aligned=chooseBridgePair(def,xs,desiredCenter);
+
       if(!aligned){
         def.shell.style.opacity='0';
-        return;
+        continue;
       }
 
-      const uprightTarget={
-        x:(aligned.a.left+aligned.b.left)/2,
-        y:upperRow.top,
-        w:(aligned.a.width+aligned.b.width)/2,
-        h:(lowerRow.top+lowerRow.height)-upperRow.top
-      };
+      const upright=bridgeBox(def,aligned);
+      let target=upright;
 
       if(!def.initialized){
-        def.x=uprightTarget.x;def.y=uprightTarget.y;def.w=uprightTarget.w;def.h=uprightTarget.h;
+        def.x=upright.x;def.y=upright.y;def.w=upright.w;def.h=upright.h;
         def.initialized=true;
       }
 
-      let target=uprightTarget;
-      let reservations=[aligned.a.tile,aligned.b.tile];
-
       if(def.mode==='bridge'){
-        if(now>=def.nextAt&&!activeDef) startFall(def,aligned,xs,now);
+        reservedNext.add(aligned.a.tile);
+        reservedNext.add(aligned.b.tile);
+
+        // Only remain vertical while the two real slots visually meet.
+        // After its minimum display time, the first visible drift triggers the fall.
+        if(now>=def.nextAt&&!activeDef&&aligned.align>6){
+          startFall(def,aligned,xs,now);
+        }
       }
 
       if(def.mode==='landed'){
         const wide=nearestWide(def.targetRow,xs[def.targetRow],def.x+def.w/2);
         if(wide){
-          target={x:wide.left,y:rows[def.targetRow].top,w:wide.width,h:rows[def.targetRow].height};
-          reservations=[wide.tile];
+          target={x:wide.screenLeft,y:rows[def.targetRow].top,w:wide.width,h:rows[def.targetRow].height};
+          reservedNext.add(wide.tile);
         }else{
           target={x:def.x,y:def.y,w:def.w,h:def.h};
-          reservations=[];
         }
 
         if(now>=def.nextAt&&def.transitionStart===0){
           const shouldHop=def.hops===0&&def.cycle%2===0;
-          if(shouldHop&&!startHop(def,xs,now)){
-            startStand(def,aligned,now);
-          }else if(!shouldHop){
-            startStand(def,aligned,now);
+          if(shouldHop){
+            if(!startHop(def,xs,now))def.nextAt=now+700;
+          }else if(aligned.align<=3.5){
+            startStand(def,aligned,xs);
+          }else{
+            // Wait for a genuinely clean alignment rather than standing up crooked.
+            def.nextAt=now+180;
           }
         }
       }
 
       if(def.mode==='rising'){
-        target=uprightTarget;
-        reservations=[aligned.a.tile,aligned.b.tile];
+        target=upright;
+        reservedNext.add(aligned.a.tile);
+        reservedNext.add(aligned.b.tile);
       }
 
-      def.transitionReserve.forEach(reserve);
-      reservations.forEach(reserve);
-      const settled=interpolateBox(def,target,now);
+      for(const tile of def.transitionReserve)reservedNext.add(tile);
+      const settled=moveBox(def,target,now);
 
       if(def.mode==='rising'&&settled){
         def.mode='bridge';
         activeDef=null;
-        scheduleNextBridgeAction(def,now);
+        gallery.classList.remove('has-crossrow-active');
+        scheduleBridge(def,now);
       }
 
       def.shell.classList.toggle('is-cruising',def.mode==='landed'&&def.transitionStart===0);
-      def.shell.style.width=def.w.toFixed(2)+'px';
-      def.shell.style.height=def.h.toFixed(2)+'px';
-      def.shell.style.transform='translate3d('+def.x.toFixed(2)+'px,'+def.y.toFixed(2)+'px,0)';
+      def.shell.style.width=Math.max(1,def.w).toFixed(1)+'px';
+      def.shell.style.height=Math.max(1,def.h).toFixed(1)+'px';
+      def.shell.style.transform='translate3d('+def.x.toFixed(1)+'px,'+def.y.toFixed(1)+'px,0)';
 
-      const visible=def.x+def.w>-def.w*.30&&def.x<viewportWidth+def.w*.30;
-      def.shell.style.opacity=visible?'1':'0';
-    });
+      const visibleCard=def.x+def.w>-def.w*.3&&def.x<viewportWidth+def.w*.3;
+      def.shell.style.opacity=visibleCard?'1':'0';
+    }
 
+    applyReservations(reservedNext);
     requestAnimationFrame(frame);
   };
 
