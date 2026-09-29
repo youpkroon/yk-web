@@ -1044,118 +1044,6 @@ body.is-scrolled .hero .topbar{
 .gallery-control--right{right:10px !important}
 
 /* =========================================================
-   CROSS-ROW HERO CARDS — smoother + exact slot alignment
-   ========================================================= */
-.gallery-fall-layer{
-  position:absolute;
-  inset:0;
-  z-index:3;
-  pointer-events:none;
-  overflow:hidden;
-  contain:layout paint;
-}
-.gallery-fall-shell{
-  position:absolute;
-  left:0;
-  top:0;
-  opacity:0;
-  overflow:hidden;
-  border-radius:13px;
-  border:1px solid rgba(255,255,255,.075);
-  background:#18202a;
-  transform:translate3d(0,0,0);
-  transform-origin:center;
-  backface-visibility:hidden;
-  contain:layout paint style;
-  will-change:transform,width,height,opacity;
-}
-.gallery-fall-card{
-  position:absolute;
-  inset:0;
-  overflow:hidden;
-  border-radius:inherit;
-  transform:translate3d(0,0,0) rotate(0deg) scale(1);
-  transform-origin:50% 50%;
-  backface-visibility:hidden;
-  will-change:transform;
-}
-.gallery-fall-shell.is-impact{animation:fallShellImpact .76s cubic-bezier(.18,.82,.2,1)}
-.gallery-fall-shell.is-impact[data-land-row="lower"] .gallery-fall-card{
-  animation:fallCardDown .76s cubic-bezier(.16,1.04,.28,1)
-}
-.gallery-fall-shell.is-impact[data-land-row="upper"] .gallery-fall-card{
-  animation:fallCardUp .76s cubic-bezier(.16,1.04,.28,1)
-}
-.gallery-fall-shell.is-impact:not(.is-landed) .gallery-fall-card{
-  animation:fallCardStand .76s cubic-bezier(.16,1.04,.28,1)
-}
-.gallery-fall-shell.is-cruising .gallery-fall-card{
-  animation:fallCardCruise 3.6s ease-in-out infinite;
-}
-@keyframes fallShellImpact{
-  0%{border-radius:13px}
-  34%{border-radius:19px}
-  70%{border-radius:11px}
-  100%{border-radius:13px}
-}
-@keyframes fallCardDown{
-  0%{transform:translate3d(0,0,0) rotate(0deg) scale(1)}
-  48%{transform:translate3d(0,2px,0) rotate(84deg) scale(.975)}
-  72%{transform:translate3d(0,-1px,0) rotate(93deg) scale(1.008)}
-  100%{transform:translate3d(0,0,0) rotate(0deg) scale(1)}
-}
-@keyframes fallCardUp{
-  0%{transform:translate3d(0,0,0) rotate(0deg) scale(1)}
-  48%{transform:translate3d(0,2px,0) rotate(-84deg) scale(.975)}
-  72%{transform:translate3d(0,-1px,0) rotate(-93deg) scale(1.008)}
-  100%{transform:translate3d(0,0,0) rotate(0deg) scale(1)}
-}
-@keyframes fallCardStand{
-  0%{transform:translate3d(0,0,0) rotate(0deg) scale(1)}
-  50%{transform:translate3d(0,-2px,0) rotate(-66deg) scale(.98)}
-  75%{transform:translate3d(0,1px,0) rotate(5deg) scale(1.008)}
-  100%{transform:translate3d(0,0,0) rotate(0deg) scale(1)}
-}
-@keyframes fallCardCruise{
-  0%,100%{transform:translate3d(0,0,0) rotate(0deg)}
-  33%{transform:translate3d(1.5px,-1px,0) rotate(.3deg)}
-  66%{transform:translate3d(-1px,1px,0) rotate(-.22deg)}
-}
-
-.project-streams-section .project-tile.is-reserved-by-fall{
-  opacity:0 !important;
-  pointer-events:none;
-  transition:opacity .12s linear !important;
-}
-
-.gallery-fall-card::before,
-.gallery-fall-card::after{
-  content:"";
-  position:absolute;
-  pointer-events:none;
-}
-.gallery-fall-card--blue{
-  background:
-    linear-gradient(120deg,transparent 0 59%,rgba(255,255,255,.82) 59.2% 60%,transparent 60.2%),
-    radial-gradient(ellipse at 54% 48%,transparent 0 36%,rgba(23,87,126,.30) 36.5% 37%,transparent 37.5%),
-    linear-gradient(150deg,#d9f4ff 0%,#8fd0ea 54%,#3d91bf 100%);
-}
-.gallery-fall-card--amber{
-  background:
-    radial-gradient(circle at 50% 42%,rgba(255,238,174,.96) 0 9%,rgba(224,151,48,.80) 10% 22%,transparent 23%),
-    repeating-radial-gradient(circle at 50% 42%,transparent 0 9px,rgba(255,204,112,.10) 10px 12px),
-    linear-gradient(155deg,#30241f,#67462f 54%,#342922);
-}
-
-@media(max-width:700px){
-  .gallery-fall-layer{display:none}
-}
-@media(prefers-reduced-motion:reduce){
-  .gallery-fall-layer{display:none}
-}
-
-
-/* =========================================================
    WORK OVERVIEW — same section language as Workshop
    ========================================================= */
 .project-streams-section{
@@ -1210,17 +1098,6 @@ body.is-scrolled .hero .topbar{
 .project-streams-section.is-built .project-tile:nth-child(3n){
   transition-delay:0s;
 }
-.gallery-fall-shell{
-  box-shadow:0 16px 46px rgba(0,0,0,.22);
-}
-.gallery-fall-shell.is-cruising .gallery-fall-card{
-  animation:fallCardCruise 4.4s ease-in-out infinite;
-}
-@keyframes fallCardCruise{
-  0%,100%{transform:translate3d(0,0,0) rotate(0deg)}
-  50%{transform:translate3d(.8px,-.6px,0) rotate(.12deg)}
-}
-
 @media(max-width:900px){
   .work-head{grid-template-columns:1fr;gap:30px}
   .work-overview{padding-bottom:48px}
@@ -1269,86 +1146,69 @@ body.is-scrolled .hero .topbar{
 }
 
 
-/* =========================================================
-   WORK BUBBLE MOTION V2
-   The cross-row card squeezes through the grid and nearby tiles yield.
-   ========================================================= */
-.project-gallery-strip{
-  --bubble-shift:0px;
-}
-.project-tile{
-  translate:var(--bubble-shift,0px) 0;
-  scale:var(--bubble-scale-x,1) var(--bubble-scale-y,1);
-  transform-origin:center;
-  backface-visibility:hidden;
-}
-.project-gallery.has-crossrow-active .project-tile{
-  will-change:translate,scale,opacity;
-}
-.gallery-fall-shell{
-  border-radius:var(--bubble-radius,13px) !important;
-  rotate:var(--bubble-rotate,0deg);
-  scale:var(--bubble-shell-x,1) var(--bubble-shell-y,1);
-  transform-origin:center;
-  box-shadow:0 15px 42px rgba(0,0,0,.20) !important;
-  transition:box-shadow .28s ease;
-}
-.gallery-fall-shell.is-impact{
-  animation:none !important;
-}
-.gallery-fall-card{
-  transform:translate3d(0,0,0) rotate(0deg) scale(1);
-  transform-origin:center;
-}
-.gallery-fall-shell.is-impact[data-land-row="lower"] .gallery-fall-card{
-  animation:bubbleCardSettleDown .86s cubic-bezier(.2,.8,.2,1) !important;
-}
-.gallery-fall-shell.is-impact[data-land-row="upper"] .gallery-fall-card{
-  animation:bubbleCardSettleUp .86s cubic-bezier(.2,.8,.2,1) !important;
-}
-.gallery-fall-shell.is-impact:not(.is-landed) .gallery-fall-card{
-  animation:bubbleCardStand .92s cubic-bezier(.2,.8,.2,1) !important;
-}
-.gallery-fall-shell.is-cruising .gallery-fall-card{
-  animation:bubbleCardFloat 4.8s ease-in-out infinite !important;
-}
-@keyframes bubbleCardSettleDown{
-  0%{transform:translate3d(0,0,0) rotate(0deg) scale(1)}
-  34%{transform:translate3d(0,5px,0) rotate(6deg) scale(.965,1.035)}
-  64%{transform:translate3d(0,-3px,0) rotate(-2.5deg) scale(1.018,.985)}
-  82%{transform:translate3d(0,1px,0) rotate(1deg) scale(.995,1.008)}
-  100%{transform:translate3d(0,0,0) rotate(0deg) scale(1)}
-}
-@keyframes bubbleCardSettleUp{
-  0%{transform:translate3d(0,0,0) rotate(0deg) scale(1)}
-  34%{transform:translate3d(0,5px,0) rotate(-6deg) scale(.965,1.035)}
-  64%{transform:translate3d(0,-3px,0) rotate(2.5deg) scale(1.018,.985)}
-  82%{transform:translate3d(0,1px,0) rotate(-1deg) scale(.995,1.008)}
-  100%{transform:translate3d(0,0,0) rotate(0deg) scale(1)}
-}
-@keyframes bubbleCardStand{
-  0%{transform:translate3d(0,0,0) rotate(0deg) scale(1)}
-  38%{transform:translate3d(0,-5px,0) rotate(-6deg) scale(.968,1.035)}
-  68%{transform:translate3d(0,3px,0) rotate(2.4deg) scale(1.016,.986)}
-  84%{transform:translate3d(0,-1px,0) rotate(-.8deg) scale(.997,1.006)}
-  100%{transform:translate3d(0,0,0) rotate(0deg) scale(1)}
-}
-@keyframes bubbleCardFloat{
-  0%,100%{transform:translate3d(0,0,0) rotate(0deg)}
-  50%{transform:translate3d(1px,-1px,0) rotate(.16deg)}
-}
-.project-streams-section .project-tile.is-reserved-by-fall{
-  opacity:0 !important;
-  transition:opacity .22s cubic-bezier(.2,.8,.2,1) !important;
-}
-
-
 /* Gallery proportion refinement: fewer wide cards, but the wide cards read clearly horizontal. */
 .project-gallery-strip .project-tile--wide{
   flex-basis:calc(var(--tile) * 2.04 + 10px);
   width:calc(var(--tile) * 2.04 + 10px);
 }
 @media(max-width:900px){
+  .project-gallery-strip .project-tile--wide{
+    flex-basis:calc(var(--tile) * 1.82 + 8px);
+    width:calc(var(--tile) * 1.82 + 8px);
+  }
+}
+@media(max-width:700px){
+  .project-gallery-strip .project-tile--wide{
+    flex-basis:calc(var(--tile) * 1.68 + 8px);
+    width:calc(var(--tile) * 1.68 + 8px);
+  }
+}
+
+
+/* =========================================================
+   WORK TILE MORPH V4
+   The moving tile itself morphs, so the animation stays attached to its rail.
+   ========================================================= */
+.project-gallery-lane{
+  position:relative;
+  overflow:visible;
+}
+.project-gallery-strip{position:relative}
+.project-gallery-lanes{overflow:hidden}
+
+.project-streams-section.is-built .project-tile{
+  --bubble-x:0px;
+  --bubble-y:0px;
+  --bubble-r:0deg;
+  --bubble-sx:1;
+  --bubble-sy:1;
+  --bubble-radius:13px;
+  transform:
+    translate3d(var(--bubble-x),var(--bubble-y),0)
+    rotate(var(--bubble-r))
+    scale(var(--bubble-sx),var(--bubble-sy));
+  transform-origin:center;
+  border-radius:var(--bubble-radius);
+  transition:filter .24s ease,opacity .18s ease;
+  backface-visibility:hidden;
+}
+
+.project-tile.is-bubble-hero{
+  z-index:12;
+  box-shadow:0 22px 58px rgba(0,0,0,.30);
+  will-change:transform,border-radius;
+}
+.project-gallery.has-bubble-hero .project-tile:not(.is-bubble-hero){
+  will-change:transform;
+}
+
+.project-gallery-strip .project-tile--wide{
+  flex-basis:calc(var(--tile) * 2.04 + 10px);
+  width:calc(var(--tile) * 2.04 + 10px);
+}
+
+@media(max-width:900px){
+  .project-gallery-lane{overflow:hidden}
   .project-gallery-strip .project-tile--wide{
     flex-basis:calc(var(--tile) * 1.82 + 8px);
     width:calc(var(--tile) * 1.82 + 8px);

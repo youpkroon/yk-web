@@ -267,7 +267,7 @@ document.getElementById('year').textContent=new Date().getFullYear();
   };
 
   const startPack=()=>{
-    if(drag||Math.abs(steerTarget)>.03||gallery.classList.contains('has-crossrow-active')){
+    if(drag||Math.abs(steerTarget)>.03||gallery.classList.contains('has-crossrow-active')||gallery.classList.contains('has-bubble-hero')){
       requestedPackAt=performance.now()+650;
       return;
     }
@@ -422,440 +422,242 @@ document.getElementById('year').textContent=new Date().getFullYear();
 })();
 
 
-/* Cross-row hero cards: smooth version.
-   The tall card only spans two rows while the two reserved slots are nearly
-   perfectly aligned. Once they drift apart it falls into a real wide slot.
-   Geometry is cached and lane positions are read from JS memory to avoid
-   forced layout/style reads on every animation frame. */
+/* Work gallery bubble morph.
+   A real wide tile morphs in place and nearby tiles yield around it. */
 (()=>{
-  const viewport=document.querySelector('.project-gallery-lanes');
-  const gallery=viewport?.closest('[data-project-gallery]');
-  if(!viewport||!gallery||viewport.dataset.fallReady)return;
-
-  const strips=[...viewport.querySelectorAll('.project-gallery-strip')];
-  const lanes=[...viewport.querySelectorAll('.project-gallery-lane')];
-  if(strips.length<3||lanes.length<3)return;
-  viewport.dataset.fallReady='1';
-
+  const section=document.querySelector('.project-streams-section');
+  const gallery=section?.querySelector('[data-project-gallery]');
+  const viewport=gallery?.querySelector('.project-gallery-lanes');
+  const lanes=[...(gallery?.querySelectorAll('[data-gallery-lane]')||[])];
+  const strips=lanes.map(lane=>lane.querySelector('.project-gallery-strip'));
+  if(!section||!gallery||!viewport||lanes.length!==3||strips.some(x=>!x))return;
   if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
 
-  const layer=document.createElement('div');
-  layer.className='gallery-fall-layer';
-  viewport.appendChild(layer);
+  const defs=[
+    {selector:'.demo-07',row:0,direction:1,preferred:.43,firstDelay:3200,hold:2500},
+    {selector:'.demo-13',row:1,direction:1,preferred:.70,firstDelay:6400,hold:2300}
+  ];
 
-  let standardMetrics=[[],[],[]];
-  let wideMetrics=[[],[],[]];
-  let rows=[];
-  let viewportWidth=1;
+  let active=null;
+  let nextDef=0;
+  let nextAt=performance.now()+defs[0].firstDelay;
+  let touched=new Set();
+  let last=performance.now();
 
-  const readLaneX=strip=>{
-    const x=strip.__ykLaneX;
+  const laneX=row=>{
+    const x=strips[row].__ykLaneX;
     return Number.isFinite(x)?x:0;
   };
 
-  const measure=()=>{
-    viewportWidth=Math.max(1,viewport.clientWidth);
-    rows=lanes.map(lane=>({top:lane.offsetTop,height:lane.offsetHeight}));
-    strips.forEach((strip,row)=>{
-      const all=[...strip.children].filter(el=>el.classList.contains('project-tile'));
-      const metric=el=>({
-        tile:el,
-        left:el.offsetLeft,
-        width:el.offsetWidth,
-        center:el.offsetLeft+el.offsetWidth/2
-      });
-      standardMetrics[row]=all.filter(el=>!el.classList.contains('project-tile--wide')).map(metric);
-      wideMetrics[row]=all.filter(el=>el.classList.contains('project-tile--wide')).map(metric);
-    });
+  const rowGap=()=>{
+    const style=getComputedStyle(viewport);
+    return parseFloat(style.rowGap||style.gap)||10;
   };
-  measure();
-  new ResizeObserver(measure).observe(viewport);
 
-  const started=performance.now();
-  const defs=[
-    {pair:[0,1],preferred:.43,theme:'amber',firstDelay:3500,startLower:true},
-    {pair:[1,2],preferred:.76,theme:'blue',firstDelay:6500,startLower:false}
-  ].map((def,index)=>{
-    const shell=document.createElement('div');
-    shell.className='gallery-fall-shell';
-    shell.dataset.landRow=def.startLower?'lower':'upper';
-
-    const card=document.createElement('div');
-    card.className='gallery-fall-card gallery-fall-card--'+def.theme;
-    shell.appendChild(card);
-    layer.appendChild(shell);
-
-    return {
-      ...def,index,shell,card,
-      mode:'bridge',
-      targetRow:def.startLower?def.pair[1]:def.pair[0],
-      x:0,y:0,w:0,h:0,
-      initialized:false,
-      transitionStart:0,
-      transitionDuration:0,
-      transitionArc:0,
-      from:null,
-      transitionReserve:[],
-      motionProgress:0,
-      nextAt:started+def.firstDelay,
-      cycle:0,
-      hops:0,
-      bridgeChoice:null,
-      impactTimer:0
-    };
-  });
-
-  let activeDef=null;
-  let reservedPrev=new Set();
-  let pressurePrev=new Set();
-
-  const visible=(metrics,xOffset)=>{
-    const margin=viewportWidth*.42;
-    return metrics
-      .map(m=>({
-        ...m,
-        screenLeft:xOffset+m.left,
-        screenCenter:xOffset+m.center
+  const visibleInstances=def=>{
+    const x=laneX(def.row);
+    const width=viewport.clientWidth;
+    return [...strips[def.row].querySelectorAll(def.selector)]
+      .map(tile=>({
+        tile,
+        left:x+tile.offsetLeft,
+        width:tile.offsetWidth,
+        center:x+tile.offsetLeft+tile.offsetWidth/2
       }))
-      .filter(m=>m.screenLeft+m.width>-margin&&m.screenLeft<viewportWidth+margin);
+      .filter(m=>m.left+m.width>50&&m.left<width-50);
   };
 
-  const nearestWide=(row,xOffset,desiredCenter)=>{
-    const candidates=visible(wideMetrics[row],xOffset);
+  const chooseTile=def=>{
+    const candidates=visibleInstances(def);
     if(!candidates.length)return null;
+    const desired=viewport.clientWidth*def.preferred;
     return candidates.reduce((best,m)=>
-      Math.abs(m.screenCenter-desiredCenter)<Math.abs(best.screenCenter-desiredCenter)?m:best
+      Math.abs(m.center-desired)<Math.abs(best.center-desired)?m:best
     );
   };
 
-  const chooseBridgePair=(def,xs,desiredCenter)=>{
-    const upper=visible(standardMetrics[def.pair[0]],xs[def.pair[0]]);
-    const lower=visible(standardMetrics[def.pair[1]],xs[def.pair[1]]);
-    let best=null;
-
-    for(const a of upper){
-      for(const b of lower){
-        const align=Math.abs(a.screenLeft-b.screenLeft);
-        const center=(a.screenCenter+b.screenCenter)/2;
-        const score=align*8+Math.abs(center-desiredCenter)*.16;
-        if(!best||score<best.score)best={a,b,align,center,score};
-      }
-    }
-    if(!best)return null;
-
-    const current=def.bridgeChoice;
-    if(current){
-      const a=upper.find(m=>m.tile===current.a.tile);
-      const b=lower.find(m=>m.tile===current.b.tile);
-      if(a&&b){
-        const align=Math.abs(a.screenLeft-b.screenLeft);
-        const center=(a.screenCenter+b.screenCenter)/2;
-        const score=align*8+Math.abs(center-desiredCenter)*.16;
-        if(score<=best.score*1.28+14){
-          def.bridgeChoice={a,b,align,center,score};
-          return def.bridgeChoice;
-        }
-      }
-    }
-
-    def.bridgeChoice=best;
-    return best;
+  const setVars=(tile,{x=0,y=0,r=0,sx=1,sy=1,radius=13})=>{
+    tile.style.setProperty('--bubble-x',x.toFixed(2)+'px');
+    tile.style.setProperty('--bubble-y',y.toFixed(2)+'px');
+    tile.style.setProperty('--bubble-r',r.toFixed(2)+'deg');
+    tile.style.setProperty('--bubble-sx',sx.toFixed(4));
+    tile.style.setProperty('--bubble-sy',sy.toFixed(4));
+    tile.style.setProperty('--bubble-radius',radius.toFixed(1)+'px');
+    touched.add(tile);
   };
 
-  const clamp01=t=>Math.max(0,Math.min(1,t));
-  const smooth=t=>{
-    const p=clamp01(t);
-    return p*p*(3-2*p);
+  const clearVars=tile=>{
+    tile.style.removeProperty('--bubble-x');
+    tile.style.removeProperty('--bubble-y');
+    tile.style.removeProperty('--bubble-r');
+    tile.style.removeProperty('--bubble-sx');
+    tile.style.removeProperty('--bubble-sy');
+    tile.style.removeProperty('--bubble-radius');
   };
 
-  const triggerImpact=(def,landed,targetRow)=>{
-    def.shell.dataset.landRow=targetRow===def.pair[0]?'upper':'lower';
-    def.shell.classList.toggle('is-landed',landed);
-    def.shell.classList.remove('is-impact');
-    void def.shell.offsetWidth;
-    def.shell.classList.add('is-impact');
-    clearTimeout(def.impactTimer);
-    def.impactTimer=setTimeout(()=>def.shell.classList.remove('is-impact'),760);
-  };
-
-  const beginTransition=(def,target,{landed,targetRow,kind,oldReserve=[]})=>{
-    def.transitionStart=performance.now();
-    def.transitionReserve=oldReserve.filter(Boolean);
-    def.from={x:def.x,y:def.y,w:def.w,h:def.h};
-    def.targetRow=targetRow;
-    def.motionKind=kind;
-    def.transitionDuration=kind==='hop'?1080:kind==='stand'?1180:1100;
-    def.transitionArc=kind==='hop'?-18:kind==='stand'?-13:-11;
-    triggerImpact(def,landed,targetRow);
-  };
-
-  const resetBubbleShape=def=>{
-    def.motionProgress=0;
-    def.shell.style.setProperty('--bubble-rotate','0deg');
-    def.shell.style.setProperty('--bubble-shell-x','1');
-    def.shell.style.setProperty('--bubble-shell-y','1');
-    def.shell.style.setProperty('--bubble-radius','13px');
-  };
-
-  const moveBox=(def,target,now)=>{
-    if(!def.initialized){
-      def.x=target.x;def.y=target.y;def.w=target.w;def.h=target.h;
-      def.initialized=true;
-      resetBubbleShape(def);
-      return true;
-    }
-
-    const elapsed=now-def.transitionStart;
-    if(def.transitionStart&&elapsed<def.transitionDuration){
-      const raw=clamp01(elapsed/def.transitionDuration);
-      const moveP=1-Math.pow(1-raw,3);
-      const shapeP=smooth((raw-.06)/.88);
-      const squeeze=Math.sin(Math.PI*raw);
-      const settle=Math.sin(Math.PI*2*raw)*(1-raw);
-      const from=def.from||target;
-      const direction=def.targetRow===def.pair[0]?-1:1;
-
-      // Position moves first; the card then squeezes through a near-square shape.
-      def.x=from.x+(target.x-from.x)*moveP+(direction*8*squeeze);
-      def.y=from.y+(target.y-from.y)*moveP+(squeeze*def.transitionArc);
-
-      const baseW=from.w+(target.w-from.w)*shapeP;
-      const baseH=from.h+(target.h-from.h)*shapeP;
-      def.w=Math.max(1,baseW*(1-.075*squeeze));
-      def.h=Math.max(1,baseH*(1-.052*squeeze));
-
-      def.motionProgress=squeeze;
-      def.shell.style.setProperty('--bubble-rotate',(direction*6.5*squeeze+settle*1.8).toFixed(2)+'deg');
-      def.shell.style.setProperty('--bubble-shell-x',(1-.050*squeeze).toFixed(3));
-      def.shell.style.setProperty('--bubble-shell-y',(1+.045*squeeze).toFixed(3));
-      def.shell.style.setProperty('--bubble-radius',(13+24*squeeze).toFixed(1)+'px');
-      return false;
-    }
-
-    def.transitionStart=0;
-    def.transitionReserve=[];
-    def.x=target.x;def.y=target.y;def.w=target.w;def.h=target.h;
-    resetBubbleShape(def);
-    return true;
-  };
-
-  const bridgeBox=(def,aligned)=>{
-    const upper=rows[def.pair[0]];
-    const lower=rows[def.pair[1]];
-    const x=Math.round((aligned.a.screenLeft+aligned.b.screenLeft)/2);
-    const width=Math.round((aligned.a.width+aligned.b.width)/2);
-    return {
-      x,
-      y:upper.top,
-      w:width,
-      h:(lower.top+lower.height)-upper.top
-    };
-  };
-
-  const scheduleBridge=(def,now)=>{
-    def.nextAt=now+(def.index===0?5600:6900)+(def.cycle%3)*700;
-  };
-
-  const startFall=(def,aligned,xs,now)=>{
-    const rowChoice=(def.cycle+(def.startLower?1:0))%2;
-    const row=rowChoice?def.pair[1]:def.pair[0];
-    const wide=nearestWide(row,xs[row],def.x+def.w/2);
-    if(!wide)return false;
-
-    def.mode='landed';
-    def.hops=0;
-    def.cycle+=1;
-    activeDef=def;
-    gallery.classList.add('has-crossrow-active');
-    def.nextAt=now+3100+(def.index*450)+(def.cycle%2)*700;
-
-    beginTransition(def,{
-      x:wide.screenLeft,
-      y:rows[row].top,
-      w:wide.width,
-      h:rows[row].height
-    },{
-      landed:true,targetRow:row,kind:'fall',
-      oldReserve:[aligned.a.tile,aligned.b.tile]
-    });
-    return true;
-  };
-
-  const startHop=(def,xs,now)=>{
-    const other=def.targetRow===def.pair[0]?def.pair[1]:def.pair[0];
-    const wide=nearestWide(other,xs[other],def.x+def.w/2);
-    if(!wide)return false;
-    const old=nearestWide(def.targetRow,xs[def.targetRow],def.x+def.w/2);
-
-    def.hops+=1;
-    def.nextAt=now+2100+(def.index*300);
-    beginTransition(def,{
-      x:wide.screenLeft,
-      y:rows[other].top,
-      w:wide.width,
-      h:rows[other].height
-    },{
-      landed:true,targetRow:other,kind:'hop',
-      oldReserve:[old?.tile]
-    });
-    return true;
-  };
-
-  const startStand=(def,aligned,xs)=>{
-    const old=nearestWide(def.targetRow,xs[def.targetRow],def.x+def.w/2);
-    def.mode='rising';
-    def.nextAt=Infinity;
-    beginTransition(def,bridgeBox(def,aligned),{
-      landed:false,targetRow:def.pair[0],kind:'stand',
-      oldReserve:[old?.tile]
-    });
-  };
-
-  const applyReservations=next=>{
-    for(const tile of reservedPrev){
-      if(!next.has(tile))tile.classList.remove('is-reserved-by-fall');
-    }
-    for(const tile of next){
-      if(!reservedPrev.has(tile))tile.classList.add('is-reserved-by-fall');
-    }
-    reservedPrev=next;
-  };
-
-  const releaseBubblePressure=next=>{
-    for(const tile of pressurePrev){
+  const clearUntouched=next=>{
+    for(const tile of touched){
       if(next.has(tile))continue;
-      tile.style.removeProperty('--bubble-shift');
-      tile.style.removeProperty('--bubble-scale-x');
-      tile.style.removeProperty('--bubble-scale-y');
+      clearVars(tile);
+      tile.classList.remove('is-bubble-hero');
     }
-    pressurePrev=next;
+    touched=next;
   };
 
-  const applyBubblePressure=(def,xs,reservedNext,pressureNext)=>{
-    const transitionAmount=def.transitionStart?Math.max(.08,def.motionProgress):0;
-    const restingAmount=def.mode==='landed'?.14:0;
-    const amount=Math.max(transitionAmount,restingAmount);
-    if(amount<=0)return;
+  const activate=(def,chosen)=>{
+    const rowHeight=lanes[def.row].clientHeight;
+    const gap=rowGap();
+    const baseTile=[...strips[def.row].children].find(el=>
+      el.classList.contains('project-tile')&&!el.classList.contains('project-tile--wide')
+    );
+    const baseWidth=baseTile?.offsetWidth||chosen.tile.offsetHeight;
 
-    const center=def.x+def.w/2;
-    const activeRows=new Set([...def.pair,def.targetRow]);
+    active={
+      def,
+      tile:chosen.tile,
+      p:0,
+      v:0,
+      target:1,
+      phase:'grow',
+      holdUntil:0,
+      rowHeight,
+      gap,
+      targetSx:Math.min(.72,Math.max(.44,baseWidth/Math.max(1,chosen.tile.offsetWidth))),
+      targetSy:(rowHeight*2+gap)/Math.max(1,chosen.tile.offsetHeight)
+    };
 
-    activeRows.forEach(row=>{
-      const candidates=visible([...standardMetrics[row],...wideMetrics[row]],xs[row]);
-      candidates.forEach(m=>{
-        if(reservedNext.has(m.tile))return;
-        const distance=m.screenCenter-center;
-        const radius=Math.max(320,def.w*.82+190);
-        const proximity=Math.max(0,1-Math.abs(distance)/radius);
-        if(proximity<=0)return;
+    chosen.tile.classList.add('is-bubble-hero');
+    gallery.classList.add('has-bubble-hero','has-crossrow-active');
+    nextAt=Infinity;
+  };
 
-        const pressure=proximity*proximity*amount;
-        const direction=distance<0?-1:1;
-        const maxShift=Math.min(46,22+def.w*.060);
-        const shift=direction*maxShift*pressure;
-        const sx=1-.060*pressure;
-        const sy=1+.028*pressure;
+  const finish=now=>{
+    if(!active)return;
+    clearVars(active.tile);
+    active.tile.classList.remove('is-bubble-hero');
+    active=null;
+    gallery.classList.remove('has-bubble-hero','has-crossrow-active');
+    nextDef=(nextDef+1)%defs.length;
+    nextAt=now+(nextDef===0?2500:3000);
+  };
 
-        m.tile.style.setProperty('--bubble-shift',shift.toFixed(2)+'px');
-        m.tile.style.setProperty('--bubble-scale-x',sx.toFixed(4));
-        m.tile.style.setProperty('--bubble-scale-y',sy.toFixed(4));
-        pressureNext.add(m.tile);
-      });
+  const spring=(state,dt)=>{
+    const stiffness=48;
+    const damping=12.8;
+    const a=(state.target-state.p)*stiffness-state.v*damping;
+    state.v+=a*dt;
+    state.p+=state.v*dt;
+    state.p=Math.max(-.025,Math.min(1.055,state.p));
+  };
+
+  const applyFrame=(state,next)=>{
+    const p=Math.max(0,Math.min(1,state.p));
+    const tile=state.tile;
+    const row=state.def.row;
+    const targetRow=row+state.def.direction;
+    const center=laneX(row)+tile.offsetLeft+tile.offsetWidth/2;
+
+    const squeeze=Math.sin(Math.PI*p);
+    const sx=1+(state.targetSx-1)*p;
+    const sy=1+(state.targetSy-1)*p;
+    const y=state.def.direction*(state.rowHeight+state.gap)*.5*p;
+    const rotation=state.def.direction*(4.5*squeeze)+state.v*1.35;
+    const radius=13+20*squeeze;
+
+    setVars(tile,{
+      x:0,
+      y,
+      r:rotation,
+      sx:sx*(1-.035*squeeze),
+      sy:sy*(1+.015*squeeze),
+      radius
     });
+    next.add(tile);
+
+    const collapse=(tile.offsetWidth-tile.offsetWidth*sx)*.5;
+    const heroCenter=center;
+
+    // Same row gently closes the gap as the wide tile becomes narrow.
+    [...strips[row].children].forEach(other=>{
+      if(other===tile||!other.classList.contains('project-tile'))return;
+      const otherCenter=laneX(row)+other.offsetLeft+other.offsetWidth/2;
+      const d=otherCenter-heroCenter;
+      const radiusX=Math.max(440,tile.offsetWidth*1.2);
+      const proximity=Math.max(0,1-Math.abs(d)/radiusX);
+      if(proximity<=0)return;
+      const strength=proximity*proximity*p;
+      const direction=d<0?1:-1;
+      setVars(other,{
+        x:direction*collapse*.58*strength,
+        y:0,
+        r:0,
+        sx:1-.014*strength,
+        sy:1+.006*strength,
+        radius:13
+      });
+      next.add(other);
+    });
+
+    // The adjacent row bubbles out of the way where the tall tile passes through.
+    if(targetRow>=0&&targetRow<strips.length){
+      [...strips[targetRow].children].forEach(other=>{
+        if(!other.classList.contains('project-tile'))return;
+        const otherCenter=laneX(targetRow)+other.offsetLeft+other.offsetWidth/2;
+        const d=otherCenter-heroCenter;
+        const radiusX=Math.max(390,tile.offsetHeight*2.05);
+        const proximity=Math.max(0,1-Math.abs(d)/radiusX);
+        if(proximity<=0)return;
+        const strength=proximity*proximity*p;
+        const direction=d<0?-1:1;
+        setVars(other,{
+          x:direction*(36+18*squeeze)*strength,
+          y:0,
+          r:direction*.9*squeeze*strength,
+          sx:1-.035*strength,
+          sy:1+.014*strength,
+          radius:13+5*strength
+        });
+        next.add(other);
+      });
+    }
   };
 
+  const tick=now=>{
+    const dt=Math.min(.033,(now-last)/1000||.016);
+    last=now;
 
-  const frame=now=>{
-    if(rows.length!==3){
-      requestAnimationFrame(frame);
-      return;
+    if(!active&&now>=nextAt){
+      const def=defs[nextDef];
+      const chosen=chooseTile(def);
+      if(chosen)activate(def,chosen);
+      else nextAt=now+700;
     }
 
-    const xs=strips.map(readLaneX);
-    const reservedNext=new Set();
-    const pressureNext=new Set();
+    const nextTouched=new Set();
 
-    for(const def of defs){
-      const desiredCenter=def.initialized?def.x+def.w/2:viewportWidth*def.preferred;
-      const aligned=chooseBridgePair(def,xs,desiredCenter);
+    if(active){
+      spring(active,dt);
 
-      if(!aligned){
-        def.shell.style.opacity='0';
-        continue;
+      if(active.phase==='grow'&&Math.abs(1-active.p)<.012&&Math.abs(active.v)<.05){
+        active.p=1;
+        active.v=0;
+        active.phase='hold';
+        active.holdUntil=now+active.def.hold;
+      }else if(active.phase==='hold'&&now>=active.holdUntil){
+        active.target=0;
+        active.phase='return';
+      }else if(active.phase==='return'&&Math.abs(active.p)<.012&&Math.abs(active.v)<.05){
+        active.p=0;
+        active.v=0;
+        finish(now);
       }
 
-      const upright=bridgeBox(def,aligned);
-      let target=upright;
-
-      if(!def.initialized){
-        def.x=upright.x;def.y=upright.y;def.w=upright.w;def.h=upright.h;
-        def.initialized=true;
-      }
-
-      if(def.mode==='bridge'){
-        reservedNext.add(aligned.a.tile);
-        reservedNext.add(aligned.b.tile);
-
-        // Only remain vertical while the two real slots visually meet.
-        // After its minimum display time, the first visible drift triggers the fall.
-        if(now>=def.nextAt&&!activeDef&&aligned.align>4.5){
-          startFall(def,aligned,xs,now);
-        }
-      }
-
-      if(def.mode==='landed'){
-        const wide=nearestWide(def.targetRow,xs[def.targetRow],def.x+def.w/2);
-        if(wide){
-          target={x:wide.screenLeft,y:rows[def.targetRow].top,w:wide.width,h:rows[def.targetRow].height};
-          reservedNext.add(wide.tile);
-        }else{
-          target={x:def.x,y:def.y,w:def.w,h:def.h};
-        }
-
-        if(now>=def.nextAt&&def.transitionStart===0){
-          const shouldHop=def.hops===0&&def.cycle%5===0;
-          if(shouldHop){
-            if(!startHop(def,xs,now))def.nextAt=now+700;
-          }else if(aligned.align<=2.5){
-            startStand(def,aligned,xs);
-          }else{
-            // Wait for a genuinely clean alignment rather than standing up crooked.
-            def.nextAt=now+180;
-          }
-        }
-      }
-
-      if(def.mode==='rising'){
-        target=upright;
-        reservedNext.add(aligned.a.tile);
-        reservedNext.add(aligned.b.tile);
-      }
-
-      for(const tile of def.transitionReserve)reservedNext.add(tile);
-      const settled=moveBox(def,target,now);
-
-      if(def.mode==='rising'&&settled){
-        def.mode='bridge';
-        activeDef=null;
-        gallery.classList.remove('has-crossrow-active');
-        scheduleBridge(def,now);
-      }
-
-      def.shell.classList.toggle('is-cruising',def.mode==='landed'&&def.transitionStart===0);
-      def.shell.style.width=Math.max(1,def.w).toFixed(1)+'px';
-      def.shell.style.height=Math.max(1,def.h).toFixed(1)+'px';
-      def.shell.style.transform='translate3d('+def.x.toFixed(1)+'px,'+def.y.toFixed(1)+'px,0)';
-
-      const visibleCard=def.x+def.w>-def.w*.3&&def.x<viewportWidth+def.w*.3;
-      def.shell.style.opacity=visibleCard?'1':'0';
-
-      applyBubblePressure(def,xs,reservedNext,pressureNext);
+      if(active)applyFrame(active,nextTouched);
     }
 
-    applyReservations(reservedNext);
-    releaseBubblePressure(pressureNext);
-    requestAnimationFrame(frame);
+    clearUntouched(nextTouched);
+    requestAnimationFrame(tick);
   };
 
-  requestAnimationFrame(frame);
+  requestAnimationFrame(tick);
 })();
