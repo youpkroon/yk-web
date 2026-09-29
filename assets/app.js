@@ -883,3 +883,277 @@ function initProjectExplorer(root){
 
   requestAnimationFrame(tick);
 })();
+
+
+/* Cross-row falling cards restored from the 2026-09-28 gallery concept.
+   Two project cards temporarily bridge row 1-2 and row 2-3. Because the
+   rows move independently, each bridge eventually loses alignment and
+   physically falls/rotates into a real wide slot in one row. When the
+   rows line up again it stands back up across both rows. */
+(()=>{
+  const viewport=document.querySelector('.project-gallery-lanes');
+  if(!viewport||viewport.dataset.fallReady)return;
+
+  const strips=[...viewport.querySelectorAll('.project-gallery-strip')];
+  const lanes=[...viewport.querySelectorAll('.project-gallery-lane')];
+  if(strips.length<3||lanes.length<3)return;
+  viewport.dataset.fallReady='1';
+
+  const layer=document.createElement('div');
+  layer.className='gallery-fall-layer';
+  viewport.appendChild(layer);
+
+  const children=strips.map(strip=>[...strip.children]);
+  const standardTiles=children.map(items=>items.filter(el=>!el.classList.contains('project-tile--wide')));
+  const wideTiles=children.map(items=>items.filter(el=>el.classList.contains('project-tile--wide')));
+
+  const defs=[
+    {pair:[0,1],preferred:.34,theme:'amber',landBias:1},
+    {pair:[1,2],preferred:.72,theme:'blue',landBias:-1}
+  ].map(def=>{
+    const shell=document.createElement('div');
+    shell.className='gallery-fall-shell';
+    shell.dataset.landRow='lower';
+
+    const card=document.createElement('div');
+    card.className='gallery-fall-card gallery-fall-card--'+def.theme;
+    shell.appendChild(card);
+    layer.appendChild(shell);
+
+    return {
+      ...def,
+      shell,
+      card,
+      landed:false,
+      targetRow:def.pair[1],
+      transitionStart:0,
+      transitionDuration:760,
+      from:null,
+      x:0,
+      y:0,
+      w:0,
+      h:0,
+      initialized:false,
+      impactTimer:0,
+      transitionReserve:[]
+    };
+  });
+
+  let viewportWidth=1;
+  let rows=[];
+
+  const measure=()=>{
+    viewportWidth=Math.max(1,viewport.clientWidth);
+    rows=lanes.map(lane=>({top:lane.offsetTop,height:lane.offsetHeight}));
+  };
+  measure();
+  new ResizeObserver(measure).observe(viewport);
+
+  const stripX=strip=>{
+    const transform=getComputedStyle(strip).transform;
+    if(!transform||transform==='none')return 0;
+    try{return new DOMMatrixReadOnly(transform).m41}catch{
+      const match=transform.match(/matrix\([^,]+,[^,]+,[^,]+,[^,]+,\s*([^,]+)/);
+      return match?Number(match[1])||0:0;
+    }
+  };
+
+  const tileGeom=(tile,xOffset)=>{
+    if(!tile)return null;
+    return {
+      tile,
+      left:xOffset+tile.offsetLeft,
+      width:tile.offsetWidth,
+      center:xOffset+tile.offsetLeft+tile.offsetWidth/2
+    };
+  };
+
+  const visibleCandidates=(list,xOffset)=>{
+    const margin=viewportWidth*.35;
+    return list
+      .map(tile=>tileGeom(tile,xOffset))
+      .filter(g=>g&&g.left+g.width>-margin&&g.left<viewportWidth+margin);
+  };
+
+  const nearestWide=(row,xOffset,desiredCenter)=>{
+    const candidates=visibleCandidates(wideTiles[row],xOffset);
+    if(!candidates.length)return null;
+    return candidates.reduce((best,g)=>
+      Math.abs(g.center-desiredCenter)<Math.abs(best.center-desiredCenter)?g:best
+    );
+  };
+
+  const bestAlignedPair=(pair,xs,desiredCenter)=>{
+    const upper=visibleCandidates(standardTiles[pair[0]],xs[pair[0]]);
+    const lower=visibleCandidates(standardTiles[pair[1]],xs[pair[1]]);
+    let best=null;
+
+    upper.forEach(a=>{
+      lower.forEach(b=>{
+        const align=Math.abs(a.left-b.left);
+        const center=(a.center+b.center)/2;
+        const distance=Math.abs(center-desiredCenter);
+        const score=align*8+distance*.18;
+        if(!best||score<best.score)best={a,b,align,center,score};
+      });
+    });
+    return best;
+  };
+
+  const clearReservations=()=>{
+    viewport.querySelectorAll('.is-reserved-by-fall').forEach(tile=>tile.classList.remove('is-reserved-by-fall'));
+  };
+  const reserve=tile=>tile?.classList.add('is-reserved-by-fall');
+
+  const ease=t=>{
+    const u=1-Math.max(0,Math.min(1,t));
+    return 1-u*u*u;
+  };
+
+  const beginTransition=(def,target,landed,targetRow,oldReserve=[])=>{
+    def.transitionStart=performance.now();
+    def.transitionReserve=oldReserve.filter(Boolean);
+    def.from={x:def.x,y:def.y,w:def.w,h:def.h};
+    def.landed=landed;
+    def.targetRow=targetRow;
+    def.shell.dataset.landRow=targetRow===def.pair[0]?'upper':'lower';
+    def.shell.classList.toggle('is-landed',landed);
+    def.shell.classList.remove('is-impact');
+    void def.shell.offsetWidth;
+    def.shell.classList.add('is-impact');
+    clearTimeout(def.impactTimer);
+    def.impactTimer=setTimeout(()=>def.shell.classList.remove('is-impact'),760);
+
+    if(!def.initialized){
+      def.x=target.x;
+      def.y=target.y;
+      def.w=target.w;
+      def.h=target.h;
+      def.from={...target};
+      def.initialized=true;
+    }
+  };
+
+  const interpolateBox=(def,target,now)=>{
+    if(!def.initialized){
+      def.x=target.x;
+      def.y=target.y;
+      def.w=target.w;
+      def.h=target.h;
+      def.initialized=true;
+      return;
+    }
+
+    const elapsed=now-def.transitionStart;
+    if(def.transitionStart&&elapsed<def.transitionDuration){
+      const p=ease(elapsed/def.transitionDuration);
+      const from=def.from||target;
+      def.x=from.x+(target.x-from.x)*p;
+      def.y=from.y+(target.y-from.y)*p;
+      def.w=from.w+(target.w-from.w)*p;
+      def.h=from.h+(target.h-from.h)*p;
+    }else{
+      def.transitionStart=0;
+      def.transitionReserve=[];
+      def.x=target.x;
+      def.y=target.y;
+      def.w=target.w;
+      def.h=target.h;
+    }
+  };
+
+  const frame=now=>{
+    if(rows.length!==3){
+      requestAnimationFrame(frame);
+      return;
+    }
+
+    const xs=strips.map(stripX);
+    clearReservations();
+
+    defs.forEach(def=>{
+      const upperRow=rows[def.pair[0]];
+      const lowerRow=rows[def.pair[1]];
+      const desiredCenter=def.initialized?def.x+def.w/2:viewportWidth*def.preferred;
+      const aligned=bestAlignedPair(def.pair,xs,desiredCenter);
+
+      if(!aligned){
+        def.shell.style.opacity='0';
+        return;
+      }
+
+      const uprightTarget={
+        x:(aligned.a.left+aligned.b.left)/2,
+        y:upperRow.top,
+        w:(aligned.a.width+aligned.b.width)/2,
+        h:(lowerRow.top+lowerRow.height)-upperRow.top
+      };
+
+      const difference=aligned.a.left-aligned.b.left;
+      const standThreshold=7;
+      const fallThreshold=Math.max(22,uprightTarget.w*.09);
+
+      if(!def.initialized){
+        def.x=uprightTarget.x;
+        def.y=uprightTarget.y;
+        def.w=uprightTarget.w;
+        def.h=uprightTarget.h;
+        def.initialized=true;
+      }
+
+      if(!def.landed&&aligned.align>fallThreshold){
+        const landLower=difference*def.landBias>=0;
+        const targetRow=landLower?def.pair[1]:def.pair[0];
+        const wide=nearestWide(targetRow,xs[targetRow],def.x+def.w/2);
+        if(wide){
+          const target={
+            x:wide.left,
+            y:rows[targetRow].top,
+            w:wide.width,
+            h:rows[targetRow].height
+          };
+          beginTransition(def,target,true,targetRow,[aligned.a.tile,aligned.b.tile]);
+        }
+      }else if(
+        def.landed&&
+        aligned.align<standThreshold&&
+        Math.abs(aligned.center-(def.x+def.w/2))<Math.max(210,def.w*.82)
+      ){
+        const oldWide=nearestWide(def.targetRow,xs[def.targetRow],def.x+def.w/2);
+        beginTransition(def,uprightTarget,false,def.pair[0],[oldWide?.tile]);
+      }
+
+      let target;
+      let reservations=[];
+
+      if(def.landed){
+        const row=def.targetRow;
+        const wide=nearestWide(row,xs[row],def.x+def.w/2);
+        if(wide){
+          target={x:wide.left,y:rows[row].top,w:wide.width,h:rows[row].height};
+          reservations=[wide.tile];
+        }else{
+          target={x:def.x,y:def.y,w:def.w,h:def.h};
+        }
+      }else{
+        target=uprightTarget;
+        reservations=[aligned.a.tile,aligned.b.tile];
+      }
+
+      def.transitionReserve.forEach(reserve);
+      reservations.forEach(reserve);
+      interpolateBox(def,target,now);
+
+      def.shell.style.width=def.w.toFixed(2)+'px';
+      def.shell.style.height=def.h.toFixed(2)+'px';
+      def.shell.style.transform='translate3d('+def.x.toFixed(2)+'px,'+def.y.toFixed(2)+'px,0)';
+
+      const visible=def.x+def.w>-def.w*.25&&def.x<viewportWidth+def.w*.25;
+      def.shell.style.opacity=visible?'1':'0';
+    });
+
+    requestAnimationFrame(frame);
+  };
+
+  requestAnimationFrame(frame);
+})();
