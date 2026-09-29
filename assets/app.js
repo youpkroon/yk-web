@@ -422,8 +422,9 @@ document.getElementById('year').textContent=new Date().getFullYear();
 })();
 
 
-/* Work gallery bubble morph.
-   A real wide tile morphs in place and nearby tiles yield around it. */
+/* Work gallery bubble morph V5.
+   A real wide tile morphs vertically. Its own row closes the released width,
+   while the adjacent row opens an equally real gap for the vertical unit. */
 (()=>{
   const section=document.querySelector('.project-streams-section');
   const gallery=section?.querySelector('[data-project-gallery]');
@@ -433,16 +434,23 @@ document.getElementById('year').textContent=new Date().getFullYear();
   if(!section||!gallery||!viewport||lanes.length!==3||strips.some(x=>!x))return;
   if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
 
+  const now0=performance.now();
   const defs=[
-    {selector:'.demo-07',row:0,direction:1,preferred:.43,firstDelay:3200,hold:2500},
-    {selector:'.demo-13',row:1,direction:1,preferred:.70,firstDelay:6400,hold:2300}
+    {selector:'.demo-07',row:0,direction:1,preferred:.27,nextAt:now0+2200,hold:4700,cycle:0},
+    {selector:'.demo-13',row:1,direction:1,preferred:.72,nextAt:now0+4700,hold:4200,cycle:0},
+    {selector:'.demo-04',row:0,direction:1,preferred:.72,nextAt:now0+7900,hold:3900,cycle:0},
+    {selector:'.demo-16',row:2,direction:-1,preferred:.34,nextAt:now0+10100,hold:4500,cycle:0}
   ];
 
-  let active=null;
-  let nextDef=0;
-  let nextAt=performance.now()+defs[0].firstDelay;
+  const active=[];
   let touched=new Set();
   let last=performance.now();
+
+  const clamp01=v=>Math.max(0,Math.min(1,v));
+  const smooth=v=>{
+    const p=clamp01(v);
+    return p*p*(3-2*p);
+  };
 
   const laneX=row=>{
     const x=strips[row].__ykLaneX;
@@ -452,6 +460,20 @@ document.getElementById('year').textContent=new Date().getFullYear();
   const rowGap=()=>{
     const style=getComputedStyle(viewport);
     return parseFloat(style.rowGap||style.gap)||10;
+  };
+
+  const visibleTiles=row=>{
+    const x=laneX(row);
+    const margin=700;
+    return [...strips[row].children]
+      .filter(tile=>tile.classList.contains('project-tile'))
+      .map(tile=>({
+        tile,
+        center:x+tile.offsetLeft+tile.offsetWidth/2,
+        left:x+tile.offsetLeft,
+        width:tile.offsetWidth
+      }))
+      .filter(m=>m.left+m.width>-margin&&m.left<viewport.clientWidth+margin);
   };
 
   const visibleInstances=def=>{
@@ -464,11 +486,11 @@ document.getElementById('year').textContent=new Date().getFullYear();
         width:tile.offsetWidth,
         center:x+tile.offsetLeft+tile.offsetWidth/2
       }))
-      .filter(m=>m.left+m.width>50&&m.left<width-50);
+      .filter(m=>m.left+m.width>60&&m.left<width-60);
   };
 
   const chooseTile=def=>{
-    const candidates=visibleInstances(def);
+    const candidates=visibleInstances(def).filter(m=>!active.some(s=>s.tile===m.tile));
     if(!candidates.length)return null;
     const desired=viewport.clientWidth*def.preferred;
     return candidates.reduce((best,m)=>
@@ -476,31 +498,65 @@ document.getElementById('year').textContent=new Date().getFullYear();
     );
   };
 
-  const setVars=(tile,{x=0,y=0,r=0,sx=1,sy=1,radius=13})=>{
-    tile.style.setProperty('--bubble-x',x.toFixed(2)+'px');
-    tile.style.setProperty('--bubble-y',y.toFixed(2)+'px');
-    tile.style.setProperty('--bubble-r',r.toFixed(2)+'deg');
-    tile.style.setProperty('--bubble-sx',sx.toFixed(4));
-    tile.style.setProperty('--bubble-sy',sy.toFixed(4));
-    tile.style.setProperty('--bubble-radius',radius.toFixed(1)+'px');
-    touched.add(tile);
+  const screenCenter=state=>laneX(state.def.row)+state.tile.offsetLeft+state.tile.offsetWidth/2;
+
+  const separatedEnough=chosen=>{
+    const minSeparation=Math.max(500,viewport.clientWidth*.27);
+    return active.every(state=>Math.abs(screenCenter(state)-chosen.center)>=minSeparation);
   };
 
-  const clearVars=tile=>{
-    tile.style.removeProperty('--bubble-x');
-    tile.style.removeProperty('--bubble-y');
-    tile.style.removeProperty('--bubble-r');
-    tile.style.removeProperty('--bubble-sx');
-    tile.style.removeProperty('--bubble-sy');
-    tile.style.removeProperty('--bubble-radius');
+  const ensure=(map,tile)=>{
+    if(!map.has(tile)){
+      map.set(tile,{x:0,y:0,r:0,sx:1,sy:1,radius:13,hero:false});
+    }
+    return map.get(tile);
   };
 
-  const clearUntouched=next=>{
+  const addPressure=(map,tile,{x=0,y=0,r=0,sx=1,sy=1,radius=13})=>{
+    const s=ensure(map,tile);
+    s.x+=x;
+    s.y+=y;
+    s.r+=r;
+    s.sx*=sx;
+    s.sy*=sy;
+    s.radius=Math.max(s.radius,radius);
+  };
+
+  const setHero=(map,tile,{x=0,y=0,r=0,sx=1,sy=1,radius=13})=>{
+    const s=ensure(map,tile);
+    s.x=x;
+    s.y=y;
+    s.r=r;
+    s.sx=sx;
+    s.sy=sy;
+    s.radius=radius;
+    s.hero=true;
+  };
+
+  const applyMap=map=>{
+    const next=new Set(map.keys());
+
     for(const tile of touched){
       if(next.has(tile))continue;
-      clearVars(tile);
+      tile.style.removeProperty('--bubble-x');
+      tile.style.removeProperty('--bubble-y');
+      tile.style.removeProperty('--bubble-r');
+      tile.style.removeProperty('--bubble-sx');
+      tile.style.removeProperty('--bubble-sy');
+      tile.style.removeProperty('--bubble-radius');
       tile.classList.remove('is-bubble-hero');
     }
+
+    for(const [tile,s] of map){
+      tile.style.setProperty('--bubble-x',s.x.toFixed(2)+'px');
+      tile.style.setProperty('--bubble-y',s.y.toFixed(2)+'px');
+      tile.style.setProperty('--bubble-r',s.r.toFixed(2)+'deg');
+      tile.style.setProperty('--bubble-sx',s.sx.toFixed(4));
+      tile.style.setProperty('--bubble-sy',s.sy.toFixed(4));
+      tile.style.setProperty('--bubble-radius',s.radius.toFixed(1)+'px');
+      tile.classList.toggle('is-bubble-hero',s.hero);
+    }
+
     touched=next;
   };
 
@@ -512,7 +568,7 @@ document.getElementById('year').textContent=new Date().getFullYear();
     );
     const baseWidth=baseTile?.offsetWidth||chosen.tile.offsetHeight;
 
-    active={
+    active.push({
       def,
       tile:chosen.tile,
       p:0,
@@ -522,103 +578,118 @@ document.getElementById('year').textContent=new Date().getFullYear();
       holdUntil:0,
       rowHeight,
       gap,
-      targetSx:Math.min(.72,Math.max(.44,baseWidth/Math.max(1,chosen.tile.offsetWidth))),
+      baseWidth,
+      targetSx:Math.min(.72,Math.max(.42,baseWidth/Math.max(1,chosen.tile.offsetWidth))),
       targetSy:(rowHeight*2+gap)/Math.max(1,chosen.tile.offsetHeight)
-    };
-
-    chosen.tile.classList.add('is-bubble-hero');
-    gallery.classList.add('has-bubble-hero','has-crossrow-active');
-    nextAt=Infinity;
+    });
   };
 
-  const finish=now=>{
-    if(!active)return;
-    clearVars(active.tile);
-    active.tile.classList.remove('is-bubble-hero');
-    active=null;
-    gallery.classList.remove('has-bubble-hero','has-crossrow-active');
-    nextDef=(nextDef+1)%defs.length;
-    nextAt=now+(nextDef===0?2500:3000);
+  const finish=(state,now)=>{
+    const index=active.indexOf(state);
+    if(index>=0)active.splice(index,1);
+    state.def.cycle+=1;
+    state.def.nextAt=now+9000+(state.def.cycle%3)*1200+state.def.row*700;
   };
 
   const spring=(state,dt)=>{
-    const stiffness=48;
-    const damping=12.8;
+    const stiffness=47;
+    const damping=12.6;
     const a=(state.target-state.p)*stiffness-state.v*damping;
     state.v+=a*dt;
     state.p+=state.v*dt;
     state.p=Math.max(-.025,Math.min(1.055,state.p));
   };
 
-  const applyFrame=(state,next)=>{
-    const p=Math.max(0,Math.min(1,state.p));
+  const contribute=(state,map,activeHeroTiles)=>{
+    const p=clamp01(state.p);
+    const eased=smooth(p);
     const tile=state.tile;
     const row=state.def.row;
     const targetRow=row+state.def.direction;
-    const center=laneX(row)+tile.offsetLeft+tile.offsetWidth/2;
+    const center=screenCenter(state);
 
     const squeeze=Math.sin(Math.PI*p);
-    const sx=1+(state.targetSx-1)*p;
-    const sy=1+(state.targetSy-1)*p;
-    const y=state.def.direction*(state.rowHeight+state.gap)*.5*p;
-    const rotation=state.def.direction*(4.5*squeeze)+state.v*1.35;
+    const sx=1+(state.targetSx-1)*eased;
+    const sy=1+(state.targetSy-1)*eased;
+    const y=state.def.direction*(state.rowHeight+state.gap)*.5*eased;
+    const rotation=state.def.direction*(4.2*squeeze)+state.v*1.15;
     const radius=13+20*squeeze;
 
-    setVars(tile,{
+    setHero(map,tile,{
       x:0,
       y,
       r:rotation,
-      sx:sx*(1-.035*squeeze),
-      sy:sy*(1+.015*squeeze),
+      sx:sx*(1-.028*squeeze),
+      sy:sy*(1+.013*squeeze),
       radius
     });
-    next.add(tile);
 
-    const collapse=(tile.offsetWidth-tile.offsetWidth*sx)*.5;
-    const heroCenter=center;
+    /* Same row:
+       the wide card gets visually narrower, so both halves of the row
+       close inward by exactly the released half-width. */
+    const visualWidth=tile.offsetWidth*sx;
+    const releasedHalf=Math.max(0,(tile.offsetWidth-visualWidth)/2);
 
-    // Same row gently closes the gap as the wide tile becomes narrow.
-    [...strips[row].children].forEach(other=>{
-      if(other===tile||!other.classList.contains('project-tile'))return;
-      const otherCenter=laneX(row)+other.offsetLeft+other.offsetWidth/2;
-      const d=otherCenter-heroCenter;
-      const radiusX=Math.max(440,tile.offsetWidth*1.2);
-      const proximity=Math.max(0,1-Math.abs(d)/radiusX);
-      if(proximity<=0)return;
-      const strength=proximity*proximity*p;
+    visibleTiles(row).forEach(m=>{
+      if(m.tile===tile||activeHeroTiles.has(m.tile))return;
+      const d=m.center-center;
+      if(Math.abs(d)<1)return;
       const direction=d<0?1:-1;
-      setVars(other,{
-        x:direction*collapse*.58*strength,
-        y:0,
-        r:0,
-        sx:1-.014*strength,
-        sy:1+.006*strength,
-        radius:13
+      const local=Math.max(0,1-Math.abs(d)/620);
+      addPressure(map,m.tile,{
+        x:direction*releasedHalf*.97,
+        r:direction*.45*squeeze*local,
+        sx:1-.018*local*eased,
+        sy:1+.007*local*eased,
+        radius:13+3*local*squeeze
       });
-      next.add(other);
     });
 
-    // The adjacent row bubbles out of the way where the tall tile passes through.
+    /* Adjacent row:
+       open a real slot equal to the current vertical card width + gap.
+       Everything left moves left; everything right moves right. */
     if(targetRow>=0&&targetRow<strips.length){
-      [...strips[targetRow].children].forEach(other=>{
-        if(!other.classList.contains('project-tile'))return;
-        const otherCenter=laneX(targetRow)+other.offsetLeft+other.offsetWidth/2;
-        const d=otherCenter-heroCenter;
-        const radiusX=Math.max(390,tile.offsetHeight*2.05);
-        const proximity=Math.max(0,1-Math.abs(d)/radiusX);
-        if(proximity<=0)return;
-        const strength=proximity*proximity*p;
+      const desiredGap=visualWidth+state.gap*1.35;
+      const outwardHalf=(desiredGap/2)*eased;
+
+      visibleTiles(targetRow).forEach(m=>{
+        if(activeHeroTiles.has(m.tile))return;
+        const d=m.center-center;
         const direction=d<0?-1:1;
-        setVars(other,{
-          x:direction*(36+18*squeeze)*strength,
-          y:0,
-          r:direction*.9*squeeze*strength,
-          sx:1-.035*strength,
-          sy:1+.014*strength,
-          radius:13+5*strength
+        const local=Math.max(0,1-Math.abs(d)/680);
+        addPressure(map,m.tile,{
+          x:direction*outwardHalf,
+          r:direction*.75*squeeze*local,
+          sx:1-.032*local*eased,
+          sy:1+.012*local*eased,
+          radius:13+5*local*squeeze
         });
-        next.add(other);
       });
+    }
+  };
+
+  const maxActive=()=>viewport.clientWidth>=1250?2:1;
+
+  const tryStart=now=>{
+    if(active.length>=maxActive())return;
+
+    const due=defs
+      .filter(def=>now>=def.nextAt&&!active.some(s=>s.def===def))
+      .sort((a,b)=>a.nextAt-b.nextAt);
+
+    for(const def of due){
+      if(active.length>=maxActive())break;
+      const chosen=chooseTile(def);
+      if(!chosen){
+        def.nextAt=now+700;
+        continue;
+      }
+      if(!separatedEnough(chosen)){
+        def.nextAt=now+900;
+        continue;
+      }
+      activate(def,chosen);
+      def.nextAt=Infinity;
     }
   };
 
@@ -626,36 +697,35 @@ document.getElementById('year').textContent=new Date().getFullYear();
     const dt=Math.min(.033,(now-last)/1000||.016);
     last=now;
 
-    if(!active&&now>=nextAt){
-      const def=defs[nextDef];
-      const chosen=chooseTile(def);
-      if(chosen)activate(def,chosen);
-      else nextAt=now+700;
-    }
+    tryStart(now);
 
-    const nextTouched=new Set();
+    for(const state of [...active]){
+      spring(state,dt);
 
-    if(active){
-      spring(active,dt);
-
-      if(active.phase==='grow'&&Math.abs(1-active.p)<.012&&Math.abs(active.v)<.05){
-        active.p=1;
-        active.v=0;
-        active.phase='hold';
-        active.holdUntil=now+active.def.hold;
-      }else if(active.phase==='hold'&&now>=active.holdUntil){
-        active.target=0;
-        active.phase='return';
-      }else if(active.phase==='return'&&Math.abs(active.p)<.012&&Math.abs(active.v)<.05){
-        active.p=0;
-        active.v=0;
-        finish(now);
+      if(state.phase==='grow'&&Math.abs(1-state.p)<.012&&Math.abs(state.v)<.05){
+        state.p=1;
+        state.v=0;
+        state.phase='hold';
+        state.holdUntil=now+state.def.hold;
+      }else if(state.phase==='hold'&&now>=state.holdUntil){
+        state.target=0;
+        state.phase='return';
+      }else if(state.phase==='return'&&Math.abs(state.p)<.012&&Math.abs(state.v)<.05){
+        state.p=0;
+        state.v=0;
+        finish(state,now);
       }
-
-      if(active)applyFrame(active,nextTouched);
     }
 
-    clearUntouched(nextTouched);
+    const map=new Map();
+    const activeHeroTiles=new Set(active.map(s=>s.tile));
+    active.forEach(state=>contribute(state,map,activeHeroTiles));
+    applyMap(map);
+
+    gallery.classList.toggle('has-bubble-hero',active.length>0);
+    gallery.classList.toggle('has-crossrow-active',active.length>0);
+    gallery.classList.toggle('has-two-bubbles',active.length>1);
+
     requestAnimationFrame(tick);
   };
 

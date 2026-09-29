@@ -1220,3 +1220,17 @@ body.is-scrolled .hero .topbar{
     width:calc(var(--tile) * 1.68 + 8px);
   }
 }
+
+
+/* =========================================================
+   WORK TILE MORPH V5 — true space exchange between rows
+   ========================================================= */
+.project-gallery.has-bubble-hero .project-tile{
+  transition:filter .22s ease,opacity .16s ease;
+}
+.project-tile.is-bubble-hero{
+  box-shadow:0 26px 68px rgba(0,0,0,.34);
+}
+.project-gallery.has-two-bubbles .project-tile.is-bubble-hero{
+  box-shadow:0 24px 62px rgba(0,0,0,.30);
+}
