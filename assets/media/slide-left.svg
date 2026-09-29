@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 128">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-7 -8 86 146" overflow="visible">
   <defs><filter id="s" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="1.6" dy="2" stdDeviation="1.2" flood-color="#d9e0ff" flood-opacity=".48"/></filter></defs>
-  <g fill="#fff" filter="url(#s)">
+  <g fill="#fff" fill-opacity=".90" filter="url(#s)">
     <circle cx="52" cy="9" r="6"/>
     <circle cx="37" cy="27" r="6"/><circle cx="52" cy="31" r="8"/>
     <circle cx="27" cy="45" r="6"/><circle cx="40" cy="47" r="8"/>
