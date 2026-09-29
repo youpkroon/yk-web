@@ -473,8 +473,8 @@ document.getElementById('year').textContent=new Date().getFullYear();
 
   const started=performance.now();
   const defs=[
-    {pair:[0,1],preferred:.43,theme:'amber',firstDelay:4800,startLower:true},
-    {pair:[1,2],preferred:.76,theme:'blue',firstDelay:8800,startLower:false}
+    {pair:[0,1],preferred:.43,theme:'amber',firstDelay:3500,startLower:true},
+    {pair:[1,2],preferred:.76,theme:'blue',firstDelay:6500,startLower:false}
   ].map((def,index)=>{
     const shell=document.createElement('div');
     shell.className='gallery-fall-shell';
@@ -584,8 +584,8 @@ document.getElementById('year').textContent=new Date().getFullYear();
     def.from={x:def.x,y:def.y,w:def.w,h:def.h};
     def.targetRow=targetRow;
     def.motionKind=kind;
-    def.transitionDuration=kind==='hop'?980:kind==='stand'?1040:940;
-    def.transitionArc=kind==='hop'?-12:kind==='stand'?-8:-6;
+    def.transitionDuration=kind==='hop'?1080:kind==='stand'?1180:1100;
+    def.transitionArc=kind==='hop'?-18:kind==='stand'?-13:-11;
     triggerImpact(def,landed,targetRow);
   };
 
@@ -609,26 +609,26 @@ document.getElementById('year').textContent=new Date().getFullYear();
     if(def.transitionStart&&elapsed<def.transitionDuration){
       const raw=clamp01(elapsed/def.transitionDuration);
       const moveP=1-Math.pow(1-raw,3);
-      const shapeP=smooth((raw-.10)/.78);
+      const shapeP=smooth((raw-.06)/.88);
       const squeeze=Math.sin(Math.PI*raw);
       const settle=Math.sin(Math.PI*2*raw)*(1-raw);
       const from=def.from||target;
       const direction=def.targetRow===def.pair[0]?-1:1;
 
       // Position moves first; the card then squeezes through a near-square shape.
-      def.x=from.x+(target.x-from.x)*moveP+(direction*4*squeeze);
+      def.x=from.x+(target.x-from.x)*moveP+(direction*8*squeeze);
       def.y=from.y+(target.y-from.y)*moveP+(squeeze*def.transitionArc);
 
       const baseW=from.w+(target.w-from.w)*shapeP;
       const baseH=from.h+(target.h-from.h)*shapeP;
-      def.w=Math.max(1,baseW*(1-.045*squeeze));
-      def.h=Math.max(1,baseH*(1-.030*squeeze));
+      def.w=Math.max(1,baseW*(1-.075*squeeze));
+      def.h=Math.max(1,baseH*(1-.052*squeeze));
 
       def.motionProgress=squeeze;
-      def.shell.style.setProperty('--bubble-rotate',(direction*3.2*squeeze+settle*.9).toFixed(2)+'deg');
-      def.shell.style.setProperty('--bubble-shell-x',(1-.022*squeeze).toFixed(3));
-      def.shell.style.setProperty('--bubble-shell-y',(1+.020*squeeze).toFixed(3));
-      def.shell.style.setProperty('--bubble-radius',(13+13*squeeze).toFixed(1)+'px');
+      def.shell.style.setProperty('--bubble-rotate',(direction*6.5*squeeze+settle*1.8).toFixed(2)+'deg');
+      def.shell.style.setProperty('--bubble-shell-x',(1-.050*squeeze).toFixed(3));
+      def.shell.style.setProperty('--bubble-shell-y',(1+.045*squeeze).toFixed(3));
+      def.shell.style.setProperty('--bubble-radius',(13+24*squeeze).toFixed(1)+'px');
       return false;
     }
 
@@ -653,7 +653,7 @@ document.getElementById('year').textContent=new Date().getFullYear();
   };
 
   const scheduleBridge=(def,now)=>{
-    def.nextAt=now+(def.index===0?7200:8600)+(def.cycle%3)*900;
+    def.nextAt=now+(def.index===0?5600:6900)+(def.cycle%3)*700;
   };
 
   const startFall=(def,aligned,xs,now)=>{
@@ -733,7 +733,7 @@ document.getElementById('year').textContent=new Date().getFullYear();
 
   const applyBubblePressure=(def,xs,reservedNext,pressureNext)=>{
     const transitionAmount=def.transitionStart?Math.max(.08,def.motionProgress):0;
-    const restingAmount=def.mode==='landed'?.10:0;
+    const restingAmount=def.mode==='landed'?.14:0;
     const amount=Math.max(transitionAmount,restingAmount);
     if(amount<=0)return;
 
@@ -745,16 +745,16 @@ document.getElementById('year').textContent=new Date().getFullYear();
       candidates.forEach(m=>{
         if(reservedNext.has(m.tile))return;
         const distance=m.screenCenter-center;
-        const radius=Math.max(250,def.w*.72+155);
+        const radius=Math.max(320,def.w*.82+190);
         const proximity=Math.max(0,1-Math.abs(distance)/radius);
         if(proximity<=0)return;
 
         const pressure=proximity*proximity*amount;
         const direction=distance<0?-1:1;
-        const maxShift=Math.min(28,14+def.w*.045);
+        const maxShift=Math.min(46,22+def.w*.060);
         const shift=direction*maxShift*pressure;
-        const sx=1-.032*pressure;
-        const sy=1+.014*pressure;
+        const sx=1-.060*pressure;
+        const sy=1+.028*pressure;
 
         m.tile.style.setProperty('--bubble-shift',shift.toFixed(2)+'px');
         m.tile.style.setProperty('--bubble-scale-x',sx.toFixed(4));
