@@ -496,6 +496,7 @@ document.getElementById('year').textContent=new Date().getFullYear();
       transitionArc:0,
       from:null,
       transitionReserve:[],
+      motionProgress:0,
       nextAt:started+def.firstDelay,
       cycle:0,
       hops:0,
@@ -506,6 +507,7 @@ document.getElementById('year').textContent=new Date().getFullYear();
 
   let activeDef=null;
   let reservedPrev=new Set();
+  let pressurePrev=new Set();
 
   const visible=(metrics,xOffset)=>{
     const margin=viewportWidth*.42;
@@ -560,9 +562,10 @@ document.getElementById('year').textContent=new Date().getFullYear();
     return best;
   };
 
-  const ease=t=>{
-    const p=Math.max(0,Math.min(1,t));
-    return 1-Math.pow(1-p,3);
+  const clamp01=t=>Math.max(0,Math.min(1,t));
+  const smooth=t=>{
+    const p=clamp01(t);
+    return p*p*(3-2*p);
   };
 
   const triggerImpact=(def,landed,targetRow)=>{
@@ -580,33 +583,59 @@ document.getElementById('year').textContent=new Date().getFullYear();
     def.transitionReserve=oldReserve.filter(Boolean);
     def.from={x:def.x,y:def.y,w:def.w,h:def.h};
     def.targetRow=targetRow;
-    def.transitionDuration=kind==='hop'?820:kind==='stand'?900:760;
-    def.transitionArc=kind==='hop'?-24:kind==='stand'?-16:-12;
+    def.motionKind=kind;
+    def.transitionDuration=kind==='hop'?980:kind==='stand'?1040:940;
+    def.transitionArc=kind==='hop'?-12:kind==='stand'?-8:-6;
     triggerImpact(def,landed,targetRow);
+  };
+
+  const resetBubbleShape=def=>{
+    def.motionProgress=0;
+    def.shell.style.setProperty('--bubble-rotate','0deg');
+    def.shell.style.setProperty('--bubble-shell-x','1');
+    def.shell.style.setProperty('--bubble-shell-y','1');
+    def.shell.style.setProperty('--bubble-radius','13px');
   };
 
   const moveBox=(def,target,now)=>{
     if(!def.initialized){
       def.x=target.x;def.y=target.y;def.w=target.w;def.h=target.h;
       def.initialized=true;
+      resetBubbleShape(def);
       return true;
     }
 
     const elapsed=now-def.transitionStart;
     if(def.transitionStart&&elapsed<def.transitionDuration){
-      const p=ease(elapsed/def.transitionDuration);
+      const raw=clamp01(elapsed/def.transitionDuration);
+      const moveP=1-Math.pow(1-raw,3);
+      const shapeP=smooth((raw-.10)/.78);
+      const squeeze=Math.sin(Math.PI*raw);
+      const settle=Math.sin(Math.PI*2*raw)*(1-raw);
       const from=def.from||target;
-      const arc=Math.sin(Math.PI*p)*def.transitionArc;
-      def.x=from.x+(target.x-from.x)*p;
-      def.y=from.y+(target.y-from.y)*p+arc;
-      def.w=from.w+(target.w-from.w)*p;
-      def.h=from.h+(target.h-from.h)*p;
+      const direction=def.targetRow===def.pair[0]?-1:1;
+
+      // Position moves first; the card then squeezes through a near-square shape.
+      def.x=from.x+(target.x-from.x)*moveP+(direction*4*squeeze);
+      def.y=from.y+(target.y-from.y)*moveP+(squeeze*def.transitionArc);
+
+      const baseW=from.w+(target.w-from.w)*shapeP;
+      const baseH=from.h+(target.h-from.h)*shapeP;
+      def.w=Math.max(1,baseW*(1-.045*squeeze));
+      def.h=Math.max(1,baseH*(1-.030*squeeze));
+
+      def.motionProgress=squeeze;
+      def.shell.style.setProperty('--bubble-rotate',(direction*3.2*squeeze+settle*.9).toFixed(2)+'deg');
+      def.shell.style.setProperty('--bubble-shell-x',(1-.022*squeeze).toFixed(3));
+      def.shell.style.setProperty('--bubble-shell-y',(1+.020*squeeze).toFixed(3));
+      def.shell.style.setProperty('--bubble-radius',(13+13*squeeze).toFixed(1)+'px');
       return false;
     }
 
     def.transitionStart=0;
     def.transitionReserve=[];
     def.x=target.x;def.y=target.y;def.w=target.w;def.h=target.h;
+    resetBubbleShape(def);
     return true;
   };
 
@@ -692,6 +721,50 @@ document.getElementById('year').textContent=new Date().getFullYear();
     reservedPrev=next;
   };
 
+  const releaseBubblePressure=next=>{
+    for(const tile of pressurePrev){
+      if(next.has(tile))continue;
+      tile.style.removeProperty('--bubble-shift');
+      tile.style.removeProperty('--bubble-scale-x');
+      tile.style.removeProperty('--bubble-scale-y');
+    }
+    pressurePrev=next;
+  };
+
+  const applyBubblePressure=(def,xs,reservedNext,pressureNext)=>{
+    const transitionAmount=def.transitionStart?Math.max(.08,def.motionProgress):0;
+    const restingAmount=def.mode==='landed'?.10:0;
+    const amount=Math.max(transitionAmount,restingAmount);
+    if(amount<=0)return;
+
+    const center=def.x+def.w/2;
+    const activeRows=new Set([...def.pair,def.targetRow]);
+
+    activeRows.forEach(row=>{
+      const candidates=visible([...standardMetrics[row],...wideMetrics[row]],xs[row]);
+      candidates.forEach(m=>{
+        if(reservedNext.has(m.tile))return;
+        const distance=m.screenCenter-center;
+        const radius=Math.max(250,def.w*.72+155);
+        const proximity=Math.max(0,1-Math.abs(distance)/radius);
+        if(proximity<=0)return;
+
+        const pressure=proximity*proximity*amount;
+        const direction=distance<0?-1:1;
+        const maxShift=Math.min(28,14+def.w*.045);
+        const shift=direction*maxShift*pressure;
+        const sx=1-.032*pressure;
+        const sy=1+.014*pressure;
+
+        m.tile.style.setProperty('--bubble-shift',shift.toFixed(2)+'px');
+        m.tile.style.setProperty('--bubble-scale-x',sx.toFixed(4));
+        m.tile.style.setProperty('--bubble-scale-y',sy.toFixed(4));
+        pressureNext.add(m.tile);
+      });
+    });
+  };
+
+
   const frame=now=>{
     if(rows.length!==3){
       requestAnimationFrame(frame);
@@ -700,6 +773,7 @@ document.getElementById('year').textContent=new Date().getFullYear();
 
     const xs=strips.map(readLaneX);
     const reservedNext=new Set();
+    const pressureNext=new Set();
 
     for(const def of defs){
       const desiredCenter=def.initialized?def.x+def.w/2:viewportWidth*def.preferred;
@@ -739,7 +813,7 @@ document.getElementById('year').textContent=new Date().getFullYear();
         }
 
         if(now>=def.nextAt&&def.transitionStart===0){
-          const shouldHop=def.hops===0&&def.cycle%3===0;
+          const shouldHop=def.hops===0&&def.cycle%5===0;
           if(shouldHop){
             if(!startHop(def,xs,now))def.nextAt=now+700;
           }else if(aligned.align<=2.5){
@@ -774,9 +848,12 @@ document.getElementById('year').textContent=new Date().getFullYear();
 
       const visibleCard=def.x+def.w>-def.w*.3&&def.x<viewportWidth+def.w*.3;
       def.shell.style.opacity=visibleCard?'1':'0';
+
+      applyBubblePressure(def,xs,reservedNext,pressureNext);
     }
 
     applyReservations(reservedNext);
+    releaseBubblePressure(pressureNext);
     requestAnimationFrame(frame);
   };
 

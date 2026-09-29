@@ -562,7 +562,7 @@ body.is-scrolled .hero .topbar{
 .project-gallery-lanes.is-dragging{cursor:grabbing}
 .project-gallery-lane{min-width:0;min-height:0;overflow:hidden}
 .project-gallery-strip{
-  --tile:clamp(165px,14.5vw,255px);
+  --tile:clamp(185px,15.8vw,285px);
   display:flex;
   align-items:stretch;
   gap:10px;
@@ -591,8 +591,8 @@ body.is-scrolled .hero .topbar{
 .project-streams-section.is-built .project-tile:nth-child(3n){transition-delay:.08s}
 .project-tile:hover{filter:brightness(1.08)}
 .project-gallery-strip .project-tile--wide{
-  flex-basis:calc(var(--tile) * 1.72 + 10px);
-  width:calc(var(--tile) * 1.72 + 10px);
+  flex-basis:calc(var(--tile) * 1.78 + 10px);
+  width:calc(var(--tile) * 1.78 + 10px);
 }
 .project-tile::before,
 .project-tile::after{content:"";position:absolute;pointer-events:none}
@@ -1266,4 +1266,75 @@ body.is-scrolled .hero .topbar{
     grid-template-columns:1fr;
     gap:30px;
   }
+}
+
+
+/* =========================================================
+   WORK BUBBLE MOTION V2
+   The cross-row card squeezes through the grid and nearby tiles yield.
+   ========================================================= */
+.project-gallery-strip{
+  --bubble-shift:0px;
+}
+.project-tile{
+  translate:var(--bubble-shift,0px) 0;
+  scale:var(--bubble-scale-x,1) var(--bubble-scale-y,1);
+  transform-origin:center;
+  backface-visibility:hidden;
+}
+.project-gallery.has-crossrow-active .project-tile{
+  will-change:translate,scale,opacity;
+}
+.gallery-fall-shell{
+  border-radius:var(--bubble-radius,13px) !important;
+  rotate:var(--bubble-rotate,0deg);
+  scale:var(--bubble-shell-x,1) var(--bubble-shell-y,1);
+  transform-origin:center;
+  box-shadow:0 15px 42px rgba(0,0,0,.20) !important;
+  transition:box-shadow .28s ease;
+}
+.gallery-fall-shell.is-impact{
+  animation:none !important;
+}
+.gallery-fall-card{
+  transform:translate3d(0,0,0) rotate(0deg) scale(1) !important;
+  transform-origin:center;
+}
+.gallery-fall-shell.is-impact[data-land-row="lower"] .gallery-fall-card{
+  animation:bubbleCardSettleDown .86s cubic-bezier(.2,.8,.2,1) !important;
+}
+.gallery-fall-shell.is-impact[data-land-row="upper"] .gallery-fall-card{
+  animation:bubbleCardSettleUp .86s cubic-bezier(.2,.8,.2,1) !important;
+}
+.gallery-fall-shell.is-impact:not(.is-landed) .gallery-fall-card{
+  animation:bubbleCardStand .92s cubic-bezier(.2,.8,.2,1) !important;
+}
+.gallery-fall-shell.is-cruising .gallery-fall-card{
+  animation:bubbleCardFloat 4.8s ease-in-out infinite !important;
+}
+@keyframes bubbleCardSettleDown{
+  0%{transform:translate3d(0,0,0) rotate(0deg) scale(1)}
+  45%{transform:translate3d(0,2px,0) rotate(2.8deg) scale(.99)}
+  72%{transform:translate3d(0,-1px,0) rotate(-1.2deg) scale(1.004)}
+  100%{transform:translate3d(0,0,0) rotate(0deg) scale(1)}
+}
+@keyframes bubbleCardSettleUp{
+  0%{transform:translate3d(0,0,0) rotate(0deg) scale(1)}
+  45%{transform:translate3d(0,2px,0) rotate(-2.8deg) scale(.99)}
+  72%{transform:translate3d(0,-1px,0) rotate(1.2deg) scale(1.004)}
+  100%{transform:translate3d(0,0,0) rotate(0deg) scale(1)}
+}
+@keyframes bubbleCardStand{
+  0%{transform:translate3d(0,0,0) rotate(0deg) scale(1)}
+  48%{transform:translate3d(0,-2px,0) rotate(-3.2deg) scale(.992)}
+  74%{transform:translate3d(0,1px,0) rotate(1.1deg) scale(1.004)}
+  100%{transform:translate3d(0,0,0) rotate(0deg) scale(1)}
+}
+@keyframes bubbleCardFloat{
+  0%,100%{transform:translate3d(0,0,0) rotate(0deg)}
+  50%{transform:translate3d(1px,-1px,0) rotate(.16deg)}
+}
+.project-streams-section .project-tile.is-reserved-by-fall{
+  opacity:0 !important;
+  transition:opacity .22s cubic-bezier(.2,.8,.2,1) !important;
 }
