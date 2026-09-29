@@ -650,7 +650,7 @@ function initProjectExplorer(root){
       strip,
       originals,
       items:[...strip.children],
-      speed:reduce?0:Number(lane.dataset.speed||20),
+      speed:reduce?0:Number(lane.dataset.speed||[48,20,32][index]||20),
       x:0,
       loop:1,
       impulse:0,
@@ -697,7 +697,7 @@ function initProjectExplorer(root){
   let steerTarget=0;
   let steer=0;
   let last=performance.now();
-  let nextPack=performance.now()+5200;
+  let nextPack=performance.now()+4300;
   let requestedPackAt=0;
   let packing=false;
   let packEnd=0;
@@ -705,7 +705,7 @@ function initProjectExplorer(root){
 
   const requestPack=(delay=500)=>{
     requestedPackAt=performance.now()+delay;
-    nextPack=Math.max(nextPack,requestedPackAt+3200);
+    nextPack=Math.max(nextPack,requestedPackAt+2700);
   };
 
   const magneticTarget=(state,anchor)=>{
@@ -733,34 +733,34 @@ function initProjectExplorer(root){
       state.impulse=0;
     });
     packing=true;
-    packEnd=performance.now()+900;
+    packEnd=performance.now()+1250;
     requestedPackAt=0;
-    nextPack=performance.now()+7600;
+    nextPack=performance.now()+5900;
 
     gallery.classList.remove('is-magnetic-pack');
     void gallery.offsetWidth;
     gallery.classList.add('is-magnetic-pack');
     clearTimeout(packClassTimer);
-    packClassTimer=setTimeout(()=>gallery.classList.remove('is-magnetic-pack'),900);
+    packClassTimer=setTimeout(()=>gallery.classList.remove('is-magnetic-pack'),1180);
   };
 
   const updateSteering=e=>{
     if(drag)return;
     const rect=gallery.getBoundingClientRect();
     const x=e.clientX-rect.left;
-    const zone=Math.max(120,Math.min(220,rect.width*.15));
+    const zone=Math.max(250,Math.min(460,rect.width*.30));
     let target=0;
     if(x<zone){
       const p=(zone-x)/zone;
-      target=Math.min(1,p*p);
+      target=Math.min(1,p*(.35+.65*p));
     }else if(x>rect.width-zone){
       const p=(x-(rect.width-zone))/zone;
-      target=-Math.min(1,p*p);
+      target=-Math.min(1,p*(.35+.65*p));
     }
     if(Math.abs(target-steerTarget)>.025){
       steerTarget=target;
       requestedPackAt=0;
-      nextPack=performance.now()+5000;
+      nextPack=performance.now()+4300;
     }
     gallery.classList.toggle('is-steering-left',target>.04);
     gallery.classList.toggle('is-steering-right',target<-.04);
@@ -772,7 +772,7 @@ function initProjectExplorer(root){
     const wasSteering=Math.abs(steerTarget)>.04;
     steerTarget=0;
     gallery.classList.remove('is-steering-left','is-steering-right');
-    if(wasSteering)requestPack(650);
+    if(wasSteering)requestPack(520);
   });
 
   viewport.addEventListener('pointerdown',e=>{
@@ -817,7 +817,7 @@ function initProjectExplorer(root){
     states.forEach((state,index)=>{
       state.packTarget=null;
       state.packV=0;
-      state.impulse+=direction*(285+index*22);
+      state.impulse+=direction*([360,235,305][index]||280);
     });
     requestPack(720);
   };
@@ -847,8 +847,8 @@ function initProjectExplorer(root){
     states.forEach((state,index)=>{
       if(state.packTarget!==null){
         let delta=state.packTarget-state.x;
-        const stiffness=82;
-        const damping=17.5;
+        const stiffness=108;
+        const damping=13.5;
         const acceleration=delta*stiffness-state.packV*damping;
         state.packV+=acceleration*dt;
         state.x+=state.packV*dt;
@@ -861,7 +861,7 @@ function initProjectExplorer(root){
         }
       }else if(!drag&&!packing){
         /* Base speeds are all leftward; edge steering can slow, accelerate or reverse them. */
-        const steerVelocity=steer*145*(.95+index*.07);
+        const steerVelocity=steer*([205,118,164][index]||145);
         state.x+=(-state.speed+steerVelocity+state.impulse)*dt;
         state.impulse*=Math.exp(-dt*5.4);
       }else if(packing){
@@ -875,7 +875,7 @@ function initProjectExplorer(root){
     if(packing&&(allPacked||now>=packEnd)){
       packing=false;
       states.forEach(state=>{state.packTarget=null;state.packV=0;});
-      nextPack=now+7600;
+      nextPack=now+5900;
     }
 
     requestAnimationFrame(tick);
