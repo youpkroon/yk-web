@@ -1690,3 +1690,236 @@ body.archive-open{overflow:hidden}
     height:27px !important;
   }
 }
+
+
+/* =========================================================
+   CONTACT V4 — rebuilt to match the YK visual system
+   ========================================================= */
+.contact.contact-section{
+  position:relative;
+  overflow:hidden;
+  background:
+    radial-gradient(900px 620px at 83% 13%,rgba(255,106,0,.12),transparent 70%),
+    linear-gradient(180deg,#f5f9fc 0%,#edf4f8 100%) !important;
+  color:#10151a !important;
+  padding:clamp(92px,10vw,154px) 0 28px !important;
+}
+.contact.contact-section::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:
+    linear-gradient(rgba(22,35,46,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(22,35,46,.035) 1px,transparent 1px);
+  background-size:58px 58px;
+  mask-image:linear-gradient(to bottom,rgba(0,0,0,.38),transparent 74%);
+}
+.contact-section .wrap{position:relative;z-index:1}
+.contact-shell{
+  display:grid;
+  grid-template-columns:minmax(0,1.08fr) minmax(330px,.92fr);
+  gap:clamp(38px,7vw,105px);
+  align-items:stretch;
+}
+.contact-shell .contact-copy{
+  min-height:430px !important;
+  display:flex !important;
+  flex-direction:column !important;
+  justify-content:space-between !important;
+  padding:4px 0 10px;
+}
+.contact-section .section-id-row--contact{
+  margin:0 !important;
+  align-items:flex-start !important;
+}
+.contact-section .section-brand--contact{
+  width:92px !important;
+  height:92px !important;
+  margin:0 !important;
+}
+.contact-section .section-brand--contact::after{
+  width:100% !important;
+  height:4px !important;
+  bottom:-10px !important;
+  background:#ff6a00 !important;
+}
+.contact-section .section-brand--contact img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  filter:brightness(0) saturate(100%);
+}
+.contact-section .eyebrow{
+  color:#647785 !important;
+}
+.contact-section .section-id-row > .section-title{
+  margin:24px 0 0 !important;
+  max-width:590px !important;
+  color:#10151a !important;
+  font-size:clamp(31px,2.75vw,46px) !important;
+  line-height:1.02 !important;
+  letter-spacing:-.048em !important;
+  font-weight:500 !important;
+}
+.contact-section .contact-intro{
+  max-width:600px !important;
+  margin:52px 0 0 !important;
+  color:#4f6574 !important;
+  font-size:clamp(16px,1.25vw,19px) !important;
+  line-height:1.62 !important;
+}
+.contact-meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px 26px;
+  margin-top:44px;
+  color:#7a8994;
+  font-size:8.5px;
+  line-height:1.35;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+}
+.contact-main-link{
+  position:relative;
+  min-height:430px;
+  padding:34px 34px 32px;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:26px;
+  background:
+    radial-gradient(460px 340px at 79% 18%,rgba(255,106,0,.28),transparent 62%),
+    linear-gradient(145deg,#101316 0%,#171b20 100%);
+  color:#fff;
+  text-decoration:none;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+  box-shadow:0 26px 70px rgba(40,59,73,.12);
+  transition:
+    transform .45s cubic-bezier(.16,1,.3,1),
+    box-shadow .45s cubic-bezier(.16,1,.3,1),
+    border-color .3s ease;
+}
+.contact-main-link::before{
+  content:"";
+  position:absolute;
+  width:390px;
+  height:390px;
+  right:-128px;
+  top:-120px;
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:50%;
+  transition:transform .55s cubic-bezier(.16,1,.3,1);
+}
+.contact-main-link::after{
+  content:"";
+  position:absolute;
+  left:34px;
+  right:34px;
+  bottom:94px;
+  height:1px;
+  background:rgba(255,255,255,.11);
+}
+.contact-main-link:hover{
+  transform:translateY(-6px);
+  border-color:rgba(255,131,51,.26);
+  box-shadow:0 36px 90px rgba(40,59,73,.18);
+}
+.contact-main-link:hover::before{transform:scale(1.08)}
+.contact-main-label{
+  position:absolute;
+  left:34px;
+  top:31px;
+  z-index:2;
+  color:#ff9d5d;
+  font-size:8.5px;
+  letter-spacing:.17em;
+  text-transform:uppercase;
+}
+.contact-main-link strong{
+  position:relative;
+  z-index:2;
+  max-width:85%;
+  font-size:clamp(26px,2.55vw,41px);
+  line-height:1;
+  letter-spacing:-.05em;
+  font-weight:500;
+  overflow-wrap:anywhere;
+}
+.contact-main-arrow{
+  position:absolute;
+  z-index:3;
+  right:30px;
+  bottom:27px;
+  color:#ff7a21;
+  font-size:38px;
+  line-height:1;
+  font-weight:300;
+  transition:transform .35s cubic-bezier(.16,1,.3,1);
+}
+.contact-main-link:hover .contact-main-arrow{transform:translate(6px,-6px)}
+.contact-main-mark{
+  position:absolute;
+  width:min(48%,220px);
+  height:auto;
+  left:50%;
+  top:39%;
+  transform:translate(-50%,-50%);
+  opacity:.11;
+}
+.contact-section .foot{
+  margin-top:clamp(70px,8vw,110px) !important;
+  color:#788793 !important;
+  border-top-color:rgba(16,21,26,.13) !important;
+}
+.contact-section .footer-signature img{
+  width:32px;
+  height:auto;
+  filter:brightness(0) saturate(100%);
+}
+.hero .topbar .logo{
+  height:auto;
+  object-fit:contain;
+}
+.hero .nav .nav-item--contact .nav-symbol{
+  width:40px !important;
+  height:40px !important;
+  overflow:visible !important;
+}
+.hero .nav .nav-item--contact .nav-symbol img{
+  width:100% !important;
+  height:100% !important;
+  object-fit:contain !important;
+}
+
+@media(max-width:1050px){
+  .contact-shell{grid-template-columns:1fr}
+  .contact-shell .contact-copy{min-height:0 !important}
+  .contact-main-link{min-height:330px}
+}
+@media(max-width:700px){
+  .contact.contact-section{padding:78px 0 24px !important}
+  .contact-section .section-brand--contact{width:72px !important;height:72px !important}
+  .contact-section .section-id-row > .section-title{
+    margin-top:18px !important;
+    max-width:285px !important;
+    font-size:clamp(23px,6.2vw,30px) !important;
+  }
+  .contact-section .contact-intro{margin-top:34px !important}
+  .contact-meta{margin-top:30px;gap:8px 18px}
+  .contact-main-link{
+    min-height:285px;
+    padding:26px 24px 24px;
+    border-radius:20px;
+  }
+  .contact-main-link::after{left:24px;right:24px;bottom:82px}
+  .contact-main-label{left:24px;top:23px}
+  .contact-main-arrow{right:21px;bottom:20px;font-size:32px}
+  .contact-main-mark{width:145px}
+  .hero .nav .nav-item--contact .nav-symbol{width:27px !important;height:27px !important}
+}
+@media(prefers-reduced-motion:reduce){
+  .contact-main-link,.contact-main-link::before,.contact-main-arrow{transition:none !important}
+}
