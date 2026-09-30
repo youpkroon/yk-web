@@ -1,4 +1,57 @@
 document.getElementById('year').textContent=new Date().getFullYear();
+/* Section identity lines follow scroll continuously. */
+(()=>{
+  const items=[...document.querySelectorAll('.section-id-row')].map(row=>({
+    row,
+    brand:row.querySelector('.section-brand')
+  })).filter(item=>item.brand);
+
+  if(!items.length)return;
+
+  const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce){
+    items.forEach(({brand})=>brand.style.setProperty('--line-progress','1'));
+    return;
+  }
+
+  let raf=0;
+
+  const sync=()=>{
+    raf=0;
+    const vh=Math.max(1,window.innerHeight);
+    const peak=vh*.50;
+    const fullRadius=vh*.10;
+    const outerRadius=vh*.72;
+
+    items.forEach(({row,brand})=>{
+      const rect=row.getBoundingClientRect();
+      const y=rect.top+(rect.height*.5);
+      const distance=Math.abs(y-peak);
+
+      let t;
+      if(distance<=fullRadius){
+        t=1;
+      }else{
+        t=1-((distance-fullRadius)/(outerRadius-fullRadius));
+        t=Math.max(0,Math.min(1,t));
+      }
+
+      const eased=t*t*(3-(2*t));
+      const progress=.07+(.93*eased);
+      brand.style.setProperty('--line-progress',progress.toFixed(4));
+    });
+  };
+
+  const requestSync=()=>{
+    if(raf)return;
+    raf=requestAnimationFrame(sync);
+  };
+
+  sync();
+  addEventListener('scroll',requestSync,{passive:true});
+  addEventListener('resize',requestSync,{passive:true});
+})();
+
 (function(){
   const hero=document.querySelector('.hero');
   const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -933,46 +986,3 @@ document.getElementById('year').textContent=new Date().getFullYear();
   targets.forEach(el=>observer.observe(el));
 })();
 
-/* Section identity underline length follows scroll position. */
-(()=>{
-  const rows=[...document.querySelectorAll('.section-id-row')];
-  if(!rows.length)return;
-
-  const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(reduce){
-    rows.forEach(row=>row.style.setProperty('--line-progress','1'));
-    return;
-  }
-
-  let ticking=false;
-
-  const update=()=>{
-    ticking=false;
-    const vh=Math.max(1,window.innerHeight);
-    const center=vh*.50;
-    const reach=vh*.62;
-
-    rows.forEach(row=>{
-      const rect=row.getBoundingClientRect();
-      const rowCenter=rect.top+rect.height*.5;
-      const distance=Math.abs(rowCenter-center);
-
-      /* 0.16 at the edges, 1.0 around the middle of the viewport. */
-      const normalized=Math.max(0,Math.min(1,1-(distance/reach)));
-      const eased=normalized*normalized*(3-2*normalized);
-      const progress=.16+(.84*eased);
-
-      row.style.setProperty('--line-progress',progress.toFixed(3));
-    });
-  };
-
-  const requestUpdate=()=>{
-    if(ticking)return;
-    ticking=true;
-    requestAnimationFrame(update);
-  };
-
-  update();
-  addEventListener('scroll',requestUpdate,{passive:true});
-  addEventListener('resize',requestUpdate,{passive:true});
-})();

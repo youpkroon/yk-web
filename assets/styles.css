@@ -1747,16 +1747,44 @@ html.x-motion-ready .section-title[data-x-reveal="letters"][data-in-view="1"] .x
 
 
 /* =========================================================
-   WIDE SECTION COPY
+   WIDE SECTION COPY V2
    Services, Workshop and Projects only. About + Contact untouched.
    ========================================================= */
+.capabilities .cap-copy-panel{
+  border-top:0 !important;
+  padding-top:0 !important;
+}
+
+.capabilities .cap-copy-panel p{
+  max-width:none !important;
+}
+
 @media(min-width:901px){
-  /* Workshop + Projects: keep the identity/title in place while allowing
-     the copy to begin sooner and use substantially more horizontal space. */
+  /* Services: preserve the logo/title composition, but start the copy sooner. */
+  .capabilities .cap-head{
+    grid-template-columns:minmax(650px,720px) minmax(0,1fr) !important;
+    gap:clamp(20px,2vw,36px) !important;
+    align-items:center !important;
+  }
+
+  .capabilities .cap-copy-panel{
+    width:100% !important;
+    max-width:none !important;
+    align-self:center !important;
+  }
+
+  .capabilities .cap-copy-panel p{
+    width:100% !important;
+    max-width:none !important;
+    font-size:clamp(13px,.95vw,15px) !important;
+    line-height:1.62 !important;
+  }
+
+  /* Workshop + Projects: copy begins much closer to the title block. */
   .workshop-head,
   .work-head{
-    grid-template-columns:minmax(500px,550px) minmax(0,1fr) !important;
-    gap:clamp(28px,2.7vw,52px) !important;
+    grid-template-columns:minmax(430px,470px) minmax(0,1fr) !important;
+    gap:clamp(18px,1.9vw,34px) !important;
     align-items:center !important;
     justify-content:stretch !important;
   }
@@ -1768,64 +1796,44 @@ html.x-motion-ready .section-title[data-x-reveal="letters"][data-in-view="1"] .x
     margin:0 !important;
     align-self:center !important;
   }
-
-  /* Services: let the supporting copy occupy the full right-hand field. */
-  .capabilities .cap-head{
-    grid-template-columns:minmax(560px,.86fr) minmax(0,1.14fr) !important;
-    gap:clamp(34px,3.2vw,64px) !important;
-    align-items:center !important;
-  }
-
-  .capabilities .cap-copy-panel{
-    width:100% !important;
-    max-width:none !important;
-  }
-
-  .capabilities .cap-copy-panel p{
-    max-width:900px !important;
-  }
-
-  .capabilities .cap-title-tags{
-    max-width:900px !important;
-  }
-
-  .capabilities .cap-main > .intro{
-    max-width:900px !important;
-  }
 }
 
 @media(min-width:901px) and (max-width:1180px){
-  .workshop-head,
-  .work-head{
-    grid-template-columns:minmax(420px,470px) minmax(0,1fr) !important;
-    gap:28px !important;
+  .capabilities .cap-head{
+    grid-template-columns:minmax(520px,590px) minmax(0,1fr) !important;
+    gap:24px !important;
   }
 
-  .capabilities .cap-head{
-    grid-template-columns:minmax(470px,.92fr) minmax(0,1.08fr) !important;
-    gap:30px !important;
+  .workshop-head,
+  .work-head{
+    grid-template-columns:minmax(390px,430px) minmax(0,1fr) !important;
+    gap:22px !important;
   }
 }
 
-
 /* =========================================================
-   SECTION IDENTITY LINE — SCROLL SCALE
-   Short near viewport edges, full length near the visual center.
+   SECTION IDENTITY LINE — TRUE SCROLL SCALE
+   Small before the section, full around the visual center,
+   then gradually small again after passing it.
    ========================================================= */
+.section-id-row .section-brand{
+  --line-progress:.07;
+}
+
 .section-id-row .section-brand::after{
-  --line-progress:.18;
   transform:scaleX(var(--line-progress)) !important;
   transform-origin:left center !important;
-  opacity:calc(.25 + (var(--line-progress) * .75));
-  transition:opacity .12s linear !important;
+  opacity:calc(.20 + (var(--line-progress) * .80));
+  transition:none !important;
   will-change:transform,opacity;
 }
 
 @media(prefers-reduced-motion:reduce){
-  .section-id-row .section-brand::after{
+  .section-id-row .section-brand{
     --line-progress:1;
+  }
+  .section-id-row .section-brand::after{
     transform:scaleX(1) !important;
     opacity:1 !important;
-    transition:none !important;
   }
 }
