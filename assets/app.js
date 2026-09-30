@@ -1,83 +1,12 @@
 document.getElementById('year').textContent=new Date().getFullYear();
 (function(){
-  const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const hero=document.querySelector('.hero');
-  const textTargets=[...document.querySelectorAll('.hero h1'),...document.querySelectorAll('.eyebrow,.section-title,.skill h3,.work-card strong,.contact h2,.contact-link')];
-  function wrapHorizontal(el,targetIndex){
-    if(el.dataset.buildReady)return;
-    const parts=el.innerHTML.split(/<br\s*\/?>/i);
-    const baseDir=targetIndex%2===0?-1:1;
-    el.innerHTML=parts.map((part,lineIndex)=>{
-      const dir=baseDir*(lineIndex%2===0?1:-1);
-      const from=dir<0?'-112%':'112%';
-      return `<span class="slide-clip"><span class="slide-piece" style="--slide-from:${from};transition-delay:${lineIndex*.085}s">${part}</span></span>`;
-    }).join('');
-    el.classList.add('slide-text');el.dataset.buildReady='1';
+  const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce){
+    hero?.classList.add('hero-ready');
+    return;
   }
-  textTargets.forEach(wrapHorizontal);
-  const vectors=[
-    {x:'-48vw',y:'-14vh',mx:'-34px',my:'-10px',r:'-7deg',mr:'-.8deg',s:'.86',ms:'1.012',d:'2.15s'},
-    {x:'46vw',y:'8vh',mx:'38px',my:'6px',r:'5deg',mr:'.6deg',s:'.88',ms:'1.01',d:'2.0s'},
-    {x:'-18vw',y:'42vh',mx:'-18px',my:'28px',r:'6deg',mr:'.7deg',s:'.84',ms:'1.018',d:'2.25s'},
-    {x:'32vw',y:'-36vh',mx:'28px',my:'-26px',r:'-6deg',mr:'-.7deg',s:'.87',ms:'1.014',d:'2.3s'},
-    {x:'-54vw',y:'18vh',mx:'-42px',my:'15px',r:'4deg',mr:'.5deg',s:'.9',ms:'1.008',d:'1.95s'},
-    {x:'24vw',y:'48vh',mx:'20px',my:'34px',r:'7deg',mr:'.9deg',s:'.83',ms:'1.02',d:'2.4s'},
-    {x:'52vw',y:'-22vh',mx:'44px',my:'-16px',r:'-5deg',mr:'-.6deg',s:'.89',ms:'1.01',d:'2.1s'},
-    {x:'-30vw',y:'-44vh',mx:'-24px',my:'-30px',r:'8deg',mr:'1deg',s:'.85',ms:'1.016',d:'2.35s'}
-  ];
-  function makeFly(el,index,extraDelay=0){
-    const v=vectors[index%vectors.length];el.classList.add('fly-build');
-    el.style.setProperty('--fx',v.x);el.style.setProperty('--fy',v.y);el.style.setProperty('--mx',v.mx);el.style.setProperty('--my',v.my);
-    el.style.setProperty('--fr',v.r);el.style.setProperty('--mr',v.mr);el.style.setProperty('--fs',v.s);el.style.setProperty('--ms',v.ms);
-    el.style.setProperty('--fly-dur',v.d);el.style.setProperty('--fly-delay',`${extraDelay}s`);
-  }
-  const aboutVisual=document.querySelector('.about-visual');
-  if(aboutVisual){aboutVisual.classList.add('fly-build');aboutVisual.style.setProperty('--fx','36vw');aboutVisual.style.setProperty('--fy','-16vh');aboutVisual.style.setProperty('--fr','5deg');aboutVisual.style.setProperty('--mr','.5deg');aboutVisual.style.setProperty('--fs','.86');aboutVisual.style.setProperty('--ms','1.015');aboutVisual.style.setProperty('--mx','34px');aboutVisual.style.setProperty('--my','-12px');aboutVisual.style.setProperty('--fly-dur','2.35s');}
-  document.querySelectorAll('.skill').forEach((el,i)=>makeFly(el,i,.035*(i%4)));
-  document.querySelectorAll('.work-card').forEach((el,i)=>makeFly(el,i+2,.07*i));
-  document.querySelectorAll('.pill').forEach((el,i)=>{el.classList.add('fly-build');const v=vectors[(i+4)%vectors.length];el.style.setProperty('--fx',v.x);el.style.setProperty('--fy',v.y);el.style.setProperty('--fr',v.r);el.style.setProperty('--mr',v.mr);el.style.setProperty('--fs','.80');el.style.setProperty('--ms','1.018');el.style.setProperty('--mx',v.mx);el.style.setProperty('--my',v.my);el.style.setProperty('--fly-dur',v.d);el.style.setProperty('--fly-delay',`${.055*i}s`);});
-  document.querySelectorAll('.section-brand,.intro,.about-placeholder,.hero-meta,.skill p,.skill-tags,.image-note,.skill-num,.skill-dot,.work-card small,.foot').forEach((el,i)=>{el.classList.add('soft-build');el.style.setProperty('--soft-x',i%2?'42px':'-42px');el.style.setProperty('--soft-y',i%3===0?'18px':'0px');el.style.transitionDelay=`${(i%4)*.045}s`;});
-  const buildTargets=document.querySelectorAll('.slide-text,.soft-build,.fly-build');
-  if(reduce){buildTargets.forEach(el=>el.classList.add('is-built'));hero?.classList.add('hero-ready');return;}
-
-  // Trigger motion from stable section/grid wrappers rather than the transformed tiles themselves.
-  // This prevents tiles that start outside the viewport from staying invisible forever.
-  const groupedTriggers=[
-    document.querySelector('#about .about-card'),
-    document.querySelector('#capabilities .cap-head'),
-    document.querySelector('#capabilities .skill-grid'),
-    document.querySelector('#workshop .workshop-head'),
-    document.querySelector('#workshop .workshop-grid'),
-    document.querySelector('.contact > .wrap')
-  ].filter(Boolean);
-
-  const buildGroup=(root)=>{
-    const targets=[...root.querySelectorAll('.slide-text,.soft-build,.fly-build')];
-    if(root.matches?.('.slide-text,.soft-build,.fly-build')) targets.unshift(root);
-    targets.forEach((el,i)=>setTimeout(()=>el.classList.add('is-built'),Math.min(i*22,180)));
-  };
-
-  const groupObserver=new IntersectionObserver(entries=>{
-    entries.forEach(entry=>{
-      if(entry.isIntersecting){
-        buildGroup(entry.target);
-        groupObserver.unobserve(entry.target);
-      }
-    });
-  },{threshold:.06,rootMargin:'0px 0px -8% 0px'});
-  groupedTriggers.forEach(el=>groupObserver.observe(el));
-
-  // Fallback for any standalone animated element not inside one of the groups.
-  const groupedSet=new Set();
-  groupedTriggers.forEach(root=>root.querySelectorAll('.slide-text,.soft-build,.fly-build').forEach(el=>groupedSet.add(el)));
-  const singleObserver=new IntersectionObserver(entries=>{
-    entries.forEach(entry=>{
-      if(entry.isIntersecting){entry.target.classList.add('is-built');singleObserver.unobserve(entry.target);}
-    });
-  },{threshold:.08,rootMargin:'0px 0px -10% 0px'});
-  buildTargets.forEach(el=>{if(!el.closest('.hero')&&!groupedSet.has(el))singleObserver.observe(el)});
-
-  requestAnimationFrame(()=>{hero?.classList.add('hero-ready');const title=hero?.querySelector('h1.slide-text');if(title)setTimeout(()=>title.classList.add('is-built'),130);const meta=hero?.querySelector('.hero-meta.soft-build');if(meta)setTimeout(()=>meta.classList.add('is-built'),520);});
+  requestAnimationFrame(()=>hero?.classList.add('hero-ready'));
 })();
 
 (()=>{
@@ -846,4 +775,201 @@ document.getElementById('year').textContent=new Date().getFullYear();
   };
 
   requestAnimationFrame(tick);
+})();
+
+
+/* =========================================================
+   X-INSPIRED SECTION MOTION
+   One IntersectionObserver, no libraries.
+   Existing content, ids and layout are left untouched.
+   ========================================================= */
+(()=>{
+  const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const root=document.documentElement;
+  const targets=[];
+
+  const addTarget=(el,type,delay=0,vars={})=>{
+    if(!el)return;
+    el.dataset.xReveal=type;
+    el.style.setProperty('--x-delay',Math.max(0,delay)+'ms');
+    Object.entries(vars).forEach(([key,value])=>el.style.setProperty(key,value));
+    targets.push(el);
+  };
+
+  const splitTitle=el=>{
+    if(!el||el.dataset.xLettersReady)return;
+    const text=el.textContent||'';
+    el.dataset.xLettersReady='1';
+    el.setAttribute('aria-label',text.trim());
+    el.textContent='';
+    let charIndex=0;
+
+    text.split(/(\s+)/).forEach(token=>{
+      if(/^\s+$/.test(token)){
+        el.appendChild(document.createTextNode(token));
+        return;
+      }
+
+      const word=document.createElement('span');
+      word.className='x-title-word';
+      word.setAttribute('aria-hidden','true');
+
+      [...token].forEach(char=>{
+        const letter=document.createElement('span');
+        letter.className='x-title-letter';
+        letter.textContent=char;
+        letter.style.setProperty('--x-letter-delay',(charIndex*30)+'ms');
+        charIndex+=1;
+        word.appendChild(letter);
+      });
+
+      el.appendChild(word);
+    });
+
+    addTarget(el,'letters',0);
+  };
+
+  /* Section titles: X-style letter build, preserving the exact text. */
+  document.querySelectorAll('.section-title').forEach(splitTitle);
+
+  /* About: two controlled directions rather than scattered motion. */
+  addTarget(document.querySelector('#about .about-copy'),'from-left',0,{
+    '--x-from-x':'-90px',
+    '--x-from-y':'18px'
+  });
+  addTarget(document.querySelector('#about .about-visual'),'from-right',120,{
+    '--x-from-x':'110px',
+    '--x-from-y':'-12px'
+  });
+
+  /* Services: deterministic "random" assembly inspired by X homepage. */
+  const scatter=[
+    ['-285px','-70px','.74','-4deg'],
+    ['245px','45px','1.12','3deg'],
+    ['-170px','235px','.82','5deg'],
+    ['295px','-135px','.70','-5deg'],
+    ['-255px','120px','1.08','4deg'],
+    ['210px','220px','.78','6deg'],
+    ['285px','80px','.88','-4deg'],
+    ['-205px','-175px','1.14','5deg']
+  ];
+
+  document.querySelectorAll('#capabilities .skill').forEach((el,i)=>{
+    const [x,y,scale,rot]=scatter[i%scatter.length];
+    const delay=(i*137)%480;
+    addTarget(el,'assemble',delay,{
+      '--x-from-x':x,
+      '--x-from-y':y,
+      '--x-from-scale':scale,
+      '--x-from-rot':rot
+    });
+  });
+
+  document.querySelectorAll('#capabilities .pill').forEach((el,i)=>{
+    addTarget(el,'small-rise',80+i*55,{
+      '--x-from-y':'34px'
+    });
+  });
+
+  addTarget(document.querySelector('#capabilities .intro'),'from-right',90,{
+    '--x-from-x':'85px',
+    '--x-from-y':'0px'
+  });
+
+  /* Workshop: calmer, mostly vertical rise like X Projects. */
+  addTarget(document.querySelector('#workshop .intro'),'small-rise',120,{
+    '--x-from-y':'70px'
+  });
+  document.querySelectorAll('#workshop .work-card').forEach((el,i)=>{
+    addTarget(el,'bottom-card',i*100,{
+      '--x-from-y':'150px'
+    });
+  });
+
+  /* Projects overview: restrained directional build. */
+  addTarget(document.querySelector('#work .work-overview .intro'),'from-right',100,{
+    '--x-from-x':'95px',
+    '--x-from-y':'20px'
+  });
+
+  /* Contact: two pieces converge rather than using the same card motion. */
+  addTarget(document.querySelector('#contact .contact-copy'),'from-left',0,{
+    '--x-from-x':'-105px',
+    '--x-from-y':'30px'
+  });
+  addTarget(document.querySelector('#contact .contact-main-link'),'from-right',150,{
+    '--x-from-x':'120px',
+    '--x-from-y':'40px'
+  });
+  addTarget(document.querySelector('#contact .foot'),'small-rise',260,{
+    '--x-from-y':'45px'
+  });
+
+  /* Project cards exist twice after the infinite-strip gallery clones them.
+     Give each lane its own left-to-right wave. */
+  const projectLabel=document.querySelector('#work .eyebrow')?.textContent?.trim()||'Projects';
+  const projectDescription=document.querySelector('#work .section-title')?.getAttribute('aria-label')||
+    document.querySelector('#work .section-title')?.textContent?.trim()||'Selected work.';
+
+  document.querySelectorAll('[data-gallery-lane]').forEach((lane,laneIndex)=>{
+    const tiles=[...lane.querySelectorAll('.project-tile')];
+    const baseCount=Math.max(1,Math.round(tiles.length/2));
+
+    tiles.forEach((tile,i)=>{
+      const phase=i%baseCount;
+      addTarget(tile,'project-card',phase*100+laneIndex*60,{
+        '--x-from-y':'150px'
+      });
+
+      if(!tile.querySelector('.x-project-overlay')){
+        const overlay=document.createElement('div');
+        overlay.className='x-project-overlay';
+        overlay.setAttribute('aria-hidden','true');
+
+        const label=document.createElement('span');
+        label.className='x-project-overlay-label';
+        label.textContent=projectLabel;
+
+        const title=document.createElement('strong');
+        title.className='x-project-overlay-title';
+        title.textContent=tile.getAttribute('aria-label')||projectLabel;
+
+        const description=document.createElement('span');
+        description.className='x-project-overlay-description';
+        description.textContent=projectDescription;
+
+        const arrow=document.createElement('span');
+        arrow.className='x-project-overlay-arrow';
+        arrow.textContent='↗';
+
+        overlay.append(label,title,description,arrow);
+        tile.appendChild(overlay);
+      }
+    });
+  });
+
+  if(reduce){
+    targets.forEach(el=>{
+      el.dataset.inView='1';
+      el.classList.add('is-built');
+    });
+    return;
+  }
+
+  root.classList.add('x-motion-ready');
+
+  const observer=new IntersectionObserver(entries=>{
+    entries.forEach(entry=>{
+      if(!entry.isIntersecting)return;
+      const el=entry.target;
+      el.dataset.inView='1';
+      el.classList.add('is-built');
+      observer.unobserve(el);
+    });
+  },{
+    threshold:.10,
+    rootMargin:'0px 0px -7% 0px'
+  });
+
+  targets.forEach(el=>observer.observe(el));
 })();
