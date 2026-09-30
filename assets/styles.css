@@ -1258,9 +1258,9 @@ body.is-scrolled .hero .topbar{
   --line-home:#f3f1ea;
   --line-about:#2457ff;
   --line-capabilities:#9b4dff;
-  --line-workshop:#ef4553;
+  --line-workshop:#1fa86b;
   --line-work:#ff8a1f;
-  --line-contact:#1fa86b;
+  --line-contact:#ef4553;
 }
 
 /* Home underline */
