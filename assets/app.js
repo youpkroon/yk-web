@@ -905,48 +905,7 @@ document.getElementById('year').textContent=new Date().getFullYear();
     '--x-from-y':'45px'
   });
 
-  /* Project cards exist twice after the infinite-strip gallery clones them.
-     Give each lane its own left-to-right wave. */
-  const projectLabel=document.querySelector('#work .eyebrow')?.textContent?.trim()||'Projects';
-  const projectDescription=document.querySelector('#work .section-title')?.getAttribute('aria-label')||
-    document.querySelector('#work .section-title')?.textContent?.trim()||'Selected work.';
-
-  document.querySelectorAll('[data-gallery-lane]').forEach((lane,laneIndex)=>{
-    const tiles=[...lane.querySelectorAll('.project-tile')];
-    const baseCount=Math.max(1,Math.round(tiles.length/2));
-
-    tiles.forEach((tile,i)=>{
-      const phase=i%baseCount;
-      addTarget(tile,'project-card',phase*100+laneIndex*60,{
-        '--x-from-y':'150px'
-      });
-
-      if(!tile.querySelector('.x-project-overlay')){
-        const overlay=document.createElement('div');
-        overlay.className='x-project-overlay';
-        overlay.setAttribute('aria-hidden','true');
-
-        const label=document.createElement('span');
-        label.className='x-project-overlay-label';
-        label.textContent=projectLabel;
-
-        const title=document.createElement('strong');
-        title.className='x-project-overlay-title';
-        title.textContent=tile.getAttribute('aria-label')||projectLabel;
-
-        const description=document.createElement('span');
-        description.className='x-project-overlay-description';
-        description.textContent=projectDescription;
-
-        const arrow=document.createElement('span');
-        arrow.className='x-project-overlay-arrow';
-        arrow.textContent='↗';
-
-        overlay.append(label,title,description,arrow);
-        tile.appendChild(overlay);
-      }
-    });
-  });
+  /* Projects gallery uses its original proven reveal and motion. */
 
   if(reduce){
     targets.forEach(el=>{
