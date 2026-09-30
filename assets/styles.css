@@ -1837,3 +1837,87 @@ html.x-motion-ready .section-title[data-x-reveal="letters"][data-in-view="1"] .x
     opacity:1 !important;
   }
 }
+
+
+/* =========================================================
+   FINAL SECTION ACCENTS + CONTENT-CENTERED SCROLL LINES
+   ========================================================= */
+
+/* Explicit final color ownership. These intentionally override legacy rules. */
+.hero .nav .nav-item--workshop{
+  --nav-accent:#1FA86B !important;
+}
+.hero .nav .nav-item--contact{
+  --nav-accent:#EF4553 !important;
+}
+.workshop-section .section-id-row--workshop .section-brand::after{
+  background:#1FA86B !important;
+}
+.contact-section .section-id-row--contact .section-brand::after,
+.contact-section .section-brand--contact::after{
+  background:#EF4553 !important;
+}
+
+/* Base/fallback value. */
+.section-id-row .section-brand{
+  --line-progress:.06;
+}
+.section-id-row .section-brand::after{
+  transform:scaleX(var(--line-progress)) !important;
+  transform-origin:left center !important;
+  opacity:calc(.18 + (var(--line-progress) * .82));
+  transition:none !important;
+}
+
+/* The entire header/content composition drives the line.
+   50% view progress is where the line is fully extended. */
+@supports (animation-timeline: view()){
+  .cap-head,
+  .workshop-head,
+  .work-head,
+  .about-copy,
+  .contact-copy{
+    view-timeline-name:--yk-section-content;
+    view-timeline-axis:block;
+  }
+
+  .section-id-row .section-brand::after{
+    animation-name:ykSectionLinePulse !important;
+    animation-duration:1ms !important;
+    animation-timing-function:linear !important;
+    animation-fill-mode:both !important;
+    animation-timeline:--yk-section-content !important;
+    animation-range:entry 0% exit 100% !important;
+  }
+
+  @keyframes ykSectionLinePulse{
+    0%{
+      transform:scaleX(.06);
+      opacity:.20;
+    }
+    44%{
+      transform:scaleX(.90);
+      opacity:.92;
+    }
+    50%{
+      transform:scaleX(1);
+      opacity:1;
+    }
+    56%{
+      transform:scaleX(.90);
+      opacity:.92;
+    }
+    100%{
+      transform:scaleX(.06);
+      opacity:.20;
+    }
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  .section-id-row .section-brand::after{
+    animation:none !important;
+    transform:scaleX(1) !important;
+    opacity:1 !important;
+  }
+}

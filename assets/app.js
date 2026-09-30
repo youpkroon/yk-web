@@ -1,53 +1,36 @@
 document.getElementById('year').textContent=new Date().getFullYear();
-/* Section identity lines follow scroll continuously. */
+/* Fallback for browsers without CSS view timelines. */
 (()=>{
+  if(CSS.supports('animation-timeline: view()'))return;
+
   const items=[...document.querySelectorAll('.section-id-row')].map(row=>{
     const brand=row.querySelector('.section-brand');
     const content=row.closest('.cap-head, .workshop-head, .work-head, .about-copy, .contact-copy') || row;
-    return {row,brand,content};
+    return {brand,content};
   }).filter(item=>item.brand);
 
   if(!items.length)return;
 
-  const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(reduce){
-    items.forEach(({brand})=>brand.style.setProperty('--line-progress','1'));
-    return;
-  }
-
   let raf=0;
-
   const sync=()=>{
     raf=0;
-    const vh=Math.max(1,window.innerHeight);
-    const peak=vh*.50;
-    const fullRadius=vh*.10;
-    const outerRadius=vh*.72;
+    const vh=Math.max(1,innerHeight);
 
-    items.forEach(({content,brand})=>{
-      const rect=content.getBoundingClientRect();
-      const y=rect.top+(rect.height*.5);
-      const distance=Math.abs(y-peak);
-
-      let t;
-      if(distance<=fullRadius){
-        t=1;
-      }else{
-        t=1-((distance-fullRadius)/(outerRadius-fullRadius));
-        t=Math.max(0,Math.min(1,t));
-      }
-
-      const eased=t*t*(3-(2*t));
-      const progress=.07+(.93*eased);
+    items.forEach(({brand,content})=>{
+      const r=content.getBoundingClientRect();
+      const center=r.top+r.height*.5;
+      const distance=Math.abs(center-vh*.5);
+      const range=vh*.58;
+      const t=Math.max(0,Math.min(1,1-distance/range));
+      const eased=t*t*(3-2*t);
+      const progress=.06+.94*eased;
       brand.style.setProperty('--line-progress',progress.toFixed(4));
     });
   };
-
   const requestSync=()=>{
     if(raf)return;
     raf=requestAnimationFrame(sync);
   };
-
   sync();
   addEventListener('scroll',requestSync,{passive:true});
   addEventListener('resize',requestSync,{passive:true});
