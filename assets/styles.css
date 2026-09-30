@@ -1921,3 +1921,14 @@ html.x-motion-ready .section-title[data-x-reveal="letters"][data-in-view="1"] .x
     opacity:1 !important;
   }
 }
+
+
+/* Fall-over variant for the Projects cross-row motion. */
+.project-tile.is-fall-hero{
+  z-index:14;
+  box-shadow:0 28px 72px rgba(0,0,0,.34);
+  will-change:transform,border-radius;
+}
+.project-gallery.has-fall-hero .project-tile:not(.is-bubble-hero){
+  will-change:transform;
+}

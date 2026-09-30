@@ -389,10 +389,11 @@ document.getElementById('year').textContent=new Date().getFullYear();
 })();
 
 
-/* Work gallery slot-coupled bubble morph V7.
-   Each vertical card keeps its source-row slot. The crossed row opens only at a
-   real boundary between two cards, then translates both row segments so that
-   the resulting gap is centered exactly on the vertical card. */
+/* Work gallery slot-coupled bubble morph V8.
+   Keeps the existing cross-row bubble/bridge motion, but some cycles now
+   become a domino-like fall into the neighbouring lane. The three lanes keep
+   their independent speeds; gaps are recalculated every frame so the motion
+   stays playful without letting cards overlap. */
 (()=>{
   const section=document.querySelector('.project-streams-section');
   const gallery=section?.querySelector('[data-project-gallery]');
@@ -421,6 +422,7 @@ document.getElementById('year').textContent=new Date().getFullYear();
     const p=clamp01(v);
     return p*p*(3-2*p);
   };
+  const mix=(a,b,t)=>a+(b-a)*t;
 
   const laneX=row=>{
     const x=strips[row].__ykLaneX;
@@ -506,7 +508,7 @@ document.getElementById('year').textContent=new Date().getFullYear();
 
   const ensure=(map,tile)=>{
     if(!map.has(tile)){
-      map.set(tile,{x:0,y:0,r:0,sx:1,sy:1,radius:13,hero:false});
+      map.set(tile,{x:0,y:0,r:0,sx:1,sy:1,radius:13,hero:false,falling:false});
     }
     return map.get(tile);
   };
@@ -522,7 +524,7 @@ document.getElementById('year').textContent=new Date().getFullYear();
       tile.style.removeProperty('--bubble-sx');
       tile.style.removeProperty('--bubble-sy');
       tile.style.removeProperty('--bubble-radius');
-      tile.classList.remove('is-bubble-hero');
+      tile.classList.remove('is-bubble-hero','is-fall-hero');
     }
 
     for(const [tile,s] of map){
@@ -533,6 +535,7 @@ document.getElementById('year').textContent=new Date().getFullYear();
       tile.style.setProperty('--bubble-sy',s.sy.toFixed(4));
       tile.style.setProperty('--bubble-radius',s.radius.toFixed(1)+'px');
       tile.classList.toggle('is-bubble-hero',s.hero);
+      tile.classList.toggle('is-fall-hero',s.falling);
     }
 
     touched=next;
@@ -545,6 +548,18 @@ document.getElementById('year').textContent=new Date().getFullYear();
     state.v+=a*dt;
     state.p+=state.v*dt;
     state.p=Math.max(-.035,Math.min(1.06,state.p));
+
+    const fallStiffness=34;
+    const fallDamping=10.2;
+    const fa=(state.fallTarget-state.fallP)*fallStiffness-state.fallV*fallDamping;
+    state.fallV+=fa*dt;
+    state.fallP+=state.fallV*dt;
+    state.fallP=Math.max(-.035,Math.min(1.065,state.fallP));
+  };
+
+  const modeFor=def=>{
+    const key=(def.cycle+Math.floor(def.seed*10))%4;
+    return key<2?'fall':'bridge';
   };
 
   const activate=(def,chosen,now)=>{
@@ -558,13 +573,20 @@ document.getElementById('year').textContent=new Date().getFullYear();
       tile.classList.contains('project-tile')&&!tile.classList.contains('project-tile--wide')
     );
     const normalWidth=normal?.offsetWidth||chosen.tile.offsetHeight;
+    const mode=modeFor(def);
+    const fallSide=((def.cycle+def.row+Math.round(def.seed*10))%2)?1:-1;
 
     active.push({
       def,
       tile:chosen.tile,
+      mode,
+      fallSide,
       p:0,
       v:0,
       target:1,
+      fallP:0,
+      fallV:0,
+      fallTarget:0,
       phase:'grow',
       holdUntil:0,
       targetRow,
@@ -596,21 +618,36 @@ document.getElementById('year').textContent=new Date().getFullYear();
   const prepState=state=>{
     const p=clamp01(state.p);
     const eased=smooth(p);
+    const fall=state.mode==='fall'?smooth(clamp01(state.fallP)):0;
     const sourceRow=state.def.row;
     const targetRow=state.targetRow;
     const heroCenter=baseCenter(state.tile,sourceRow);
+
     const sx=1+(state.targetSx-1)*eased;
     const sy=1+(state.targetSy-1)*eased;
-    const visualWidth=state.tile.offsetWidth*sx;
-    const sourceRelease=(state.tile.offsetWidth-visualWidth)/2;
+    const scaledWidth=state.tile.offsetWidth*sx;
+    const scaledHeight=state.tile.offsetHeight*sy;
+
+    const angle=(Math.PI/2)*fall;
+    const rotatedWidth=Math.abs(Math.cos(angle))*scaledWidth+
+      Math.abs(Math.sin(angle))*scaledHeight;
+
+    const collisionPad=12+10*fall;
+    const targetFootprint=rotatedWidth+collisionPad;
+    const sourceFootprint=Math.max(0,scaledWidth*(1-.90*fall));
+
+    const baseRelease=Math.max(0,(state.tile.offsetWidth-scaledWidth)/2);
+    const closedRelease=Math.max(baseRelease,state.tile.offsetWidth/2-stripGap(sourceRow)/2);
+    const sourceRelease=mix(baseRelease,closedRelease,fall)*eased;
 
     const rawBoundary=laneX(targetRow)+state.boundaryOffset;
     const boundary=nearestRepeat(rawBoundary,targetRow,heroCenter);
 
     return {
-      state,p,eased,sourceRow,targetRow,heroCenter,boundary,
-      sx,sy,visualWidth,sourceRelease,
-      extraGap:(visualWidth+state.boundaryBaseGap)*eased,
+      state,p,eased,fall,sourceRow,targetRow,heroCenter,boundary,
+      sx,sy,scaledWidth,scaledHeight,rotatedWidth,
+      sourceFootprint,targetFootprint,sourceRelease,
+      extraGap:(targetFootprint+state.boundaryBaseGap)*eased,
       align:(heroCenter-boundary)*eased
     };
   };
@@ -647,9 +684,9 @@ document.getElementById('year').textContent=new Date().getFullYear();
   const refinePreps=()=>{
     const preps=active.map(prepState);
 
-    // Two small fixed-point passes align every target gap after all other
-    // vertical units have shifted the same row.
-    for(let pass=0;pass<2;pass++){
+    // A few short fixed-point passes keep the independently moving lanes
+    // aligned around the temporary opening without synchronising their speed.
+    for(let pass=0;pass<3;pass++){
       for(const prep of preps){
         const heroOther=combinedShiftAt(prep.sourceRow,prep.heroCenter,preps,prep);
         const leftOther=combinedShiftAt(prep.targetRow,prep.boundary-1,preps,prep);
@@ -664,13 +701,15 @@ document.getElementById('year').textContent=new Date().getFullYear();
 
   const conflicts=(def,chosen,boundary)=>{
     const pair=[def.row,def.row+def.direction].sort().join('-');
-    const minDistance=Math.max(360,viewport.clientWidth*.20);
+    const minDistance=Math.max(390,viewport.clientWidth*.22);
 
     return active.some(state=>{
       const prep=prepState(state);
       const otherPair=[prep.sourceRow,prep.targetRow].sort().join('-');
       const distance=Math.abs(chosen.center-prep.heroCenter);
-      return distance<minDistance || (pair===otherPair&&distance<460);
+      const footprintGuard=(chosen.width*.28)+(prep.targetFootprint*.52)+110;
+      const samePairGuard=pair===otherPair?110:0;
+      return distance<Math.max(minDistance,footprintGuard+samePairGuard);
     });
   };
 
@@ -698,7 +737,7 @@ document.getElementById('year').textContent=new Date().getFullYear();
       }
 
       if(conflicts(def,chosen,boundary)){
-        def.nextAt=now+650;
+        def.nextAt=now+700;
         continue;
       }
 
@@ -721,29 +760,31 @@ document.getElementById('year').textContent=new Date().getFullYear();
         const s=ensure(map,tile);
         s.x=combinedShiftAt(row,center,preps);
 
-        // Soft deformation only at the edge of a real gap.
+        // Soft deformation happens only near the real reserved footprint.
         let pressure=0;
         let pressureSign=0;
         for(const prep of preps){
           let edgeCenter=null;
           let edgeDistance=Infinity;
 
-          if(row===prep.sourceRow){
+          if(row===prep.sourceRow&&prep.sourceFootprint>8){
             const d=wrappedDelta(center-prep.heroCenter,row);
-            edgeDistance=Math.abs(Math.abs(d)-prep.visualWidth/2);
+            edgeDistance=Math.abs(Math.abs(d)-prep.sourceFootprint/2);
             edgeCenter=prep.heroCenter;
           }
+
           if(row===prep.targetRow){
-            const d=wrappedDelta(center-(prep.boundary+prep.align),row);
-            const distance=Math.abs(Math.abs(d)-prep.visualWidth/2);
+            const targetCenter=prep.boundary+prep.align;
+            const d=wrappedDelta(center-targetCenter,row);
+            const distance=Math.abs(Math.abs(d)-prep.targetFootprint/2);
             if(distance<edgeDistance){
               edgeDistance=distance;
-              edgeCenter=prep.boundary+prep.align;
+              edgeCenter=targetCenter;
             }
           }
 
           if(edgeCenter!==null){
-            const local=Math.max(0,1-edgeDistance/120)*prep.eased;
+            const local=Math.max(0,1-edgeDistance/128)*prep.eased;
             if(local>pressure){
               pressure=local;
               pressureSign=wrappedDelta(center-edgeCenter,row)<0?-1:1;
@@ -751,9 +792,9 @@ document.getElementById('year').textContent=new Date().getFullYear();
           }
         }
 
-        s.r=pressureSign*.7*pressure;
-        s.sx=1-.030*pressure;
-        s.sy=1+.012*pressure;
+        s.r=pressureSign*.65*pressure;
+        s.sx=1-.026*pressure;
+        s.sy=1+.010*pressure;
         s.radius=13+7*pressure;
       }
     }
@@ -762,24 +803,34 @@ document.getElementById('year').textContent=new Date().getFullYear();
       const state=prep.state;
       const s=ensure(map,state.tile);
       const envX=combinedShiftAt(prep.sourceRow,prep.heroCenter,preps,prep);
-      const breathe=state.phase==='hold'
-        ? Math.sin(now*.00165+state.def.seed)*prep.eased
-        : 0;
-      const squeeze=Math.sin(Math.PI*prep.p);
+      const holding=state.phase==='hold'||state.phase==='bridgeHold'||state.phase==='land';
+      const breathe=holding
+        ?Math.sin(now*.00165+state.def.seed)*prep.eased
+        :0;
+      const squeeze=Math.sin(Math.PI*prep.p)*(1-prep.fall);
+
+      // A small sideways arc makes the 90deg rotation read as a physical fall.
+      const arcAmount=Math.max(22,Math.abs(prep.scaledHeight-prep.scaledWidth)*.18);
+      const fallArc=state.fallSide*arcAmount*Math.sin(Math.PI*prep.fall);
 
       s.hero=true;
-      s.x=envX+breathe*2.4;
-      s.y=state.def.direction*(state.rowHeight+state.verticalGap)*.5*prep.eased+breathe*1.0;
-      s.r=state.def.direction*4.2*squeeze+state.v*.95+breathe*.65;
-      s.sx=prep.sx*(1-.023*squeeze);
-      s.sy=prep.sy*(1+.011*squeeze);
-      s.radius=13+21*squeeze+Math.abs(breathe)*2;
+      s.falling=state.mode==='fall'&&prep.fall>.015;
+      s.x=envX+fallArc+breathe*2.2;
+      s.y=state.def.direction*(state.rowHeight+state.verticalGap)*.5*
+        prep.eased*(1+prep.fall)+breathe*.9;
+      s.r=state.fallSide*90*prep.fall+
+        state.def.direction*4.2*squeeze+
+        state.v*.75+breathe*.55;
+      s.sx=prep.sx*(1-.020*squeeze);
+      s.sy=prep.sy*(1+.010*squeeze);
+      s.radius=13+20*squeeze+8*Math.sin(Math.PI*prep.fall)+Math.abs(breathe)*2;
     }
 
     applyStyles(map);
     gallery.classList.toggle('has-bubble-hero',active.length>0);
     gallery.classList.toggle('has-crossrow-active',active.length>0);
     gallery.classList.toggle('has-two-bubbles',active.length>1);
+    gallery.classList.toggle('has-fall-hero',active.some(state=>state.mode==='fall'));
     gallery.classList.remove('has-three-bubbles');
   };
 
@@ -795,8 +846,29 @@ document.getElementById('year').textContent=new Date().getFullYear();
       if(state.phase==='grow'&&Math.abs(1-state.p)<.012&&Math.abs(state.v)<.045){
         state.p=1;
         state.v=0;
-        state.phase='hold';
-        state.holdUntil=now+state.def.hold;
+        if(state.mode==='fall'){
+          state.phase='bridgeHold';
+          state.holdUntil=now+1650+(state.def.seed%1)*700;
+        }else{
+          state.phase='hold';
+          state.holdUntil=now+state.def.hold;
+        }
+      }else if(state.phase==='bridgeHold'&&now>=state.holdUntil){
+        state.fallTarget=1;
+        state.phase='fall';
+      }else if(state.phase==='fall'&&Math.abs(1-state.fallP)<.014&&Math.abs(state.fallV)<.05){
+        state.fallP=1;
+        state.fallV=0;
+        state.phase='land';
+        state.holdUntil=now+2400+(state.def.seed%1)*900;
+      }else if(state.phase==='land'&&now>=state.holdUntil){
+        state.fallTarget=0;
+        state.phase='unfall';
+      }else if(state.phase==='unfall'&&Math.abs(state.fallP)<.014&&Math.abs(state.fallV)<.05){
+        state.fallP=0;
+        state.fallV=0;
+        state.target=0;
+        state.phase='return';
       }else if(state.phase==='hold'&&now>=state.holdUntil){
         state.target=0;
         state.phase='return';
