@@ -1453,58 +1453,53 @@ body.is-scrolled .hero .topbar{
 }
 
 
-/* Final nav optical tune */
+
+
+/* Final nav optical balance */
 .hero .nav .nav-item--capabilities .nav-symbol img{
-  height:31px !important;
-  max-height:31px !important;
+  transform:translateY(1px) !important;
 }
+
 .hero .nav .nav-item--workshop .nav-symbol img{
+  height:38px !important;
+  max-height:38px !important;
+  transform:translateY(2px) !important;
+}
+
+.hero .nav .nav-item--work .nav-symbol img{
   height:37px !important;
   max-height:37px !important;
-}
-.hero .nav .nav-item--work .nav-symbol img{
-  height:36px !important;
-  max-height:36px !important;
+  transform:translateY(2px) !important;
 }
 
 @media(max-width:1180px){
   .hero .nav .nav-item--capabilities .nav-symbol img{
-    height:27px !important;
-    max-height:27px !important;
+    transform:translateY(1px) !important;
   }
   .hero .nav .nav-item--workshop .nav-symbol img{
-    height:32px !important;
-    max-height:32px !important;
+    height:33px !important;
+    max-height:33px !important;
+    transform:translateY(2px) !important;
   }
   .hero .nav .nav-item--work .nav-symbol img{
-    height:31px !important;
-    max-height:31px !important;
+    height:32px !important;
+    max-height:32px !important;
+    transform:translateY(2px) !important;
   }
 }
 
 @media(max-width:700px){
   .hero .nav .nav-item--capabilities .nav-symbol img{
-    height:21px !important;
-    max-height:21px !important;
+    transform:translateY(0) !important;
   }
   .hero .nav .nav-item--workshop .nav-symbol img{
-    height:25px !important;
-    max-height:25px !important;
+    height:26px !important;
+    max-height:26px !important;
+    transform:translateY(1px) !important;
   }
   .hero .nav .nav-item--work .nav-symbol img{
-    height:24px !important;
-    max-height:24px !important;
+    height:25px !important;
+    max-height:25px !important;
+    transform:translateY(1px) !important;
   }
-}
-
-
-/* Final nav baseline correction */
-.hero .nav .nav-item--capabilities .nav-symbol img{
-  transform:translateY(1px) !important;
-}
-.hero .nav .nav-item--workshop .nav-symbol img{
-  transform:translateY(-3px) !important;
-}
-.hero .nav .nav-item--work .nav-symbol img{
-  transform:translateY(-2px) !important;
 }
