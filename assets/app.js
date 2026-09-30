@@ -120,7 +120,6 @@ document.getElementById('year').textContent=new Date().getFullYear();
 })();
 
 
-
 /* Unified navigation state: home logo is active throughout the hero, then section accents take over. */
 (()=>{
   const home=document.querySelector('.brand-home');
@@ -489,11 +488,6 @@ document.getElementById('year').textContent=new Date().getFullYear();
     return screenX;
   };
 
-  const stripGap=row=>{
-    const style=getComputedStyle(strips[row]);
-    return parseFloat(style.columnGap||style.gap)||10;
-  };
-
   const baseCenter=(tile,row)=>laneX(row)+tile.offsetLeft+tile.offsetWidth/2;
 
   const visibleInstances=def=>{
@@ -826,7 +820,6 @@ document.getElementById('year').textContent=new Date().getFullYear();
     gallery.classList.toggle('has-bubble-hero',active.length>0);
     gallery.classList.toggle('has-crossrow-active',active.length>0);
     gallery.classList.toggle('has-two-bubbles',active.length>1);
-    gallery.classList.remove('has-three-bubbles');
   };
 
   const tick=now=>{
