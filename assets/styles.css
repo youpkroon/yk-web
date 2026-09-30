@@ -1247,3 +1247,138 @@ body.is-scrolled .hero .topbar{
 .project-tile.is-bubble-hero{
   outline:1px solid rgba(255,255,255,.025);
 }
+
+
+/* =========================================================
+   YK PALETTE V1
+   Inspired by the muted green/orange botanical reference.
+   Home white → About blue → Capabilities red → Workshop orange
+   → Work dark ochre → Contact green.
+   ========================================================= */
+:root{
+  --yk-white:#f3f1ea;
+  --yk-blue:#31596d;
+  --yk-red:#9b322a;
+  --yk-orange:#b9530a;
+  --yk-yellow:#8c6a23;
+  --yk-green:#779f7f;
+
+  --yk-blue-soft:#6f8996;
+  --yk-red-soft:#a65f58;
+  --yk-orange-soft:#b87949;
+  --yk-yellow-soft:#9d8952;
+  --yk-green-soft:#718f78;
+}
+
+/* Home */
+.brand-home::after{background:var(--yk-white) !important}
+.hero .topbar .logo{filter:none !important}
+
+/* Navigation: icon and line always share the same section color. */
+.hero .nav .nav-item--about{--nav-accent:var(--yk-blue) !important}
+.hero .nav .nav-item--capabilities{--nav-accent:var(--yk-red) !important}
+.hero .nav .nav-item--workshop{--nav-accent:var(--yk-orange) !important}
+.hero .nav .nav-item--work{--nav-accent:var(--yk-yellow) !important}
+.hero .nav .nav-item--contact{--nav-accent:var(--yk-green) !important}
+
+.hero .nav .nav-item--about .nav-symbol img{filter:url(#yk-blue)}
+.hero .nav .nav-item--capabilities .nav-symbol img{filter:url(#yk-red)}
+.hero .nav .nav-item--workshop .nav-symbol img{filter:url(#yk-orange)}
+.hero .nav .nav-item--work .nav-symbol img{filter:url(#yk-yellow)}
+.hero .nav .nav-item--contact .nav-symbol img{filter:url(#yk-green) !important}
+
+/* Large section logos use the same palette as their nav icons. */
+.section-id-row--about .section-brand img{filter:url(#yk-blue)}
+.section-id-row--capabilities .section-brand img{filter:url(#yk-red)}
+.section-id-row--workshop .section-brand img{filter:url(#yk-orange)}
+.section-id-row--work .section-brand img{filter:url(#yk-yellow)}
+.section-id-row--contact .section-brand img{filter:url(#yk-green) !important}
+
+.section-id-row--about .section-brand::after{background:var(--yk-blue) !important}
+.section-id-row--capabilities .section-brand::after{background:var(--yk-red) !important}
+.section-id-row--workshop .section-brand::after{background:var(--yk-orange) !important}
+.section-id-row--work .section-brand::after{background:var(--yk-yellow) !important}
+.section-id-row--contact .section-brand::after{background:var(--yk-green) !important}
+
+/* About: muted steel blue. */
+.about-section{
+  background:
+    radial-gradient(850px 520px at 88% 8%,rgba(49,89,109,.12),transparent 72%),
+    linear-gradient(180deg,#f5f8f8 0%,#edf3f4 100%);
+}
+.about-section .eyebrow{color:var(--yk-blue-soft)}
+
+/* Capabilities: brick red, not bright pink. */
+.capabilities{
+  --accent:var(--yk-red);
+  background:
+    radial-gradient(900px 640px at 92% 12%,rgba(155,50,42,.10),transparent 68%),
+    #0b0c0e;
+}
+.capabilities .eyebrow{color:#9c7773}
+.capabilities .skill:hover{
+  border-color:rgba(155,50,42,.28);
+  background:rgba(155,50,42,.035);
+}
+
+/* Workshop: burnt orange/red from the flowers in the reference. */
+.workshop-section{
+  background:
+    radial-gradient(850px 560px at 12% 12%,rgba(185,83,10,.12),transparent 68%),
+    radial-gradient(650px 430px at 84% 20%,rgba(127,46,21,.08),transparent 72%),
+    linear-gradient(180deg,#090705 0%,#100a06 54%,#080604 100%);
+}
+.workshop-section .eyebrow{color:var(--yk-orange-soft)}
+.workshop-section .work-card{
+  border-color:rgba(185,83,10,.15);
+}
+.workshop-section .work-card:hover{
+  background:rgba(185,83,10,.055);
+  border-color:rgba(185,83,10,.27);
+}
+.workshop-section .work-card:before{
+  background:linear-gradient(135deg,transparent 48%,rgba(185,83,10,.07) 48%,rgba(185,83,10,.07) 48.35%,transparent 48.35%);
+}
+.workshop-section .work-card small,
+.workshop-section .image-note{color:#a97854}
+
+/* Work: dark ochre / mustard. */
+.project-streams-section{
+  background:
+    radial-gradient(980px 640px at 92% 18%,rgba(140,106,35,.14),transparent 70%),
+    linear-gradient(180deg,#0b0a07 0%,#0d0c08 55%,#090907 100%);
+}
+.work-overview .eyebrow{color:var(--yk-yellow-soft)}
+.work-overview .section-id-row--work .section-brand::after{background:var(--yk-yellow) !important}
+.project-gallery{
+  background:
+    radial-gradient(900px 560px at 18% 12%,rgba(140,106,35,.09),transparent 70%),
+    #0b0a07;
+}
+.project-gallery::before{
+  background:linear-gradient(90deg,#0b0a07 0%,rgba(11,10,7,.86) 38%,transparent 100%) !important;
+}
+.project-gallery::after{
+  background:linear-gradient(270deg,#0b0a07 0%,rgba(11,10,7,.86) 38%,transparent 100%) !important;
+}
+
+/* Contact: sage green. */
+.contact.contact-section{
+  background:
+    radial-gradient(900px 620px at 83% 13%,rgba(119,159,127,.19),transparent 70%),
+    linear-gradient(180deg,#f3f6f3 0%,#e8eee9 100%) !important;
+}
+.contact-section .section-brand--contact::after{background:var(--yk-green) !important}
+.contact-section .section-brand--contact img{filter:url(#yk-green) !important}
+.contact-section .eyebrow{color:#647d69 !important}
+
+.contact-main-link{
+  background:
+    radial-gradient(460px 340px at 79% 18%,rgba(119,159,127,.28),transparent 62%),
+    linear-gradient(145deg,#111612 0%,#182019 100%);
+}
+.contact-main-link:hover{border-color:rgba(119,159,127,.34)}
+.contact-main-label{color:#9bbb9f}
+.contact-main-arrow{color:var(--yk-green)}
+.contact-main-mark{filter:url(#yk-green) !important;opacity:.13}
+.contact-section .footer-signature img{filter:url(#yk-green) !important}
