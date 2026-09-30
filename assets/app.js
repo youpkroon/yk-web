@@ -1,10 +1,11 @@
 document.getElementById('year').textContent=new Date().getFullYear();
 /* Section identity lines follow scroll continuously. */
 (()=>{
-  const items=[...document.querySelectorAll('.section-id-row')].map(row=>({
-    row,
-    brand:row.querySelector('.section-brand')
-  })).filter(item=>item.brand);
+  const items=[...document.querySelectorAll('.section-id-row')].map(row=>{
+    const brand=row.querySelector('.section-brand');
+    const content=row.closest('.cap-head, .workshop-head, .work-head, .about-copy, .contact-copy') || row;
+    return {row,brand,content};
+  }).filter(item=>item.brand);
 
   if(!items.length)return;
 
@@ -23,8 +24,8 @@ document.getElementById('year').textContent=new Date().getFullYear();
     const fullRadius=vh*.10;
     const outerRadius=vh*.72;
 
-    items.forEach(({row,brand})=>{
-      const rect=row.getBoundingClientRect();
+    items.forEach(({content,brand})=>{
+      const rect=content.getBoundingClientRect();
       const y=rect.top+(rect.height*.5);
       const distance=Math.abs(y-peak);
 
