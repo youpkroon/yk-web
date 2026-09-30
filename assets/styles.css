@@ -1294,141 +1294,143 @@ body.is-scrolled .hero .topbar{
 
 
 /* =========================================================
-   NAV ICON OPTICAL ALIGNMENT
-   Shared icon frame + small per-icon corrections.
+   NAV FINAL ALIGNMENT
+   One fixed icon row + one fixed text row.
+   Text is never stretched or compressed.
    ========================================================= */
 .hero .nav{
-  display:grid;
-  grid-template-columns:repeat(5,minmax(0,1fr));
-  align-items:end;
-  gap:28px;
+  display:grid !important;
+  grid-template-columns:repeat(5,minmax(92px,1fr)) !important;
+  align-items:end !important;
+  gap:clamp(22px,2.2vw,38px) !important;
 }
 
 .hero .nav .nav-item{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:flex-end;
-  gap:10px;
-  text-align:center;
-  min-width:0;
+  display:grid !important;
+  grid-template-rows:60px 16px !important;
+  row-gap:8px !important;
+  align-items:end !important;
+  justify-items:center !important;
+  min-width:0 !important;
+  min-height:84px !important;
+  padding:0 4px 7px !important;
+  text-align:center !important;
 }
 
-.hero .nav .nav-symbol{
-  width:92px !important;
-  height:56px !important;
+/* Use the same physical frame for every icon.
+   Item-specific selectors intentionally beat older legacy rules. */
+.hero .nav .nav-item--about .nav-symbol,
+.hero .nav .nav-item--capabilities .nav-symbol,
+.hero .nav .nav-item--workshop .nav-symbol,
+.hero .nav .nav-item--work .nav-symbol,
+.hero .nav .nav-item--contact .nav-symbol{
+  width:84px !important;
+  height:60px !important;
   display:flex !important;
-  align-items:center !important;
+  align-items:flex-end !important;
   justify-content:center !important;
   overflow:visible !important;
-  flex:0 0 auto;
+  margin:0 !important;
 }
 
-.hero .nav .nav-symbol img{
+.hero .nav .nav-item .nav-symbol img{
   display:block !important;
   width:auto !important;
   height:auto !important;
   max-width:100% !important;
   max-height:100% !important;
   object-fit:contain !important;
-  transform-origin:center center;
+  transform-origin:center bottom !important;
 }
 
-.hero .nav .nav-label{
-  width:100%;
-  line-height:1;
-  text-align:center;
-  white-space:nowrap;
-}
-
-/* Optical corrections: equal visual weight, not only equal bounding boxes. */
+/* Optical icon balance, based on the actual artwork rather than its canvas. */
 .hero .nav .nav-item--about .nav-symbol img{
-  transform:translateY(1px) scale(.92);
+  transform:translateY(0) scale(.91) !important;
 }
 .hero .nav .nav-item--capabilities .nav-symbol img{
-  transform:translateY(0) scale(1.02);
+  transform:translateY(0) scale(.84) !important;
 }
 .hero .nav .nav-item--workshop .nav-symbol img{
-  transform:translateY(3px) scale(.98);
+  transform:translateY(1px) scale(.91) !important;
 }
 .hero .nav .nav-item--work .nav-symbol img{
-  transform:translateY(2px) scale(.94);
+  transform:translateY(0) scale(.96) !important;
 }
 .hero .nav .nav-item--contact .nav-symbol img{
-  transform:translateY(1px) scale(.90);
+  transform:translateY(0) scale(1.10) !important;
+}
+
+/* Exact same typography for every navigation label. */
+.hero .nav .nav-item .nav-label{
+  display:block !important;
+  width:auto !important;
+  height:16px !important;
+  margin:0 !important;
+  padding:0 !important;
+  font-size:10px !important;
+  font-weight:500 !important;
+  line-height:16px !important;
+  letter-spacing:.13em !important;
+  text-transform:uppercase !important;
+  white-space:nowrap !important;
+  text-align:center !important;
+  transform:none !important;
+}
+
+/* Put all active/hover lines on the same baseline. */
+.hero .nav .nav-item::after{
+  bottom:0 !important;
 }
 
 @media(max-width:1050px){
-  .hero .nav{gap:20px}
-  .hero .nav .nav-symbol{
-    width:80px !important;
-    height:50px !important;
+  .hero .nav{
+    grid-template-columns:repeat(5,minmax(76px,1fr)) !important;
+    gap:16px !important;
+  }
+  .hero .nav .nav-item{
+    grid-template-rows:52px 15px !important;
+    min-height:75px !important;
+    row-gap:7px !important;
+  }
+  .hero .nav .nav-item--about .nav-symbol,
+  .hero .nav .nav-item--capabilities .nav-symbol,
+  .hero .nav .nav-item--workshop .nav-symbol,
+  .hero .nav .nav-item--work .nav-symbol,
+  .hero .nav .nav-item--contact .nav-symbol{
+    width:72px !important;
+    height:52px !important;
+  }
+  .hero .nav .nav-item .nav-label{
+    height:15px !important;
+    font-size:9px !important;
+    line-height:15px !important;
+    letter-spacing:.115em !important;
   }
 }
+
 @media(max-width:700px){
   .hero .nav{
-    grid-template-columns:repeat(5,minmax(0,1fr));
-    gap:10px;
+    grid-template-columns:repeat(5,minmax(0,1fr)) !important;
+    gap:7px !important;
   }
-  .hero .nav .nav-symbol{
-    width:58px !important;
-    height:42px !important;
+  .hero .nav .nav-item{
+    grid-template-rows:38px 12px !important;
+    min-height:59px !important;
+    row-gap:5px !important;
+    padding-inline:0 !important;
   }
-  .hero .nav .nav-label{
-    font-size:8px;
-    letter-spacing:.08em;
+  .hero .nav .nav-item--about .nav-symbol,
+  .hero .nav .nav-item--capabilities .nav-symbol,
+  .hero .nav .nav-item--workshop .nav-symbol,
+  .hero .nav .nav-item--work .nav-symbol,
+  .hero .nav .nav-item--contact .nav-symbol{
+    width:48px !important;
+    height:38px !important;
   }
-}
-
-
-/* =========================================================
-   NAV LABEL OPTICAL BALANCE
-   Keep one typographic family, but normalize perceived word weight.
-   ========================================================= */
-.hero .nav .nav-label{
-  display:block;
-  font-size:10px;
-  font-weight:400;
-  line-height:1;
-  text-transform:uppercase;
-  transform-origin:center center;
-  letter-spacing:var(--label-track,.12em);
-  transform:scaleX(var(--label-scale,1));
-}
-
-/* Short labels get a little more air; long labels are gently compressed. */
-.hero .nav .nav-item--about{
-  --label-track:.15em;
-  --label-scale:1.03;
-}
-.hero .nav .nav-item--capabilities{
-  --label-track:.045em;
-  --label-scale:.88;
-}
-.hero .nav .nav-item--workshop{
-  --label-track:.075em;
-  --label-scale:.94;
-}
-.hero .nav .nav-item--work{
-  --label-track:.18em;
-  --label-scale:1.08;
-}
-.hero .nav .nav-item--contact{
-  --label-track:.105em;
-  --label-scale:.98;
-}
-
-@media(max-width:1050px){
-  .hero .nav .nav-label{font-size:9px}
-}
-@media(max-width:700px){
-  .hero .nav .nav-label{
-    font-size:7.5px;
-    letter-spacing:var(--label-track,.09em);
+  .hero .nav .nav-item .nav-label{
+    height:12px !important;
+    font-size:7px !important;
+    line-height:12px !important;
+    letter-spacing:.07em !important;
   }
-  .hero .nav .nav-item--about{--label-track:.12em;--label-scale:1.02}
-  .hero .nav .nav-item--capabilities{--label-track:.025em;--label-scale:.86}
-  .hero .nav .nav-item--workshop{--label-track:.055em;--label-scale:.93}
-  .hero .nav .nav-item--work{--label-track:.15em;--label-scale:1.06}
-  .hero .nav .nav-item--contact{--label-track:.08em;--label-scale:.97}
 }
