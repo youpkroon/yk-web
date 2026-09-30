@@ -1451,3 +1451,48 @@ body.is-scrolled .hero .topbar{
     letter-spacing:.045em !important;
   }
 }
+
+
+/* Final nav optical tune */
+.hero .nav .nav-item--capabilities .nav-symbol img{
+  height:31px !important;
+  max-height:31px !important;
+}
+.hero .nav .nav-item--workshop .nav-symbol img{
+  height:37px !important;
+  max-height:37px !important;
+}
+.hero .nav .nav-item--work .nav-symbol img{
+  height:36px !important;
+  max-height:36px !important;
+}
+
+@media(max-width:1180px){
+  .hero .nav .nav-item--capabilities .nav-symbol img{
+    height:27px !important;
+    max-height:27px !important;
+  }
+  .hero .nav .nav-item--workshop .nav-symbol img{
+    height:32px !important;
+    max-height:32px !important;
+  }
+  .hero .nav .nav-item--work .nav-symbol img{
+    height:31px !important;
+    max-height:31px !important;
+  }
+}
+
+@media(max-width:700px){
+  .hero .nav .nav-item--capabilities .nav-symbol img{
+    height:21px !important;
+    max-height:21px !important;
+  }
+  .hero .nav .nav-item--workshop .nav-symbol img{
+    height:25px !important;
+    max-height:25px !important;
+  }
+  .hero .nav .nav-item--work .nav-symbol img{
+    height:24px !important;
+    max-height:24px !important;
+  }
+}
