@@ -1710,3 +1710,110 @@ html.x-motion-ready .section-title[data-x-reveal="letters"][data-in-view="1"] .x
     max-width:760px !important;
   }
 }
+
+
+/* =========================================================
+   SERVICES HEADER COMPOSITION
+   Tags sit under the title; compact supporting copy occupies the right side.
+   ========================================================= */
+.capabilities .cap-head{
+  display:grid !important;
+  grid-template-columns:minmax(0,1.08fr) minmax(320px,.72fr) !important;
+  gap:clamp(56px,6vw,110px) !important;
+  align-items:center !important;
+}
+
+.capabilities .cap-main{
+  min-width:0;
+}
+
+.capabilities .cap-title-tags{
+  justify-content:flex-start !important;
+  max-width:760px !important;
+  margin:18px 0 0 160px;
+  gap:7px !important;
+}
+
+.capabilities .cap-main > .intro{
+  max-width:680px !important;
+  margin:24px 0 0 160px !important;
+}
+
+.capabilities .cap-copy-panel{
+  width:100%;
+  max-width:560px;
+  align-self:center;
+  padding-top:22px;
+  border-top:1px solid rgba(255,255,255,.12);
+}
+
+.capabilities .cap-copy-panel p{
+  margin:0;
+  max-width:540px;
+  color:#9b9da2;
+  font-size:clamp(13px,1vw,15px);
+  line-height:1.62;
+  letter-spacing:-.01em;
+}
+
+.capabilities .cap-copy-tags{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin-top:20px;
+}
+
+.capabilities .cap-copy-tags .pill,
+.capabilities .cap-title-tags .pill{
+  padding:7px 10px;
+  font-size:8px;
+  color:#9b9da2;
+  border-color:rgba(255,255,255,.12);
+  background:rgba(255,255,255,.015);
+}
+
+/* Make the existing card tags read as the same visual language. */
+.capabilities .skill-tags span{
+  padding:5px 8px;
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:999px;
+  color:#74777d;
+  background:rgba(255,255,255,.015);
+}
+
+@media(max-width:1180px){
+  .capabilities .cap-head{
+    grid-template-columns:minmax(0,1fr) minmax(280px,.62fr) !important;
+    gap:42px !important;
+  }
+  .capabilities .cap-title-tags,
+  .capabilities .cap-main > .intro{
+    margin-left:132px !important;
+  }
+}
+
+@media(max-width:900px){
+  .capabilities .cap-head{
+    grid-template-columns:1fr !important;
+    gap:34px !important;
+  }
+  .capabilities .cap-title-tags,
+  .capabilities .cap-main > .intro{
+    margin-left:0 !important;
+  }
+  .capabilities .cap-copy-panel{
+    max-width:680px;
+  }
+}
+
+@media(max-width:700px){
+  .capabilities .cap-title-tags{
+    margin-top:16px !important;
+  }
+  .capabilities .cap-main > .intro{
+    margin-top:20px !important;
+  }
+  .capabilities .cap-copy-panel{
+    padding-top:18px;
+  }
+}
