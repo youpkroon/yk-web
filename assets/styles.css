@@ -1252,15 +1252,15 @@ body.is-scrolled .hero .topbar{
 /* =========================================================
    SECTION LINE PALETTE
    Color is used only for the underline. Logos keep their original artwork.
-   white → blue → red → orange/red → dark yellow → green
+   white → blue → muted plum → warm orange → ochre → sage green
    ========================================================= */
 :root{
   --line-home:#f3f1ea;
-  --line-about:#31596d;
-  --line-capabilities:#9b322a;
-  --line-workshop:#b9530a;
-  --line-work:#8c6a23;
-  --line-contact:#779f7f;
+  --line-about:#4f7186;
+  --line-capabilities:#8b6a82;
+  --line-workshop:#d07a32;
+  --line-work:#aa914f;
+  --line-contact:#78967c;
 }
 
 /* Home underline */
