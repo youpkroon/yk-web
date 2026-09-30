@@ -1379,3 +1379,56 @@ body.is-scrolled .hero .topbar{
     letter-spacing:.08em;
   }
 }
+
+
+/* =========================================================
+   NAV LABEL OPTICAL BALANCE
+   Keep one typographic family, but normalize perceived word weight.
+   ========================================================= */
+.hero .nav .nav-label{
+  display:block;
+  font-size:10px;
+  font-weight:400;
+  line-height:1;
+  text-transform:uppercase;
+  transform-origin:center center;
+  letter-spacing:var(--label-track,.12em);
+  transform:scaleX(var(--label-scale,1));
+}
+
+/* Short labels get a little more air; long labels are gently compressed. */
+.hero .nav .nav-item--about{
+  --label-track:.15em;
+  --label-scale:1.03;
+}
+.hero .nav .nav-item--capabilities{
+  --label-track:.045em;
+  --label-scale:.88;
+}
+.hero .nav .nav-item--workshop{
+  --label-track:.075em;
+  --label-scale:.94;
+}
+.hero .nav .nav-item--work{
+  --label-track:.18em;
+  --label-scale:1.08;
+}
+.hero .nav .nav-item--contact{
+  --label-track:.105em;
+  --label-scale:.98;
+}
+
+@media(max-width:1050px){
+  .hero .nav .nav-label{font-size:9px}
+}
+@media(max-width:700px){
+  .hero .nav .nav-label{
+    font-size:7.5px;
+    letter-spacing:var(--label-track,.09em);
+  }
+  .hero .nav .nav-item--about{--label-track:.12em;--label-scale:1.02}
+  .hero .nav .nav-item--capabilities{--label-track:.025em;--label-scale:.86}
+  .hero .nav .nav-item--workshop{--label-track:.055em;--label-scale:.93}
+  .hero .nav .nav-item--work{--label-track:.15em;--label-scale:1.06}
+  .hero .nav .nav-item--contact{--label-track:.08em;--label-scale:.97}
+}
