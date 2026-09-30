@@ -1666,3 +1666,47 @@ html.x-motion-ready .section-title[data-x-reveal="letters"][data-in-view="1"] .x
     transition:none !important;
   }
 }
+
+
+/* =========================================================
+   SECTION COPY ALIGNMENT V2
+   Keep logo/title untouched; give the descriptive copy a wider,
+   calmer reading area beside the identity block.
+   ========================================================= */
+@media(min-width:901px){
+  /* Services: only refine the intro spacing/measure. */
+  .capabilities .cap-head > div:first-child > .intro{
+    max-width:720px;
+    margin-top:24px;
+  }
+
+  /* Workshop + Projects: fixed identity/title zone, flexible copy zone. */
+  .workshop-head,
+  .work-head{
+    grid-template-columns:minmax(560px,620px) minmax(0,1fr) !important;
+    gap:clamp(48px,4.5vw,88px) !important;
+    align-items:center !important;
+    justify-content:stretch !important;
+  }
+
+  .workshop-section .intro,
+  .work-overview .intro{
+    width:100% !important;
+    max-width:1080px !important;
+    margin:0 !important;
+    align-self:center;
+  }
+}
+
+@media(min-width:901px) and (max-width:1180px){
+  .workshop-head,
+  .work-head{
+    grid-template-columns:minmax(430px,500px) minmax(0,1fr) !important;
+    gap:36px !important;
+  }
+
+  .workshop-section .intro,
+  .work-overview .intro{
+    max-width:760px !important;
+  }
+}
