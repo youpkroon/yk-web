@@ -1,70 +1,85 @@
 document.getElementById('year').textContent=new Date().getFullYear();
-/* Section identity underline follows the full header/content block.
-   It reaches full length when that composition is centered in the viewport,
-   then shrinks smoothly again as the section passes. */
+/* Stable section identity underline controller.
+   Independent from Projects and other section animations. */
 (()=>{
-  const rows=[...document.querySelectorAll('.section-id-row')];
-  if(!rows.length)return;
+  const init=()=>{
+    const rows=[...document.querySelectorAll('.section-id-row')];
+    if(!rows.length)return;
 
-  const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  const resolveContent=row=>{
-    const section=row.closest('section');
-    if(!section)return row;
-    if(section.id==='capabilities')return section.querySelector('.cap-head')||row;
-    if(section.id==='workshop')return section.querySelector('.workshop-head')||row;
-    if(section.id==='work')return section.querySelector('.work-head')||row;
-    if(section.id==='about')return section.querySelector('.about-copy')||row;
-    if(section.id==='contact')return section.querySelector('.contact-copy')||row;
-    return row;
-  };
-
-  const items=rows.map(row=>({
-    brand:row.querySelector('.section-brand'),
-    content:resolveContent(row)
-  })).filter(item=>item.brand);
-
-  if(reduce){
-    items.forEach(({brand})=>brand.style.setProperty('--line-progress','1'));
-    return;
-  }
-
-  let raf=0;
-
-  const sync=()=>{
-    raf=0;
-    const vh=Math.max(1,window.innerHeight);
-    const viewportCenter=vh*.5;
-    const plateau=vh*.075;
-    const fadeDistance=vh*.62;
-
-    items.forEach(({brand,content})=>{
-      const rect=content.getBoundingClientRect();
-      const contentCenter=rect.top+rect.height*.5;
-      const d=Math.abs(contentCenter-viewportCenter);
-
-      let t;
-      if(d<=plateau){
-        t=1;
-      }else{
-        t=1-((d-plateau)/(fadeDistance-plateau));
-        t=Math.max(0,Math.min(1,t));
+    const resolveContent=row=>{
+      const section=row.closest('section');
+      if(!section)return row;
+      switch(section.id){
+        case 'capabilities': return section.querySelector('.cap-head')||row;
+        case 'workshop': return section.querySelector('.workshop-head')||row;
+        case 'work': return section.querySelector('.work-head')||row;
+        case 'about': return section.querySelector('.about-copy')||row;
+        case 'contact': return section.querySelector('.contact-copy')||row;
+        default: return row;
       }
+    };
 
-      const eased=t*t*(3-2*t);
-      const progress=.055+.945*eased;
-      brand.style.setProperty('--line-progress',progress.toFixed(4));
-    });
+    const items=rows.map(row=>({
+      row,
+      content:resolveContent(row)
+    }));
+
+    if(reduce){
+      items.forEach(({row})=>row.style.setProperty('--line-progress','1'));
+      return;
+    }
+
+    let raf=0;
+
+    const sync=()=>{
+      raf=0;
+      const vh=Math.max(1,window.innerHeight);
+      const viewportCenter=vh*.50;
+      const fullZone=vh*.08;
+      const fadeZone=vh*.64;
+
+      for(const {row,content} of items){
+        const rect=content.getBoundingClientRect();
+        const center=rect.top+rect.height*.5;
+        const distance=Math.abs(center-viewportCenter);
+
+        let t=1;
+        if(distance>fullZone){
+          t=1-((distance-fullZone)/(fadeZone-fullZone));
+          t=Math.max(0,Math.min(1,t));
+        }
+
+        const eased=t*t*(3-2*t);
+        const progress=.055+.945*eased;
+        row.style.setProperty('--line-progress',progress.toFixed(4));
+      }
+    };
+
+    const requestSync=()=>{
+      if(raf)return;
+      raf=requestAnimationFrame(sync);
+    };
+
+    sync();
+    window.addEventListener('scroll',requestSync,{passive:true});
+    window.addEventListener('resize',requestSync,{passive:true});
+    window.addEventListener('load',requestSync,{once:true});
+
+    if('ResizeObserver' in window){
+      const ro=new ResizeObserver(requestSync);
+      items.forEach(({content})=>ro.observe(content));
+    }
+
+    document.fonts?.ready?.then(requestSync).catch(()=>{});
   };
 
-  const requestSync=()=>{
-    if(raf)return;
-    raf=requestAnimationFrame(sync);
-  };
-
-  sync();
-  addEventListener('scroll',requestSync,{passive:true});
-  addEventListener('resize',requestSync,{passive:true});
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',init,{once:true});
+  }else{
+    init();
+  }
 })();
 
 (function(){

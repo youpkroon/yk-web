@@ -1811,136 +1811,43 @@ html.x-motion-ready .section-title[data-x-reveal="letters"][data-in-view="1"] .x
   }
 }
 
+
 /* =========================================================
-   SECTION IDENTITY LINE — TRUE SCROLL SCALE
-   Small before the section, full around the visual center,
-   then gradually small again after passing it.
+   SECTION IDENTITY LINES — SINGLE SOURCE OF TRUTH
+   JS writes --line-progress on .section-id-row.
    ========================================================= */
-.section-id-row .section-brand{
-  --line-progress:.07;
+.section-id-row{
+  --line-progress:.055;
 }
 
 .section-id-row .section-brand::after{
-  transform:scaleX(var(--line-progress)) !important;
+  transform:scaleX(var(--line-progress,.055)) !important;
   transform-origin:left center !important;
-  opacity:calc(.20 + (var(--line-progress) * .80));
+  opacity:calc(.18 + (var(--line-progress,.055) * .82)) !important;
   transition:none !important;
+  animation:none !important;
   will-change:transform,opacity;
 }
 
-@media(prefers-reduced-motion:reduce){
-  .section-id-row .section-brand{
-    --line-progress:1;
-  }
-  .section-id-row .section-brand::after{
-    transform:scaleX(1) !important;
-    opacity:1 !important;
-  }
-}
-
-
-/* =========================================================
-   FINAL SECTION ACCENTS + CONTENT-CENTERED SCROLL LINES
-   ========================================================= */
-
-/* Explicit final color ownership. These intentionally override legacy rules. */
+/* Final accent ownership. */
 .hero .nav .nav-item--workshop{
   --nav-accent:#1FA86B !important;
 }
 .hero .nav .nav-item--contact{
   --nav-accent:#EF4553 !important;
 }
-.workshop-section .section-id-row--workshop .section-brand::after{
+.section-id-row--workshop .section-brand::after{
   background:#1FA86B !important;
 }
-.contact-section .section-id-row--contact .section-brand::after,
+.section-id-row--contact .section-brand::after,
 .contact-section .section-brand--contact::after{
   background:#EF4553 !important;
 }
 
-/* Base/fallback value. */
-.section-id-row .section-brand{
-  --line-progress:.06;
-}
-.section-id-row .section-brand::after{
-  transform:scaleX(var(--line-progress)) !important;
-  transform-origin:left center !important;
-  opacity:calc(.18 + (var(--line-progress) * .82));
-  transition:none !important;
-}
-
-/* The entire header/content composition drives the line.
-   50% view progress is where the line is fully extended. */
-@supports (animation-timeline: view()){
-  .cap-head,
-  .workshop-head,
-  .work-head,
-  .about-copy,
-  .contact-copy{
-    view-timeline-name:--yk-section-content;
-    view-timeline-axis:block;
-  }
-
-  .section-id-row .section-brand::after{
-    animation-name:ykSectionLinePulse !important;
-    animation-duration:1ms !important;
-    animation-timing-function:linear !important;
-    animation-fill-mode:both !important;
-    animation-timeline:--yk-section-content !important;
-    animation-range:entry 0% exit 100% !important;
-  }
-
-  @keyframes ykSectionLinePulse{
-    0%{
-      transform:scaleX(.06);
-      opacity:.20;
-    }
-    44%{
-      transform:scaleX(.90);
-      opacity:.92;
-    }
-    50%{
-      transform:scaleX(1);
-      opacity:1;
-    }
-    56%{
-      transform:scaleX(.90);
-      opacity:.92;
-    }
-    100%{
-      transform:scaleX(.06);
-      opacity:.20;
-    }
-  }
-}
-
 @media(prefers-reduced-motion:reduce){
-  .section-id-row .section-brand::after{
-    animation:none !important;
-    transform:scaleX(1) !important;
-    opacity:1 !important;
+  .section-id-row{
+    --line-progress:1;
   }
-}
-
-
-/* =========================================================
-   STABLE SCROLL-DRIVEN SECTION LINES
-   JS owns --line-progress; no CSS view-timeline competes with it.
-   ========================================================= */
-.section-id-row .section-brand{
-  --line-progress:.055;
-}
-.section-id-row .section-brand::after{
-  animation:none !important;
-  animation-timeline:auto !important;
-  transform:scaleX(var(--line-progress)) !important;
-  transform-origin:left center !important;
-  opacity:calc(.18 + (var(--line-progress) * .82)) !important;
-  transition:none !important;
-  will-change:transform,opacity;
-}
-
-@media(prefers-reduced-motion:reduce){
   .section-id-row .section-brand::after{
     transform:scaleX(1) !important;
     opacity:1 !important;
