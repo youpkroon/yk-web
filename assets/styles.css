@@ -1291,3 +1291,91 @@ body.is-scrolled .hero .topbar{
 .contact-main-mark{
   filter:none !important;
 }
+
+
+/* =========================================================
+   NAV ICON OPTICAL ALIGNMENT
+   Shared icon frame + small per-icon corrections.
+   ========================================================= */
+.hero .nav{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  align-items:end;
+  gap:28px;
+}
+
+.hero .nav .nav-item{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-end;
+  gap:10px;
+  text-align:center;
+  min-width:0;
+}
+
+.hero .nav .nav-symbol{
+  width:92px !important;
+  height:56px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  overflow:visible !important;
+  flex:0 0 auto;
+}
+
+.hero .nav .nav-symbol img{
+  display:block !important;
+  width:auto !important;
+  height:auto !important;
+  max-width:100% !important;
+  max-height:100% !important;
+  object-fit:contain !important;
+  transform-origin:center center;
+}
+
+.hero .nav .nav-label{
+  width:100%;
+  line-height:1;
+  text-align:center;
+  white-space:nowrap;
+}
+
+/* Optical corrections: equal visual weight, not only equal bounding boxes. */
+.hero .nav .nav-item--about .nav-symbol img{
+  transform:translateY(1px) scale(.92);
+}
+.hero .nav .nav-item--capabilities .nav-symbol img{
+  transform:translateY(0) scale(1.02);
+}
+.hero .nav .nav-item--workshop .nav-symbol img{
+  transform:translateY(3px) scale(.98);
+}
+.hero .nav .nav-item--work .nav-symbol img{
+  transform:translateY(2px) scale(.94);
+}
+.hero .nav .nav-item--contact .nav-symbol img{
+  transform:translateY(1px) scale(.90);
+}
+
+@media(max-width:1050px){
+  .hero .nav{gap:20px}
+  .hero .nav .nav-symbol{
+    width:80px !important;
+    height:50px !important;
+  }
+}
+@media(max-width:700px){
+  .hero .nav{
+    grid-template-columns:repeat(5,minmax(0,1fr));
+    gap:10px;
+  }
+  .hero .nav .nav-symbol{
+    width:58px !important;
+    height:42px !important;
+  }
+  .hero .nav .nav-label{
+    font-size:8px;
+    letter-spacing:.08em;
+  }
+}
