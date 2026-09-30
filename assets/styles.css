@@ -1637,3 +1637,32 @@ html.x-motion-ready .section-title[data-x-reveal="letters"][data-in-view="1"] .x
     rotate:0deg !important;
   }
 }
+
+
+/* =========================================================
+   SECTION IDENTITY LINE REVEAL
+   Large section underlines grow in as their identity enters the viewport
+   and retract again as it leaves, echoing the navigation hover lines.
+   ========================================================= */
+.section-id-row .section-brand::after{
+  transform:scaleX(0) !important;
+  transform-origin:left center !important;
+  opacity:.12;
+  transition:
+    transform .82s cubic-bezier(.16,1,.3,1),
+    opacity .42s ease !important;
+  will-change:transform,opacity;
+}
+
+.section-id-row.is-line-visible .section-brand::after{
+  transform:scaleX(1) !important;
+  opacity:1;
+}
+
+@media(prefers-reduced-motion:reduce){
+  .section-id-row .section-brand::after{
+    transform:scaleX(1) !important;
+    opacity:1 !important;
+    transition:none !important;
+  }
+}

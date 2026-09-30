@@ -932,3 +932,27 @@ document.getElementById('year').textContent=new Date().getFullYear();
 
   targets.forEach(el=>observer.observe(el));
 })();
+
+
+/* Section identity underline reveal on scroll. */
+(()=>{
+  const rows=[...document.querySelectorAll('.section-id-row')];
+  if(!rows.length)return;
+
+  const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce){
+    rows.forEach(row=>row.classList.add('is-line-visible'));
+    return;
+  }
+
+  const observer=new IntersectionObserver(entries=>{
+    entries.forEach(entry=>{
+      entry.target.classList.toggle('is-line-visible',entry.isIntersecting);
+    });
+  },{
+    threshold:.05,
+    rootMargin:'-8% 0px -20% 0px'
+  });
+
+  rows.forEach(row=>observer.observe(row));
+})();
