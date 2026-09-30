@@ -1252,15 +1252,15 @@ body.is-scrolled .hero .topbar{
 /* =========================================================
    SECTION LINE PALETTE
    Color is used only for the underline. Logos keep their original artwork.
-   white → #779F7F → #B9530A → #435A4D → #2A3B41 → #202226
+   white → blue → purple → red → orange → green
    ========================================================= */
 :root{
   --line-home:#f3f1ea;
-  --line-about:#779f7f;
-  --line-capabilities:#b9530a;
-  --line-workshop:#435a4d;
-  --line-work:#2a3b41;
-  --line-contact:#202226;
+  --line-about:#2457ff;
+  --line-capabilities:#9b4dff;
+  --line-workshop:#ef4553;
+  --line-work:#ff8a1f;
+  --line-contact:#1fa86b;
 }
 
 /* Home underline */
@@ -1282,3 +1282,12 @@ body.is-scrolled .hero .topbar{
 
 /* Contact V4 has a stronger selector, so keep its underline green too. */
 .contact-section .section-brand--contact::after{background:var(--line-contact) !important}
+
+/* Source logo artwork should remain unfiltered. */
+.contact-section .section-brand--contact img,
+.hero .nav .nav-item--contact .nav-symbol img,
+.hero .nav .nav-item--workshop .nav-symbol img,
+.section-id-row--workshop .section-brand img,
+.contact-main-mark{
+  filter:none !important;
+}

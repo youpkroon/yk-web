@@ -1,32 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="-45 -55 520 440" role="img" aria-labelledby="title desc">
-  <title id="title">YK contact mark</title>
-  <desc id="desc">YK monogram with a single notification dot at the upper left.</desc>
-  <defs>
-    <linearGradient id="face" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#ffffff"/>
-      <stop offset=".58" stop-color="#f8fafc"/>
-      <stop offset="1" stop-color="#dbe2ea"/>
-    </linearGradient>
-    <filter id="shadow" x="-25%" y="-25%" width="165%" height="175%">
-      <feDropShadow dx="0" dy="7" stdDeviation="6" flood-color="#030507" flood-opacity=".32"/>
-    </filter>
-  </defs>
-  <g filter="url(#shadow)">
-    <circle cx="18" cy="-10" r="23" fill="#aeb8c4" opacity=".38" transform="translate(5 7)"/>
-    <circle cx="18" cy="-10" r="23" fill="url(#face)"/>
-    <g transform="translate(5 7)" fill="#aeb8c4" opacity=".38">
-      <path d="M267 201 L250 224 L250 227 L321 337 L355 337 Z"/>
-      <path d="M304 150 L287 174 L391 336 L426 337 Z"/>
-      <path d="M344 8 L318 8 L193 203 L193 337 L221 337 L221 205 Z"/>
-      <path d="M73 8 L177 169 L281 9 L255 9 L177 129 L99 8 Z"/>
-      <path d="M11 8 L134 206 L133 336 L162 337 L162 203 L36 8 Z"/>
-    </g>
-    <g fill="url(#face)">
-      <path d="M267 201 L250 224 L250 227 L321 337 L355 337 Z"/>
-      <path d="M304 150 L287 174 L391 336 L426 337 Z"/>
-      <path d="M344 8 L318 8 L193 203 L193 337 L221 337 L221 205 Z"/>
-      <path d="M73 8 L177 169 L281 9 L255 9 L177 129 L99 8 Z"/>
-      <path d="M11 8 L134 206 L133 336 L162 337 L162 203 L36 8 Z"/>
-    </g>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 675" role="img" aria-label="YK contact zero point mark">
+<defs>
+  <linearGradient id="face" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#ffffff"/>
+    <stop offset="0.62" stop-color="#fafafa"/>
+    <stop offset="1" stop-color="#e4e7eb"/>
+  </linearGradient>
+</defs>
+<g fill-rule="evenodd">
+  <path d="M 465 405 L 437 442 L 437 448 L 546 618 L 557 633 L 564 635 L 618 635 L 620 629 L 616 621 L 483 415 L 476 410 L 471 403 Z M 528 318 L 501 354 L 500 361 L 667 621 L 676 633 L 683 635 L 737 635 L 739 633 L 739 628 L 551 335 L 534 316 Z M 821 121 L 823 123 L 823 131 L 812 152 L 798 164 L 789 168 L 782 168 L 780 165 L 780 124 L 783 121 Z M 600 78 L 561 77 L 554 78 L 550 81 L 341 406 L 341 631 L 343 633 L 355 636 L 392 636 L 397 634 L 400 629 L 400 418 L 402 411 L 602 88 L 599 81 Z M 141 79 L 145 89 L 314 350 L 319 351 L 323 348 L 327 349 L 332 345 L 497 88 L 494 81 L 495 78 L 456 77 L 449 78 L 445 81 L 325 268 L 318 273 L 198 88 L 187 78 L 151 77 Z M 36 79 L 36 82 L 240 411 L 241 631 L 255 636 L 295 635 L 300 629 L 299 409 L 93 88 L 82 78 L 77 77 Z M 766 68 L 769 71 L 770 79 L 769 114 L 767 116 L 729 115 L 727 113 L 727 106 L 737 86 L 750 74 L 762 68 Z M 736 43 L 721 52 L 710 62 L 698 79 L 691 97 L 689 108 L 689 126 L 693 144 L 707 169 L 720 182 L 740 194 L 767 201 L 785 201 L 805 197 L 817 192 L 832 182 L 843 171 L 854 153 L 859 138 L 861 124 L 860 107 L 856 92 L 842 68 L 820 49 L 801 40 L 784 36 L 760 36 Z" fill="#cbd0d6" opacity="0.72"/>
+  <path d="M 470 403 L 441 442 L 440 446 L 561 633 L 618 633 Z M 533 317 L 503 359 L 675 627 L 680 633 L 737 633 L 729 618 L 555 348 Z M 774 170 L 774 118 L 823 117 L 827 123 L 827 131 L 818 150 L 807 161 L 793 169 L 781 172 Z M 600 78 L 556 79 L 345 406 L 346 633 L 394 632 L 394 411 Z M 144 78 L 151 92 L 319 351 L 495 79 L 451 79 L 329 269 L 322 277 L 317 279 L 187 78 Z M 39 78 L 50 99 L 244 411 L 245 632 L 293 633 L 294 407 L 83 79 Z M 768 63 L 773 71 L 774 116 L 721 117 L 719 115 L 721 101 L 730 84 L 747 69 L 759 64 Z M 762 37 L 735 46 L 723 54 L 711 66 L 704 76 L 696 94 L 693 108 L 693 127 L 696 141 L 703 157 L 713 171 L 725 182 L 738 190 L 755 196 L 767 198 L 788 197 L 815 187 L 825 180 L 840 164 L 848 150 L 853 135 L 855 120 L 854 105 L 851 92 L 843 75 L 835 64 L 822 52 L 795 39 L 785 37 Z" fill="url(#face)"/>
+  <path d="M 470 404 L 444 439 L 441 446 L 561 632 L 618 632 Z M 534 317 L 504 359 L 680 632 L 737 632 Z M 599 79 L 556 80 L 346 406 L 346 632 L 393 632 L 393 411 Z M 144 79 L 319 350 L 494 80 L 451 80 L 326 275 L 319 283 L 188 80 Z M 39 79 L 246 411 L 246 632 L 293 632 L 293 406 L 83 80 Z M 760 63 L 773 62 L 775 65 L 775 116 L 825 116 L 829 118 L 828 131 L 819 150 L 801 166 L 785 172 L 775 173 L 773 171 L 773 118 L 720 118 L 718 116 L 721 99 L 730 83 L 744 70 Z M 767 37 L 751 40 L 733 48 L 724 54 L 711 67 L 702 81 L 696 97 L 694 126 L 696 137 L 704 157 L 716 173 L 725 181 L 750 194 L 764 197 L 783 197 L 794 195 L 812 188 L 824 180 L 837 167 L 846 153 L 851 140 L 854 125 L 854 109 L 851 94 L 843 76 L 825 55 L 815 48 L 797 40 L 781 37 Z" fill="#ffffff" opacity="0.82"/>
+</g>
 </svg>
