@@ -1496,3 +1496,15 @@ body.is-scrolled .hero .topbar{
     max-height:24px !important;
   }
 }
+
+
+/* Final nav baseline correction */
+.hero .nav .nav-item--capabilities .nav-symbol img{
+  transform:translateY(1px) !important;
+}
+.hero .nav .nav-item--workshop .nav-symbol img{
+  transform:translateY(-3px) !important;
+}
+.hero .nav .nav-item--work .nav-symbol img{
+  transform:translateY(-2px) !important;
+}
