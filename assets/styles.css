@@ -1640,79 +1640,6 @@ html.x-motion-ready .section-title[data-x-reveal="letters"][data-in-view="1"] .x
 
 
 /* =========================================================
-   SECTION IDENTITY LINE REVEAL
-   Large section underlines grow in as their identity enters the viewport
-   and retract again as it leaves, echoing the navigation hover lines.
-   ========================================================= */
-.section-id-row .section-brand::after{
-  transform:scaleX(0) !important;
-  transform-origin:left center !important;
-  opacity:.12;
-  transition:
-    transform .82s cubic-bezier(.16,1,.3,1),
-    opacity .42s ease !important;
-  will-change:transform,opacity;
-}
-
-.section-id-row.is-line-visible .section-brand::after{
-  transform:scaleX(1) !important;
-  opacity:1;
-}
-
-@media(prefers-reduced-motion:reduce){
-  .section-id-row .section-brand::after{
-    transform:scaleX(1) !important;
-    opacity:1 !important;
-    transition:none !important;
-  }
-}
-
-
-/* =========================================================
-   SECTION COPY ALIGNMENT V2
-   Keep logo/title untouched; give the descriptive copy a wider,
-   calmer reading area beside the identity block.
-   ========================================================= */
-@media(min-width:901px){
-  /* Services: only refine the intro spacing/measure. */
-  .capabilities .cap-head > div:first-child > .intro{
-    max-width:720px;
-    margin-top:24px;
-  }
-
-  /* Workshop + Projects: fixed identity/title zone, flexible copy zone. */
-  .workshop-head,
-  .work-head{
-    grid-template-columns:minmax(560px,620px) minmax(0,1fr) !important;
-    gap:clamp(48px,4.5vw,88px) !important;
-    align-items:center !important;
-    justify-content:stretch !important;
-  }
-
-  .workshop-section .intro,
-  .work-overview .intro{
-    width:100% !important;
-    max-width:1080px !important;
-    margin:0 !important;
-    align-self:center;
-  }
-}
-
-@media(min-width:901px) and (max-width:1180px){
-  .workshop-head,
-  .work-head{
-    grid-template-columns:minmax(430px,500px) minmax(0,1fr) !important;
-    gap:36px !important;
-  }
-
-  .workshop-section .intro,
-  .work-overview .intro{
-    max-width:760px !important;
-  }
-}
-
-
-/* =========================================================
    SERVICES HEADER COMPOSITION
    Tags sit under the title; compact supporting copy occupies the right side.
    ========================================================= */
@@ -1815,5 +1742,90 @@ html.x-motion-ready .section-title[data-x-reveal="letters"][data-in-view="1"] .x
   }
   .capabilities .cap-copy-panel{
     padding-top:18px;
+  }
+}
+
+
+/* =========================================================
+   WIDE SECTION COPY
+   Services, Workshop and Projects only. About + Contact untouched.
+   ========================================================= */
+@media(min-width:901px){
+  /* Workshop + Projects: keep the identity/title in place while allowing
+     the copy to begin sooner and use substantially more horizontal space. */
+  .workshop-head,
+  .work-head{
+    grid-template-columns:minmax(500px,550px) minmax(0,1fr) !important;
+    gap:clamp(28px,2.7vw,52px) !important;
+    align-items:center !important;
+    justify-content:stretch !important;
+  }
+
+  .workshop-section .intro,
+  .work-overview .intro{
+    width:100% !important;
+    max-width:none !important;
+    margin:0 !important;
+    align-self:center !important;
+  }
+
+  /* Services: let the supporting copy occupy the full right-hand field. */
+  .capabilities .cap-head{
+    grid-template-columns:minmax(560px,.86fr) minmax(0,1.14fr) !important;
+    gap:clamp(34px,3.2vw,64px) !important;
+    align-items:center !important;
+  }
+
+  .capabilities .cap-copy-panel{
+    width:100% !important;
+    max-width:none !important;
+  }
+
+  .capabilities .cap-copy-panel p{
+    max-width:900px !important;
+  }
+
+  .capabilities .cap-title-tags{
+    max-width:900px !important;
+  }
+
+  .capabilities .cap-main > .intro{
+    max-width:900px !important;
+  }
+}
+
+@media(min-width:901px) and (max-width:1180px){
+  .workshop-head,
+  .work-head{
+    grid-template-columns:minmax(420px,470px) minmax(0,1fr) !important;
+    gap:28px !important;
+  }
+
+  .capabilities .cap-head{
+    grid-template-columns:minmax(470px,.92fr) minmax(0,1.08fr) !important;
+    gap:30px !important;
+  }
+}
+
+
+/* =========================================================
+   SECTION IDENTITY LINE — SCROLL SCALE
+   Short near viewport edges, full length near the visual center.
+   ========================================================= */
+.section-id-row .section-brand::after{
+  --line-progress:.18;
+  transform:scaleX(var(--line-progress)) !important;
+  transform-origin:left center !important;
+  opacity:calc(.25 + (var(--line-progress) * .75));
+  transition:opacity .12s linear !important;
+  will-change:transform,opacity;
+}
+
+@media(prefers-reduced-motion:reduce){
+  .section-id-row .section-brand::after{
+    --line-progress:1;
+    transform:scaleX(1) !important;
+    opacity:1 !important;
+    transition:none !important;
   }
 }

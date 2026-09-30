@@ -933,26 +933,46 @@ document.getElementById('year').textContent=new Date().getFullYear();
   targets.forEach(el=>observer.observe(el));
 })();
 
-
-/* Section identity underline reveal on scroll. */
+/* Section identity underline length follows scroll position. */
 (()=>{
   const rows=[...document.querySelectorAll('.section-id-row')];
   if(!rows.length)return;
 
   const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(reduce){
-    rows.forEach(row=>row.classList.add('is-line-visible'));
+    rows.forEach(row=>row.style.setProperty('--line-progress','1'));
     return;
   }
 
-  const observer=new IntersectionObserver(entries=>{
-    entries.forEach(entry=>{
-      entry.target.classList.toggle('is-line-visible',entry.isIntersecting);
-    });
-  },{
-    threshold:.05,
-    rootMargin:'-8% 0px -20% 0px'
-  });
+  let ticking=false;
 
-  rows.forEach(row=>observer.observe(row));
+  const update=()=>{
+    ticking=false;
+    const vh=Math.max(1,window.innerHeight);
+    const center=vh*.50;
+    const reach=vh*.62;
+
+    rows.forEach(row=>{
+      const rect=row.getBoundingClientRect();
+      const rowCenter=rect.top+rect.height*.5;
+      const distance=Math.abs(rowCenter-center);
+
+      /* 0.16 at the edges, 1.0 around the middle of the viewport. */
+      const normalized=Math.max(0,Math.min(1,1-(distance/reach)));
+      const eased=normalized*normalized*(3-2*normalized);
+      const progress=.16+(.84*eased);
+
+      row.style.setProperty('--line-progress',progress.toFixed(3));
+    });
+  };
+
+  const requestUpdate=()=>{
+    if(ticking)return;
+    ticking=true;
+    requestAnimationFrame(update);
+  };
+
+  update();
+  addEventListener('scroll',requestUpdate,{passive:true});
+  addEventListener('resize',requestUpdate,{passive:true});
 })();
