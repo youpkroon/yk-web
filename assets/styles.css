@@ -1,6 +1,6 @@
 :root{
   --bg:#f4f4f0;--ink:#111214;--muted:#6e7075;--line:rgba(17,18,20,.13);
-  --dark:#0c0d0f;--dark2:#141518;--light:#f7f7f3;--accent:#f04452;
+  --dark:#0c0d0f;--light:#f7f7f3;--accent:#f04452;
   --pad:clamp(20px,4.2vw,72px);--radius:22px;--max:1600px;
 }
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,Helvetica,sans-serif;-webkit-font-smoothing:antialiased}a{color:inherit;text-decoration:none}img,video{display:block;max-width:100%}.wrap{width:min(100%,var(--max));margin:auto;padding-inline:var(--pad)}
@@ -40,7 +40,7 @@
   .foot{flex-direction:column;align-items:flex-start;gap:20px}
 }
 
-/* Scroll-build motion system: horizontal type + objects assembling from off-screen */
+/* Shared page motion + hero entrance */
 html,body{overflow-x:hidden}
 
 .section-title:after,.contact h2:after{content:"";display:block;width:0;height:1px;margin-top:clamp(18px,2vw,28px);background:currentColor;opacity:.18;transition:width 1.05s cubic-bezier(.16,1,.3,1) .18s}
@@ -64,7 +64,6 @@ html,body{overflow-x:hidden}
 .hero-copy{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:clamp(32px,5vw,88px);bottom:clamp(38px,5vw,78px)}
 .hero h1.hero-title{font-size:clamp(36px,4.9vw,80px);font-weight:400;letter-spacing:-.055em;line-height:1.02;max-width:1100px;min-width:0}
 .hero-title .hero-name{font-size:1.38em;font-weight:500;letter-spacing:-.065em;line-height:1.05}
-.hero-title .hero-discipline{font-size:1em;font-weight:400}
 .hero .hero-meta{position:relative;margin:0 0 6px;padding-top:20px;max-width:none;min-width:200px;letter-spacing:-.025em;text-transform:none;text-align:left;font-size:clamp(17px,1.48vw,23px);font-weight:400;line-height:1.32;color:#f4f4f0}
 .hero-meta:before{content:"";display:block;position:absolute;top:0;left:0;width:46px;height:1px;background:rgba(255,255,255,.55)}
 .hero-meta-line{display:block;white-space:nowrap}
@@ -76,7 +75,6 @@ html,body{overflow-x:hidden}
 .section-brand--capabilities{width:110px;height:70px}
 .section-brand--workshop{width:88px;height:75px}
 .section-brand--work{width:96px;height:80px}
-/* Section marks join the existing section reveal but need no expensive blur. */
 .about-copy .intro{margin-top:36px}
 .footer-signature{display:flex;gap:22px;align-items:center}
 .footer-signature img{width:32px;height:auto;flex:none}
@@ -94,7 +92,6 @@ html,body{overflow-x:hidden}
   .hero-copy{gap:28px;bottom:36px}
   .hero h1.hero-title{font-size:clamp(26px,7.8vw,46px);letter-spacing:-.05em}
   .hero-title .hero-name{font-size:1.55em}
-  .hero-title .slide-clip:first-child{margin-bottom:.24em}
   .hero .hero-meta{font-size:16px;line-height:1.35}
   .section-brand{margin-bottom:23px}
   .section-brand--about{width:70px;height:62px}
@@ -739,7 +736,7 @@ body.is-scrolled .hero .topbar{
 }
 
 /* =========================================================
-   CONTACT V4 — rebuilt to match the YK visual system
+   CONTACT — YK visual system
    ========================================================= */
 .contact.contact-section{
   position:relative;
@@ -788,7 +785,6 @@ body.is-scrolled .hero .topbar{
   width:100% !important;
   height:4px !important;
   bottom:-10px !important;
-  background:#ff6a00 !important;
 }
 .contact-section .section-brand--contact img{
   display:block;
@@ -1206,7 +1202,7 @@ body.is-scrolled .hero .topbar{
 
 
 /* =========================================================
-   WORK TILE MORPH V7 — slot aligned vertical units
+   PROJECT TILE MORPH — slot aligned vertical units
    ========================================================= */
 .project-gallery.has-two-bubbles .project-tile.is-bubble-hero{
   box-shadow:0 22px 58px rgba(0,0,0,.29);
@@ -1704,7 +1700,7 @@ html.x-motion-ready .section-title[data-x-reveal="letters"][data-in-view="1"] .x
 
 
 /* =========================================================
-   WIDE SECTION COPY V2
+   WIDE SECTION COPY
    Services, Workshop and Projects only. About + Contact untouched.
    ========================================================= */
 .capabilities .cap-copy-panel{

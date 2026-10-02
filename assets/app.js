@@ -434,7 +434,7 @@ document.getElementById('year').textContent=new Date().getFullYear();
 })();
 
 
-/* Work gallery slot-coupled bubble morph V7.
+/* Work gallery slot-coupled bubble morph.
    Each vertical card keeps its source-row slot. The crossed row opens only at a
    real boundary between two cards, then translates both row segments so that
    the resulting gap is centered exactly on the vertical card. */
@@ -1008,4 +1008,3 @@ document.getElementById('year').textContent=new Date().getFullYear();
 
   targets.forEach(el=>observer.observe(el));
 })();
-
