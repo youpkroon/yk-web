@@ -1009,28 +1009,3 @@ document.getElementById('year').textContent=new Date().getFullYear();
   targets.forEach(el=>observer.observe(el));
 })();
 
-
-
-/* FAQ accordion */
-(()=>{
-  const section=document.querySelector('.faq-section');
-  if(!section)return;
-
-  const items=[...section.querySelectorAll('.faq-item')];
-
-  const setOpen=(item,open)=>{
-    const button=item.querySelector('.faq-question');
-    const answer=item.querySelector('.faq-answer');
-    item.classList.toggle('is-open',open);
-    button?.setAttribute('aria-expanded',open?'true':'false');
-    answer?.setAttribute('aria-hidden',open?'false':'true');
-  };
-
-  items.forEach(item=>{
-    item.querySelector('.faq-question')?.addEventListener('click',()=>{
-      const willOpen=!item.classList.contains('is-open');
-      items.forEach(other=>setOpen(other,false));
-      if(willOpen)setOpen(item,true);
-    });
-  });
-})();
