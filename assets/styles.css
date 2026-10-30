@@ -2306,3 +2306,114 @@ html.x-motion-ready .section-title[data-x-reveal="letters"][data-in-view="1"] .x
     margin:0 !important;
   }
 }
+
+
+/* =========================================================
+   TYPOGRAPHY SYSTEM — single source of truth
+   ========================================================= */
+:root{
+  --font-primary:Arial,Helvetica,sans-serif;
+  --weight-regular:400;
+  --weight-medium:500;
+  --tracking-display:-.035em;
+  --tracking-body:-.01em;
+  --tracking-label:.11em;
+}
+
+html,
+body,
+button,
+input,
+textarea,
+select{
+  font-family:var(--font-primary) !important;
+}
+
+body{
+  font-weight:var(--weight-regular);
+  font-synthesis:none;
+  text-rendering:optimizeLegibility;
+}
+
+h1,h2,h3,h4,h5,h6,
+strong,
+.section-title,
+.skill h3,
+.service-card h3,
+.work-card strong,
+.contact-main-link strong{
+  font-family:var(--font-primary) !important;
+  font-synthesis:none;
+}
+
+/* Major section headings use one treatment everywhere. */
+.section-id-row > .section-title,
+.services-id > .section-title{
+  font-family:var(--font-primary) !important;
+  font-weight:var(--weight-medium) !important;
+  font-size:clamp(28px,2.35vw,38px) !important;
+  line-height:1.08 !important;
+  letter-spacing:var(--tracking-display) !important;
+}
+
+/* Skills and Services cards use identical title/body typography. */
+.capabilities .skill h3,
+.capabilities .service-card h3{
+  font-family:var(--font-primary) !important;
+  font-size:clamp(19px,1.55vw,27px) !important;
+  line-height:1.08 !important;
+  letter-spacing:var(--tracking-display) !important;
+  font-weight:var(--weight-medium) !important;
+}
+
+.capabilities .skill p,
+.capabilities .service-card p{
+  font-family:var(--font-primary) !important;
+  font-size:12.5px !important;
+  line-height:1.5 !important;
+  letter-spacing:var(--tracking-body) !important;
+  font-weight:var(--weight-regular) !important;
+}
+
+/* Main section copy shares the same weight/tracking. */
+.intro,
+.cap-copy-panel p,
+.contact-section .contact-intro,
+.work-overview .intro{
+  font-family:var(--font-primary) !important;
+  font-weight:var(--weight-regular) !important;
+  letter-spacing:var(--tracking-body) !important;
+}
+
+/* Small UI labels and tags use one uppercase treatment. */
+.eyebrow,
+.nav-label,
+.skill-num,
+.skill-tags span,
+.pill,
+.image-note,
+.work-card small,
+.foot,
+.contact-meta,
+.contact-main-label{
+  font-family:var(--font-primary) !important;
+  font-weight:var(--weight-medium) !important;
+  letter-spacing:var(--tracking-label);
+}
+
+/* Keep the paired Skills / Services copy at the same typographic scale. */
+#capabilities .cap-copy-panel p,
+#capabilities .services-head > .intro{
+  font-size:clamp(15px,1.12vw,18px) !important;
+  line-height:1.62 !important;
+  letter-spacing:var(--tracking-body) !important;
+  font-weight:var(--weight-regular) !important;
+}
+
+@media(max-width:700px){
+  .section-id-row > .section-title,
+  .services-id > .section-title{
+    font-size:clamp(22px,6vw,28px) !important;
+    line-height:1.08 !important;
+  }
+}
