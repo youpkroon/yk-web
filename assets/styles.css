@@ -2130,19 +2130,34 @@ html.x-motion-ready .section-title[data-x-reveal="letters"][data-in-view="1"] .x
 }
 
 
-/* Services vertical balance: cards closer to the identity, copy slightly lower. */
+/* =========================================================
+   SERVICES ORDER — cards first, mirrored identity below
+   ========================================================= */
+#capabilities .services-block{
+  margin-top:clamp(24px,2.8vw,42px) !important;
+  padding-top:0 !important;
+  border-top:0 !important;
+}
+
+#capabilities .services-block > .service-grid{
+  margin-top:0 !important;
+}
+
+#capabilities .services-block > .services-head{
+  margin-top:clamp(56px,6vw,88px) !important;
+}
+
 @media(min-width:901px){
   #capabilities .services-head > .intro{
-    transform:translateY(46px) !important;
-  }
-
-  #capabilities .service-grid{
-    margin-top:clamp(22px,2.4vw,36px) !important;
+    transform:none !important;
   }
 }
 
 @media(max-width:900px){
-  #capabilities .services-head > .intro{
-    transform:none !important;
+  #capabilities .services-block{
+    margin-top:28px !important;
+  }
+  #capabilities .services-block > .services-head{
+    margin-top:46px !important;
   }
 }
