@@ -2236,3 +2236,73 @@ html.x-motion-ready .section-title[data-x-reveal="letters"][data-in-view="1"] .x
     width:390px !important;
   }
 }
+
+
+/* =========================================================
+   SKILLS HEADER — exact mirror rhythm of Services
+   Compact identity left, full-width copy right.
+   ========================================================= */
+@media(min-width:1181px){
+  #capabilities .cap-head{
+    display:flex !important;
+    flex-direction:row !important;
+    align-items:center !important;
+    gap:clamp(46px,4vw,68px) !important;
+    width:100% !important;
+  }
+
+  #capabilities .cap-main{
+    flex:0 0 clamp(390px,29vw,470px) !important;
+    width:clamp(390px,29vw,470px) !important;
+    min-width:0 !important;
+  }
+
+  #capabilities .cap-copy-panel{
+    display:block !important;
+    flex:1 1 auto !important;
+    width:auto !important;
+    min-width:0 !important;
+    max-width:none !important;
+    margin:0 !important;
+    padding:0 !important;
+    border-top:0 !important;
+  }
+
+  #capabilities .cap-copy-panel p{
+    width:100% !important;
+    max-width:none !important;
+    margin:0 !important;
+  }
+}
+
+@media(min-width:901px) and (max-width:1180px){
+  #capabilities .cap-head{
+    display:flex !important;
+    flex-direction:row !important;
+    align-items:center !important;
+    gap:32px !important;
+    width:100% !important;
+  }
+
+  #capabilities .cap-main{
+    flex:0 0 390px !important;
+    width:390px !important;
+    min-width:0 !important;
+  }
+
+  #capabilities .cap-copy-panel{
+    flex:1 1 auto !important;
+    width:auto !important;
+    min-width:0 !important;
+    max-width:none !important;
+    margin:0 !important;
+    padding:0 !important;
+    border-top:0 !important;
+  }
+
+  #capabilities .cap-copy-panel p{
+    width:100% !important;
+    max-width:none !important;
+    margin:0 !important;
+  }
+}
