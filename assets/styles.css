@@ -2161,3 +2161,10 @@ html.x-motion-ready .section-title[data-x-reveal="letters"][data-in-view="1"] .x
     margin-top:46px !important;
   }
 }
+
+
+/* Skills intro after removing the duplicate top-level tag row. */
+.capabilities .cap-main > .intro{
+  margin-top:clamp(26px,2.2vw,34px) !important;
+  max-width:760px !important;
+}
