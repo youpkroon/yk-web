@@ -2050,3 +2050,81 @@ html.x-motion-ready .section-title[data-x-reveal="letters"][data-in-view="1"] .x
     padding-top:58px;
   }
 }
+
+
+/* =========================================================
+   FINAL SERVICES MIRROR
+   Keep this as the last layout authority for the Services header.
+   ========================================================= */
+@media(min-width:901px){
+  #capabilities .services-block{
+    border-top:0 !important;
+    padding-top:0 !important;
+  }
+
+  #capabilities .services-head{
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) minmax(650px,720px) !important;
+    gap:clamp(20px,2vw,36px) !important;
+    align-items:center !important;
+  }
+
+  #capabilities .services-head > .intro{
+    grid-column:1 !important;
+    grid-row:1 !important;
+    width:100% !important;
+    max-width:none !important;
+    margin:0 !important;
+  }
+
+  #capabilities .services-main{
+    grid-column:2 !important;
+    grid-row:1 !important;
+    min-width:0 !important;
+  }
+
+  #capabilities .services-id{
+    display:flex !important;
+    flex-direction:row !important;
+    justify-content:flex-end !important;
+    align-items:flex-start !important;
+    gap:28px !important;
+    width:100% !important;
+  }
+
+  #capabilities .services-id > .section-title{
+    order:1 !important;
+    margin:26px 0 0 !important;
+    text-align:right !important;
+    flex:1 1 auto !important;
+  }
+
+  #capabilities .services-id > .section-id-mark{
+    order:2 !important;
+    flex:0 0 132px !important;
+    width:132px !important;
+    align-items:flex-end !important;
+    text-align:right !important;
+  }
+
+  #capabilities .services-id .section-brand{
+    margin-left:auto !important;
+    margin-right:0 !important;
+  }
+
+  #capabilities .services-id .section-brand img{
+    object-position:right bottom !important;
+  }
+
+  #capabilities .services-id .eyebrow{
+    justify-content:flex-end !important;
+    text-align:right !important;
+    width:100% !important;
+  }
+}
+
+@media(min-width:901px) and (max-width:1180px){
+  #capabilities .services-head{
+    grid-template-columns:minmax(0,1fr) minmax(520px,590px) !important;
+  }
+}
