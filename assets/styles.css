@@ -2128,3 +2128,21 @@ html.x-motion-ready .section-title[data-x-reveal="letters"][data-in-view="1"] .x
     grid-template-columns:minmax(0,1fr) minmax(520px,590px) !important;
   }
 }
+
+
+/* Services vertical balance: cards closer to the identity, copy slightly lower. */
+@media(min-width:901px){
+  #capabilities .services-head > .intro{
+    transform:translateY(46px) !important;
+  }
+
+  #capabilities .service-grid{
+    margin-top:clamp(22px,2.4vw,36px) !important;
+  }
+}
+
+@media(max-width:900px){
+  #capabilities .services-head > .intro{
+    transform:none !important;
+  }
+}
