@@ -951,13 +951,17 @@ document.getElementById('year').textContent=new Date().getFullYear();
     '--x-from-y':'0px'
   });
 
-  /* Physical workshop content within Skills & Services. */
-  addTarget(document.querySelector('#capabilities .skills-services-workshop .intro'),'small-rise',120,{
-    '--x-from-y':'70px'
+  /* Services: same card language as Skills, introduced as a second block. */
+  addTarget(document.querySelector('#capabilities .services-head .intro'),'small-rise',120,{
+    '--x-from-y':'54px'
   });
-  document.querySelectorAll('#capabilities .skills-services-workshop .work-card').forEach((el,i)=>{
-    addTarget(el,'bottom-card',i*100,{
-      '--x-from-y':'150px'
+  document.querySelectorAll('#capabilities .service-card').forEach((el,i)=>{
+    const [x,y,scale,rot]=scatter[(i+4)%scatter.length];
+    addTarget(el,'assemble',120+i*110,{
+      '--x-from-x':x,
+      '--x-from-y':y,
+      '--x-from-scale':scale,
+      '--x-from-rot':rot
     });
   });
 

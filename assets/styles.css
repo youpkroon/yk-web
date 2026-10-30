@@ -1496,7 +1496,8 @@ html.x-motion-ready [data-x-reveal="small-rise"][data-in-view="1"]{
 }
 
 /* Services: controlled scatter / assemble. */
-html.x-motion-ready .skill[data-x-reveal="assemble"]{
+html.x-motion-ready .skill[data-x-reveal="assemble"],
+html.x-motion-ready .service-card[data-x-reveal="assemble"]{
   opacity:0;
   translate:var(--x-from-x,0px) var(--x-from-y,0px);
   scale:var(--x-from-scale,.8);
@@ -1504,7 +1505,8 @@ html.x-motion-ready .skill[data-x-reveal="assemble"]{
   will-change:translate,scale,rotate,opacity;
 }
 
-html.x-motion-ready .skill[data-x-reveal="assemble"][data-in-view="1"]{
+html.x-motion-ready .skill[data-x-reveal="assemble"][data-in-view="1"],
+html.x-motion-ready .service-card[data-x-reveal="assemble"][data-in-view="1"]{
   animation:xAssembleCard 1s ease-out var(--x-delay) both;
 }
 
@@ -1529,10 +1531,12 @@ html.x-motion-ready .skill[data-x-reveal="assemble"][data-in-view="1"]{
   }
 }
 
-html.x-motion-ready .skill[data-x-reveal="assemble"] > *{
+html.x-motion-ready .skill[data-x-reveal="assemble"] > *,
+html.x-motion-ready .service-card[data-x-reveal="assemble"] > *{
   opacity:0;
 }
-html.x-motion-ready .skill[data-x-reveal="assemble"][data-in-view="1"] > *{
+html.x-motion-ready .skill[data-x-reveal="assemble"][data-in-view="1"] > *,
+html.x-motion-ready .service-card[data-x-reveal="assemble"][data-in-view="1"] > *{
   animation:xInnerFade .42s ease-out calc(var(--x-delay) + 560ms) both;
 }
 @keyframes xInnerFade{
@@ -1806,7 +1810,7 @@ html.x-motion-ready .section-title[data-x-reveal="letters"][data-in-view="1"] .x
 
 
 /* =========================================================
-   SKILLS & SERVICES — combined digital + physical section
+   SKILLS & SERVICES — two clear blocks, one visual system
    ========================================================= */
 .capabilities{
   --accent:#9B4DFF;
@@ -1815,7 +1819,9 @@ html.x-motion-ready .section-title[data-x-reveal="letters"][data-in-view="1"] .x
     radial-gradient(760px 540px at 8% 88%,rgba(111,67,190,.07),transparent 70%),
     #0b0c0e;
 }
-.capabilities .skill:hover{
+
+.capabilities .skill:hover,
+.capabilities .service-card:hover{
   border-color:rgba(155,77,255,.28);
 }
 .capabilities .skill-num{
@@ -1825,50 +1831,116 @@ html.x-motion-ready .section-title[data-x-reveal="letters"][data-in-view="1"] .x
   background:#9B4DFF;
 }
 
-.skills-services-workshop{
+/* Skills and Services cards deliberately share dimensions and styling. */
+.capabilities .service-grid{
+  width:100%;
+  margin:clamp(58px,6vw,86px) 0 0;
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:14px;
+}
+.capabilities .service-card{
+  min-height:240px;
+  padding:22px 22px 24px;
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:18px;
+  background:#101113;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  transition:transform .28s ease,background .28s ease,border-color .28s ease;
+}
+.capabilities .service-card:hover{
+  transform:translateY(-4px);
+  background:#131416;
+}
+.capabilities .service-card h3{
+  font-size:clamp(19px,1.55vw,27px);
+  margin:0 0 10px;
+  font-weight:500;
+  letter-spacing:-.035em;
+}
+.capabilities .service-card p{
+  color:#8f9297;
+  font-size:12.5px;
+  line-height:1.5;
+  max-width:250px;
+  margin:0;
+}
+.capabilities .service-card .skill-tags{
+  margin-top:18px;
+}
+
+/* Second identity block uses the same logo and purple visual language. */
+.services-block{
   margin-top:clamp(82px,9vw,138px);
   padding-top:clamp(62px,7vw,104px);
   border-top:1px solid rgba(255,255,255,.11);
 }
-.skills-services-workshop-head{
+.services-head{
   display:grid;
-  grid-template-columns:minmax(430px,470px) minmax(0,1fr);
-  gap:clamp(18px,1.9vw,34px);
+  grid-template-columns:minmax(650px,720px) minmax(0,1fr);
+  gap:clamp(20px,2vw,36px);
   align-items:center;
 }
-.skills-services-workshop .eyebrow{
+.services-id .section-id-mark{
+  align-items:flex-start;
+}
+.services-id .section-brand{
+  --line-progress:1;
+}
+.services-id .section-brand::after{
+  background:#9B4DFF !important;
+  transform:scaleX(1) !important;
+  opacity:1 !important;
+}
+.services-id .eyebrow{
   color:#a88bd8;
 }
-.skills-services-workshop .section-title{
+.services-id .section-title{
   color:#f4f1f8;
 }
-.skills-services-workshop .intro{
+.services-head .intro{
   width:100%;
   max-width:none;
   margin:0;
-  align-self:center;
   color:#a8a2b2;
   font-size:clamp(15px,1.12vw,18px);
   line-height:1.62;
 }
-.skills-services-workshop .workshop-grid{
-  margin-top:clamp(46px,5vw,72px);
+
+@media(max-width:1200px){
+  .capabilities .service-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
 }
-.skills-services-workshop .work-card{
-  border-color:rgba(176,137,236,.14);
-  background:rgba(255,255,255,.022);
-  color:#f4f1f8;
+@media(min-width:901px) and (max-width:1180px){
+  .services-head{
+    grid-template-columns:minmax(520px,590px) minmax(0,1fr);
+    gap:24px;
+  }
 }
-.skills-services-workshop .work-card:hover{
-  background:rgba(155,77,255,.075);
-  border-color:rgba(176,137,236,.28);
+@media(max-width:900px){
+  .services-head{
+    grid-template-columns:1fr;
+    gap:34px;
+  }
+  .services-head .intro{
+    max-width:680px;
+  }
 }
-.skills-services-workshop .work-card:before{
-  background:linear-gradient(135deg,transparent 48%,rgba(155,77,255,.075) 48%,rgba(155,77,255,.075) 48.35%,transparent 48.35%);
-}
-.skills-services-workshop .work-card small,
-.skills-services-workshop .image-note{
-  color:#9b86ba;
+@media(max-width:700px){
+  .services-block{
+    margin-top:72px;
+    padding-top:58px;
+  }
+  .capabilities .service-grid{
+    grid-template-columns:1fr;
+    gap:12px;
+  }
+  .capabilities .service-card{
+    min-height:210px;
+  }
 }
 
 /* Projects inherit the former Workshop green identity. */
