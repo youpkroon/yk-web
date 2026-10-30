@@ -13,7 +13,6 @@ document.getElementById('year').textContent=new Date().getFullYear();
       if(!section)return row;
       switch(section.id){
         case 'capabilities': return section.querySelector('.cap-head')||row;
-        case 'workshop': return section.querySelector('.workshop-head')||row;
         case 'work': return section.querySelector('.work-head')||row;
         case 'about': return section.querySelector('.about-copy')||row;
         case 'contact': return section.querySelector('.contact-copy')||row;
@@ -952,11 +951,11 @@ document.getElementById('year').textContent=new Date().getFullYear();
     '--x-from-y':'0px'
   });
 
-  /* Workshop: calmer, mostly vertical rise like X Projects. */
-  addTarget(document.querySelector('#workshop .intro'),'small-rise',120,{
+  /* Physical workshop content within Skills & Services. */
+  addTarget(document.querySelector('#capabilities .skills-services-workshop .intro'),'small-rise',120,{
     '--x-from-y':'70px'
   });
-  document.querySelectorAll('#workshop .work-card').forEach((el,i)=>{
+  document.querySelectorAll('#capabilities .skills-services-workshop .work-card').forEach((el,i)=>{
     addTarget(el,'bottom-card',i*100,{
       '--x-from-y':'150px'
     });

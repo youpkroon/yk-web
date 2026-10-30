@@ -659,7 +659,7 @@ body.is-scrolled .hero .topbar{
 }
 @media(max-width:700px){
   .hero .topbar .logo{width:30px}
-  .hero .nav{grid-template-columns:repeat(5,minmax(0,1fr))}
+  .hero .nav{grid-template-columns:repeat(4,minmax(0,1fr))}
   .hero .nav .nav-item{min-width:0}
   .hero .nav .nav-symbol,
   .hero .nav .nav-item--capabilities .nav-symbol,
@@ -1215,14 +1215,13 @@ body.is-scrolled .hero .topbar{
 /* =========================================================
    SECTION LINE PALETTE
    Color is used only for the underline. Logos keep their original artwork.
-   white → blue → purple → green → orange → red
+   white → blue → purple → green → red
    ========================================================= */
 :root{
   --line-home:#f3f1ea;
   --line-about:#2457ff;
   --line-capabilities:#9b4dff;
-  --line-workshop:#1fa86b;
-  --line-work:#ff8a1f;
+  --line-work:#1fa86b;
   --line-contact:#ef4553;
 }
 
@@ -1232,14 +1231,12 @@ body.is-scrolled .hero .topbar{
 /* Navigation underlines only */
 .hero .nav .nav-item--about{--nav-accent:var(--line-about) !important}
 .hero .nav .nav-item--capabilities{--nav-accent:var(--line-capabilities) !important}
-.hero .nav .nav-item--workshop{--nav-accent:var(--line-workshop) !important}
 .hero .nav .nav-item--work{--nav-accent:var(--line-work) !important}
 .hero .nav .nav-item--contact{--nav-accent:var(--line-contact) !important}
 
 /* Large section-logo underlines only */
 .section-id-row--about .section-brand::after{background:var(--line-about) !important}
 .section-id-row--capabilities .section-brand::after{background:var(--line-capabilities) !important}
-.section-id-row--workshop .section-brand::after{background:var(--line-workshop) !important}
 .section-id-row--work .section-brand::after{background:var(--line-work) !important}
 .section-id-row--contact .section-brand::after{background:var(--line-contact) !important}
 
@@ -1264,7 +1261,7 @@ body.is-scrolled .hero .topbar{
 .hero .nav{
   margin-left:auto !important;
   display:grid !important;
-  grid-template-columns:repeat(5,92px) !important;
+  grid-template-columns:repeat(4,108px) !important;
   justify-content:end !important;
   align-items:start !important;
   gap:18px !important;
@@ -1382,7 +1379,7 @@ body.is-scrolled .hero .topbar{
 @media(max-width:700px){
   .hero .nav{
     flex:1 !important;
-    grid-template-columns:repeat(5,minmax(0,1fr)) !important;
+    grid-template-columns:repeat(4,minmax(0,1fr)) !important;
     gap:3px !important;
     width:100% !important;
   }
@@ -1783,13 +1780,13 @@ html.x-motion-ready .section-title[data-x-reveal="letters"][data-in-view="1"] .x
 }
 
 /* Final accent ownership. */
-.hero .nav .nav-item--workshop{
+.hero .nav .nav-item--work{
   --nav-accent:#1FA86B !important;
 }
 .hero .nav .nav-item--contact{
   --nav-accent:#EF4553 !important;
 }
-.section-id-row--workshop .section-brand::after{
+.section-id-row--work .section-brand::after{
   background:#1FA86B !important;
 }
 .section-id-row--contact .section-brand::after,
@@ -1804,5 +1801,121 @@ html.x-motion-ready .section-title[data-x-reveal="letters"][data-in-view="1"] .x
   .section-id-row .section-brand::after{
     transform:scaleX(1) !important;
     opacity:1 !important;
+  }
+}
+
+
+/* =========================================================
+   SKILLS & SERVICES — combined digital + physical section
+   ========================================================= */
+.capabilities{
+  --accent:#9B4DFF;
+  background:
+    radial-gradient(980px 700px at 92% 12%,rgba(155,77,255,.12),transparent 68%),
+    radial-gradient(760px 540px at 8% 88%,rgba(111,67,190,.07),transparent 70%),
+    #0b0c0e;
+}
+.capabilities .skill:hover{
+  border-color:rgba(155,77,255,.28);
+}
+.capabilities .skill-num{
+  color:#9B4DFF;
+}
+.capabilities .skill-dot{
+  background:#9B4DFF;
+}
+
+.skills-services-workshop{
+  margin-top:clamp(82px,9vw,138px);
+  padding-top:clamp(62px,7vw,104px);
+  border-top:1px solid rgba(255,255,255,.11);
+}
+.skills-services-workshop-head{
+  display:grid;
+  grid-template-columns:minmax(430px,470px) minmax(0,1fr);
+  gap:clamp(18px,1.9vw,34px);
+  align-items:center;
+}
+.skills-services-workshop .eyebrow{
+  color:#a88bd8;
+}
+.skills-services-workshop .section-title{
+  color:#f4f1f8;
+}
+.skills-services-workshop .intro{
+  width:100%;
+  max-width:none;
+  margin:0;
+  align-self:center;
+  color:#a8a2b2;
+  font-size:clamp(15px,1.12vw,18px);
+  line-height:1.62;
+}
+.skills-services-workshop .workshop-grid{
+  margin-top:clamp(46px,5vw,72px);
+}
+.skills-services-workshop .work-card{
+  border-color:rgba(176,137,236,.14);
+  background:rgba(255,255,255,.022);
+  color:#f4f1f8;
+}
+.skills-services-workshop .work-card:hover{
+  background:rgba(155,77,255,.075);
+  border-color:rgba(176,137,236,.28);
+}
+.skills-services-workshop .work-card:before{
+  background:linear-gradient(135deg,transparent 48%,rgba(155,77,255,.075) 48%,rgba(155,77,255,.075) 48.35%,transparent 48.35%);
+}
+.skills-services-workshop .work-card small,
+.skills-services-workshop .image-note{
+  color:#9b86ba;
+}
+
+/* Projects inherit the former Workshop green identity. */
+.project-streams-section{
+  background:
+    radial-gradient(980px 640px at 92% 18%,rgba(31,168,107,.15),transparent 70%),
+    linear-gradient(180deg,#07110c 0%,#08100c 55%,#080d0a 100%);
+}
+.work-overview .eyebrow{
+  color:#6fa789;
+}
+.work-overview .intro{
+  color:#93a99d;
+}
+.work-overview .section-id-row--work .section-brand::after{
+  background:#1FA86B !important;
+}
+.project-gallery{
+  background:
+    radial-gradient(900px 560px at 18% 12%,rgba(31,168,107,.085),transparent 70%),
+    #080d0a;
+}
+.project-gallery::before{
+  background:linear-gradient(90deg,#080d0a 0%,rgba(8,13,10,.88) 38%,transparent 100%);
+}
+.project-gallery::after{
+  background:linear-gradient(270deg,#080d0a 0%,rgba(8,13,10,.88) 38%,transparent 100%);
+}
+
+@media(max-width:1180px){
+  .skills-services-workshop-head{
+    grid-template-columns:minmax(390px,430px) minmax(0,1fr);
+    gap:22px;
+  }
+}
+@media(max-width:900px){
+  .skills-services-workshop-head{
+    grid-template-columns:1fr;
+    gap:30px;
+  }
+  .skills-services-workshop .intro{
+    max-width:680px;
+  }
+}
+@media(max-width:700px){
+  .skills-services-workshop{
+    margin-top:72px;
+    padding-top:58px;
   }
 }
