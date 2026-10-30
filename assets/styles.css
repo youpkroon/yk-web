@@ -2168,3 +2168,19 @@ html.x-motion-ready .section-title[data-x-reveal="letters"][data-in-view="1"] .x
   margin-top:clamp(26px,2.2vw,34px) !important;
   max-width:760px !important;
 }
+
+
+/* Services copy width: wider left column, compact mirrored identity on the right. */
+@media(min-width:1181px){
+  #capabilities .services-head{
+    grid-template-columns:minmax(0,1.75fr) minmax(430px,500px) !important;
+    gap:clamp(42px,4vw,72px) !important;
+  }
+}
+
+@media(min-width:901px) and (max-width:1180px){
+  #capabilities .services-head{
+    grid-template-columns:minmax(0,1.4fr) minmax(390px,450px) !important;
+    gap:32px !important;
+  }
+}
